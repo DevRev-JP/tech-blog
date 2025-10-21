@@ -3,7 +3,7 @@ title: "ナレッジグラフ入門"
 emoji: "🧠"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["knowledgegraph", "graphdatabase", "rdf", "データ基盤", "生成ai"]
-published: false
+published: true
 ---
 
 生成 AI が普及する中で、「AI は本当に理解しているのか？」という問いが生まれています。  
