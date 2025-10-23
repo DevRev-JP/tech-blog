@@ -3,7 +3,7 @@ title: "OpenAIの『日本経済ブループリント』を読む──日本が
 emoji: "🧭"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["OpenAI", "AI経済", "ナレッジグラフ", "生成AI", "学習するAI"]
-published: false
+published: true
 ---
 
 # OpenAI の『日本経済ブループリント』を読む：日本が AI で世界をリードするために必要な構造とは
