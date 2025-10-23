@@ -2,7 +2,7 @@
 title: "「GenAI Divide」とナレッジグラフ──生成AIが成果を出せない理由と、その先にある学習するAI"
 emoji: "🧠"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["knowledgegraph", "genai", "llm", "生成ai", "データ基盤"]
+topics: ["ナレッジグラフ", "生成AI", "LLM", "AI経済", "データ基盤"]
 published: true
 ---
 

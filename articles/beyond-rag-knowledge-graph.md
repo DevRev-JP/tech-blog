@@ -2,7 +2,7 @@
 title: "RAGを超える知識統合──ナレッジグラフで“つながる推論”を実現する"
 emoji: "🕸️"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["rag", "graphrag", "knowledgegraph", "llm", "データ基盤", "生成ai"]
+topics: ["RAG", "ナレッジグラフ", "生成AI", "LLM", "データ基盤"]
 published: true
 ---
 
