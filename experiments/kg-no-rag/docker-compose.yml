@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  neo4j:
+    image: neo4j:5
+    container_name: neo4j-kgnr
+    ports: ["7474:7474", "7687:7687"]
+    environment:
+      NEO4J_AUTH: neo4j/password
+    volumes:
+      - neo4j_data:/data
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-rag
+    ports: ["6333:6333"]
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  api:
+    image: python:3.11-slim
+    container_name: api-compare
+    depends_on:
+      neo4j:
+        condition: service_started
+      qdrant:
+        condition: service_started
+    working_dir: /app
+    ports: ["8000:8000"]
+    volumes: ["./app:/app"]
+    environment:
+      DOCS_FILE: ${DOCS_FILE:-docs.jsonl}
+    command: >
+      sh -c "pip install -q fastapi uvicorn[standard] neo4j qdrant-client sentence-transformers huggingface-hub==0.17.3
+      && python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  neo4j_data:
+  qdrant_storage:

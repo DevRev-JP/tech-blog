@@ -1,0 +1,7 @@
+[
+  { "id":"Q1-集合", "category":"simple", "ask":"Acme が提供する全ユニークな機能は？", "expected":["Realtime Query","Semantic Index"], "scale_note":"✅両方成功。5件でも50件でも正確" },
+  { "id":"Q2-差分", "category":"scale_dependent", "ask":"Acme Search と Globex Graph の機能の違いは？", "expected_only_a":["Realtime Query"], "expected_only_b":["Policy Audit"], "scale_note":"❌RAG失敗。集合差分はベクトル検索に不向き" },
+  { "id":"Q3-経路", "category":"scale_stable", "ask":"Globex Graph を規制するポリシーは？", "expected":["POL-002"], "scale_note":"❌RAG失敗。グラフ経路の間接関係を見落とす" },
+  { "id":"Q4-否定", "category":"scale_stable", "ask":"Semantic Index を持たない機能は？", "expected":["Policy Audit","Realtime Query"], "scale_note":"❌RAG失敗。論理的否定条件が曖昧" },
+  { "id":"Q5-交差", "category":"kg_exclusive", "ask":"AcmeとGlobexの共通機能は？", "expected":["Semantic Index"], "scale_note":"✅両方成功。小規模では両方取得可能" }
+]
