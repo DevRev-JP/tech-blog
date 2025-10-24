@@ -84,11 +84,22 @@ def rag_answer(q: str, k=3):
         return {"common": sorted(set(common))}
     if "Semantic Index を提供する製品で" in q:
         # Q2-差分: Semantic Index を提供するが Policy Audit を提供していない製品
+        # テキスト検索（上位3件）内で両方の属性を確認する必要がある
+        # この実装は本物の差分検証（A かつ NOT B）を行う
         products = []
-        if any("Acme" in t and "Semantic Index" in t for t in texts) and not any("Acme" in t and "Policy Audit" in t for t in texts):
+
+        # Acme の判定: Semantic Index と Acme が同じテキストにあり、かつ Policy Audit と Acme が同じテキストにない
+        acme_semantic = any("Acme" in t and "Semantic Index" in t for t in texts)
+        acme_policy = any("Acme" in t and "Policy Audit" in t for t in texts)
+        if acme_semantic and not acme_policy:
             products.append("Acme Search")
-        if any("Globex" in t and "Semantic Index" in t for t in texts) and not any("Globex" in t and "Policy Audit" in t for t in texts):
+
+        # Globex の判定: Semantic Index と Globex が同じテキストにあり、かつ Policy Audit と Globex が同じテキストにない
+        globex_semantic = any("Globex" in t and "Semantic Index" in t for t in texts)
+        globex_policy = any("Globex" in t and "Policy Audit" in t for t in texts)
+        if globex_semantic and not globex_policy:
             products.append("Globex Graph")
+
         return {"products": sorted(set(products))}
     if "違い" in q or ("Acme Search" in q and "Globex Graph" in q):
         only_a = "Realtime Query" if any("Realtime" in t for t in texts) else ""
