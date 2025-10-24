@@ -63,6 +63,24 @@ curl -s http://localhost:8000/eval | jq '.summary'
 ./switch-dataset.sh compare
 ```
 
+### 質問の動的更新（コンテナ再起動不要）
+
+#### 現在の質問セットを確認
+```bash
+curl -s http://localhost:8000/questions | jq '.'
+```
+
+#### 特定の質問を更新
+```bash
+# Q2-差分 の質問を変更
+curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_question=新しい質問文"
+
+# その後、テストを実行
+curl -s http://localhost:8000/eval | jq '.summary'
+```
+
+**利点**: 質問文を変更しても **コンテナ再起動不要**。API で動的に questions.json を読み込む
+
 ## 📝 評価項目の詳細
 
 ### Q1-集合: Acme が提供する全ユニークな機能は？

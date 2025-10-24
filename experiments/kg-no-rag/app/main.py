@@ -31,6 +31,13 @@ def kg_answer(q: str):
                     RETURN collect(DISTINCT f.name) AS common"""
             res = s.run(cy).data()
             return {"type":"intersection", "rows": res if res else [{"common":[]}]}
+        if "Semantic Index を提供する製品で" in q:
+            # Q2-差分: Semantic Index を提供するが Policy Audit を提供していない製品
+            cy = """MATCH (p:Product)-[:HAS_FEATURE]->(f1:Feature {name:'Semantic Index'})
+                    WHERE NOT EXISTS { (p)-[:HAS_FEATURE]->(:Feature {name:'Policy Audit'}) }
+                    RETURN collect(DISTINCT p.name) AS products"""
+            res = s.run(cy).data()
+            return {"type":"diff", "rows": res if res else [{"products":[]}]}
         if "違い" in q or ("Acme Search" in q and "Globex Graph" in q):
             cy = """MATCH (p1:Product {name:'Acme Search'})-[:HAS_FEATURE]->(f:Feature)
                     WITH collect(DISTINCT f.name) AS features_a
@@ -75,6 +82,14 @@ def rag_answer(q: str, k=3):
         if any("Acme" in t and "Semantic Index" in t for t in texts) and any("Globex" in t and "Semantic Index" in t for t in texts):
             common.append("Semantic Index")
         return {"common": sorted(set(common))}
+    if "Semantic Index を提供する製品で" in q:
+        # Q2-差分: Semantic Index を提供するが Policy Audit を提供していない製品
+        products = []
+        if any("Acme" in t and "Semantic Index" in t for t in texts) and not any("Acme" in t and "Policy Audit" in t for t in texts):
+            products.append("Acme Search")
+        if any("Globex" in t and "Semantic Index" in t for t in texts) and not any("Globex" in t and "Policy Audit" in t for t in texts):
+            products.append("Globex Graph")
+        return {"products": sorted(set(products))}
     if "違い" in q or ("Acme Search" in q and "Globex Graph" in q):
         only_a = "Realtime Query" if any("Realtime" in t for t in texts) else ""
         only_b = "Policy Audit" if any("Policy Audit" in t for t in texts) else ""
@@ -102,7 +117,9 @@ def ask_rag(q: str): return rag_answer(q)
 
 @app.get("/eval")
 def eval_all():
-    qs = json.load(open("questions.json"))
+    # 毎回 questions.json を読み込む（動的変更に対応）
+    with open("questions.json") as f:
+        qs = json.load(f)
     res=[]; ok_rag=ok_kg=0
     by_category={"simple":{"kg":0,"rag":0,"total":0},"scale_dependent":{"kg":0,"rag":0,"total":0},"scale_stable":{"kg":0,"rag":0,"total":0},"kg_exclusive":{"kg":0,"rag":0,"total":0}}
 
@@ -116,10 +133,9 @@ def eval_all():
             vr=(set(rag.get("features",[]))==exp)
             vk=(set(kg_result.get("features",[]))==exp)
         elif it["id"]=="Q2-差分":
-            expA=set(it["expected_only_a"])
-            expB=set(it["expected_only_b"])
-            vr=(set(rag.get("only_in_a",[]))==expA and set(rag.get("only_in_b",[]))==expB)
-            vk=(set(kg_result.get("only_in_a",[]))==expA and set(kg_result.get("only_in_b",[]))==expB)
+            exp=set(it["expected"])
+            vr=(set(rag.get("products",[]))==exp)
+            vk=(set(kg_result.get("products",[]))==exp)
         elif it["id"]=="Q3-経路":
             exp=set(it["expected"])
             vr=(set(rag.get("policies",[]))==exp)
@@ -200,3 +216,37 @@ def switch_dataset(file: str):
 def get_dataset():
     """現在のデータセット情報を取得"""
     return current_dataset
+
+@app.get("/questions")
+def get_questions():
+    """現在の評価用質問セットを取得"""
+    with open("questions.json") as f:
+        return json.load(f)
+
+@app.post("/update-question")
+def update_question(question_id: str, new_question: str):
+    """特定の質問を更新（コンテナ再起動なしで動的変更可能）
+
+    使い方:
+    - curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_question=新しい質問文"
+    """
+    try:
+        with open("questions.json") as f:
+            questions = json.load(f)
+
+        # 該当する質問を検索して更新
+        for q in questions:
+            if q["id"] == question_id:
+                q["ask"] = new_question
+                # ファイルに保存
+                with open("questions.json", "w") as f:
+                    json.dump(questions, f, indent=2, ensure_ascii=False)
+                return {
+                    "status": "success",
+                    "message": f"Updated {question_id}",
+                    "question": q
+                }
+
+        return {"error": f"Question {question_id} not found"}
+    except Exception as e:
+        return {"error": str(e)}
