@@ -41,85 +41,33 @@ RAG（ベクタ検索）を使わず、**ナレッジグラフだけで論理的
 
 ---
 
-## 2. 試験用の小さな“真実”ドメイン
+## 2. 実験環境の構成
 
-- ノード：`Company`、`Product`、`Feature`、`Policy`
-- 関係：`BUILDS`、`HAS_FEATURE`、`REGULATES`、`DEPENDS_ON`
-- 意味問合せの型：**集合**（一覧）、**対比**（差分）、**経路**（到達/依存）、**否定**（除外）、**カウント**（個数）
+本実験は Docker コンテナで動作し、以下が起動します：
 
----
+- **Neo4j 5** — ナレッジグラフ（Property Graph）
+- **Qdrant** — ベクトル DB（RAG のベースライン）
+- **FastAPI** — 比較用 API
 
-## 3. 叩けば動く構成（docker-compose + 初期データ）
+詳細なセットアップ手順、試験データセット（5 項目版・50 項目版）、試験問いについては、GitHub の実装ガイドを参照してください。
 
-プロジェクト任意ディレクトリで以下を作成します。
+> **→ [実装ガイド: experiments/kg-no-rag/README.md](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/kg-no-rag)**
 
-**`docker-compose.yml`**
+このガイドには以下が含まれます：
 
-```yaml
-version: "3.9"
-services:
-  neo4j:
-    image: neo4j:5
-    container_name: neo4j-kgnr
-    ports: ["7474:7474", "7687:7687"]
-    environment:
-      NEO4J_AUTH: neo4j/password
-    volumes:
-      - neo4j_data:/data
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: qdrant-rag
-    ports: ["6333:6333"]
-    volumes:
-      - qdrant_storage:/qdrant/storage
-
-  api:
-    image: python:3.11-slim
-    container_name: api-compare
-    depends_on:
-      neo4j:
-        condition: service_started
-      qdrant:
-        condition: service_started
-    working_dir: /app
-    ports: ["8000:8000"]
-    volumes: ["./app:/app"]
-    environment:
-      DOCS_FILE: ${DOCS_FILE:-docs.jsonl}
-    command: >
-      sh -c "pip install -q fastapi uvicorn[standard] neo4j qdrant-client sentence-transformers huggingface-hub==0.17.3
-      && python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-volumes:
-  neo4j_data:
-  qdrant_storage:
-```
-
-
-続いて、`app/` ディレクトリを作り、初期データと API スクリプトを配置します。
+- グラフ構造と試験データの詳細説明
+- 5つの試験問い（集合・差分・経路・否定・交差）
+- クイックスタートコマンド
+- API エンドポイントの使い方
+- 50項目データセットによるスケール依存性の実証
 
 ---
 
-## 4. 実行と動作確認
+## 3. 実行結果の概要
 
-### 小規模版（5項目）で基本動作を確認
+ローカルで実行すると、以下の結果が得られます。
 
-```bash
-docker compose down -v
-docker compose up --detach
-sleep 45
-
-# 評価実行
-curl -s http://localhost:8000/eval | jq '.'
-```
-
-**期待される結果（KG: 5/5, RAG: 2/5）**
+### 5 項目版
 
 ```json
 {
@@ -128,29 +76,13 @@ curl -s http://localhost:8000/eval | jq '.'
     "kg_total": 5,
     "rag_correct": 2,
     "rag_total": 5
-  },
-  "cases": [
-    { "id": "Q1-集合", "rag_ok": true, "kg_ok": true },
-    { "id": "Q2-差分", "rag_ok": false, "kg_ok": true },
-    { "id": "Q3-経路", "rag_ok": false, "kg_ok": true },
-    { "id": "Q4-否定", "rag_ok": false, "kg_ok": true },
-    { "id": "Q5-交差", "rag_ok": true, "kg_ok": true }
-  ]
+  }
 }
 ```
 
-### 大規模版（50項目）でスケール依存性を実証
+**解釈**: KG は全問正解。RAG は集合・交差のみ正解。
 
-```bash
-docker compose down -v
-export DOCS_FILE=docs-50.jsonl
-docker compose up --detach
-sleep 45
-
-curl -s http://localhost:8000/eval | jq '.'
-```
-
-**期待される結果（KG: 5/5, RAG: 0/5）**
+### 50 項目版
 
 ```json
 {
@@ -159,20 +91,15 @@ curl -s http://localhost:8000/eval | jq '.'
     "kg_total": 5,
     "rag_correct": 0,
     "rag_total": 5
-  },
-  "cases": [
-    { "id": "Q1-集合", "rag_ok": false, "kg_ok": true },
-    { "id": "Q2-差分", "rag_ok": false, "kg_ok": true },
-    { "id": "Q3-経路", "rag_ok": false, "kg_ok": true },
-    { "id": "Q4-否定", "rag_ok": false, "kg_ok": true },
-    { "id": "Q5-交差", "rag_ok": false, "kg_ok": true }
-  ]
+  }
 }
 ```
 
+**解釈**: KG は相変わらず全問正解。RAG は全滅（ノイズが増えると精度が急落）。
+
 ---
 
-## 5. 結果の解釈
+## 4. 結果の解釈
 
 ### なぜこの差が出たのか
 
