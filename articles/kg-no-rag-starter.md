@@ -84,7 +84,97 @@ RAG は「プロンプト調整」「リランキング」などで精度を上�
 
 ---
 
-## 3. 実行結果の概要
+## 3. 5つの意味問合せ型——KG が得意、RAG が失敗しやすい質問パターン
+
+本実験で検証する5つの質問タイプを具体例で示します。
+
+### Q1-集合（Union） — 「AまたはB に該当するものは？」
+
+```
+Q: "ソフトウェアエンジニアまたはデータサイエンティストは誰ですか？"
+
+KG (Cypher):
+  MATCH (p:Person)-[:hasRole]->(r:Role)
+  WHERE r.name IN ['SoftwareEngineer', 'DataScientist']
+  RETURN p.name
+
+RAG:
+  → ベクトル検索で "エンジニア" "データサイエンティスト" を検索
+  → ノイズが多い場合、関連ドキュメントが多すぎて曖昧
+```
+
+### Q2-差分（Set Difference） — 「A に属するが B には属さない者は？」
+
+```
+Q: "プロジェクトXに参加しているがプロジェクトYには参加していない人は？"
+
+KG (Cypher):
+  MATCH (p:Person)-[:participates]->(px:Project {name: 'X'})
+  WHERE NOT EXISTS { (p)-[:participates]->(:Project {name: 'Y'}) }
+  RETURN p.name
+
+RAG:
+  → 「プロジェクトX」と「プロジェクトY」の差を推論できない
+  → テキスト検索では否定条件を正確に表現不可
+```
+
+### Q3-経路（Path Traversal） — 「A から B へのつながりは？」
+
+```
+Q: "太郎がプロジェクトXを通じて、どの組織につながっているか？"
+
+KG (Cypher):
+  MATCH path = (p:Person {name: '太郎'})-[:participates]->(:Project {name: 'X'})-[:belongsTo]->(org:Organization)
+  RETURN org.name, path
+
+RAG:
+  → 多段階のグラフ構造を追跡できない
+  → テキスト検索は "点" 単位であり、"経路" を辿れない
+```
+
+### Q4-否定（Negation） — 「A ではない条件を満たすのは？」
+
+```
+Q: "東京オフィスに配属されていない従業員は？"
+
+KG (Cypher):
+  MATCH (emp:Employee)
+  WHERE NOT EXISTS { (emp)-[:assignedTo]->(:Office {location: 'Tokyo'}) }
+  RETURN emp.name
+
+RAG:
+  → 「否定」という論理演算子をテキストから推論困難
+  → ベクトル検索は類似度で判定するため、"ない" という条件が曖昧
+```
+
+### Q5-交差（Intersection） — 「A かつ B の両方に属する者は？」
+
+```
+Q: "プロジェクトXにも参加し、かつ管理職でもある人は？"
+
+KG (Cypher):
+  MATCH (p:Person)-[:participates]->(:Project {name: 'X'})
+  MATCH (p)-[:hasRole]->(r:Role {type: 'Manager'})
+  RETURN p.name
+
+RAG:
+  → 複数条件の交差をベクトル検索では不正確
+  → スケール増加時にノイズが増えると精度が急落
+```
+
+### 結果の見え方
+
+| 質問型 | KG | RAG(小規模) | RAG(大規模) | 理由 |
+|------|----|----|----|----|
+| Q1-集合 | ✅ 正確 | ✅ 運良く正確 | ❌ ノイズで失敗 |  ORは明確だが、ノイズに弱い |
+| Q2-差分 | ✅ 正確 | ❌ 失敗 | ❌ 失敗 | テキスト検索は差分操作に不向き |
+| Q3-経路 | ✅ 正確 | ❌ 失敗 | ❌ 失敗 | 多段階経路をベクトル検索で追跡不可 |
+| Q4-否定 | ✅ 正確 | ❌ 失敗 | ❌ 失敗 | 論理的否定が曖昧 |
+| Q5-交差 | ✅ 正確 | ✅ 運良く正確 | ❌ 失敗 | 複数条件の厳密なAND が難しい |
+
+---
+
+## 4. 実行結果の概要
 
 ローカルで実行すると、以下の結果が得られます。
 
@@ -120,7 +210,7 @@ RAG は「プロンプト調整」「リランキング」などで精度を上�
 
 ---
 
-## 4. 結果の解釈
+## 5. 結果の解釈
 
 ### なぜこの差が出たのか
 
