@@ -133,8 +133,12 @@ cd experiments/kg-no-rag
 docker compose down -v
 docker compose up --detach
 sleep 45
+```
 
-# 評価実行
+> ⏳ **重要**: コンテナ起動後、Neo4j と Qdrant のデータベース初期化に **1 分以上** かかる場合があります。初期化が完了していないまま評価を実行するとエラーが発生します。コンテナログを確認して準備完了を確認するか、時間に余裕を持たせてください。
+
+```bash
+# 初期化完了後、評価実行
 curl -s http://localhost:8000/eval | jq '.'
 ```
 
@@ -161,8 +165,12 @@ docker compose down -v
 export DOCS_FILE=docs-50.jsonl
 docker compose up --detach
 sleep 45
+```
 
-# 評価実行
+> ⏳ **重要**: コンテナ起動後、Neo4j と Qdrant のデータベース初期化に **1 分以上** かかる場合があります。特に 50 項目版はデータ量が多いため、初期化にさらに時間がかかります。初期化が完了していないまま評価を実行するとエラーが発生します。十分な時間を確保してください。
+
+```bash
+# 初期化完了後、評価実行
 curl -s http://localhost:8000/eval | jq '.'
 ```
 
