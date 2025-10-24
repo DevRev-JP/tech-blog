@@ -103,18 +103,15 @@ Globex --[BUILDS]--> Globex Graph --[HAS_FEATURE]--> Semantic Index
 
 ## ❓ 5 つの試験問い
 
-| ID | 型 | 問い | 期待値 | KG（5） | RAG（5） | KG（50） | RAG（50） |
-|----|----|------|--------|--------|---------|----------|-----------|
-| **Q1-集合** | 集合 | Acme が提供する全ユニークな機能は？ | Realtime Query, Semantic Index | ✅ | ✅ | ✅ | ❌ |
-| **Q2-差分** | 対比 | Acme Search と Globex Graph の機能の違いは？ | A: Realtime Query, B: Policy Audit | ✅ | ❌ | ✅ | ❌ |
-| **Q3-経路** | 経路 | Globex Graph を規制するポリシーは？ | POL-002 | ✅ | ❌ | ✅ | ❌ |
-| **Q4-否定** | 否定 | Semantic Index を持たない機能は？ | Policy Audit, Realtime Query | ✅ | ❌ | ✅ | ❌ |
-| **Q5-交差** | 交差 | Acme と Globex の共通機能は？ | Semantic Index | ✅ | ✅ | ✅ | ❌ |
+実装を手元で実行して、KG と RAG の動作を確認できます。
 
-**解釈**:
-- **Q1, Q5** — RAG も小規模で正解可能（ベクトル検索が有効）
-- **Q2, Q3, Q4** — RAG は常に失敗（差分・経路・論理否定はベクトル検索に不向き）
-- **50 項目でいっそう悪化** — ノイズが増えるとベクトル検索の精度が急落
+| ID | 型 | 問い | 期待値 |
+|----|----|----|--------|
+| **Q1-集合** | 集合 | Acme が提供する全ユニークな機能は？ | Realtime Query, Semantic Index |
+| **Q2-差分** | 対比 | Acme Search と Globex Graph の機能の違いは？ | A: Realtime Query, B: Policy Audit |
+| **Q3-経路** | 経路 | Globex Graph を規制するポリシーは？ | POL-002 |
+| **Q4-否定** | 否定 | Semantic Index を持たない機能は？ | Policy Audit, Realtime Query |
+| **Q5-交差** | 交差 | Acme と Globex の共通機能は？ | Semantic Index |
 
 ---
 
@@ -291,6 +288,8 @@ curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_qu
 ---
 
 ## 📝 試験問い詳細
+
+> **注釈**: 以下の結果は、この実装の手元での実行結果を参考として示しています。RAG（ベクトル検索）の結果は実行ごとに変動する可能性があります。**あなたの環境での実行結果が異なる場合は、それも正常です**。上のセクション「クイックスタート」で実装を実行して、実際の動作を確認することをお勧めします。
 
 ### Q1-集合: Acme が提供する全ユニークな機能は？
 
