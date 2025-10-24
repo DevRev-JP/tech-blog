@@ -4,6 +4,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from sentence_transformers import SentenceTransformer
 import json
+import os
 
 app = FastAPI()
 
@@ -13,6 +14,9 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
 qdrant = QdrantClient(host="qdrant", port=6333)
 COL="docs"
 embed = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+# 現在のデータセット情報
+current_dataset = {"file": "docs.jsonl", "count": 5}
 
 def kg_answer(q: str):
     with driver.session() as s:
@@ -139,5 +143,60 @@ def eval_all():
     return {
         "summary":{"kg_correct":ok_kg,"kg_total":len(qs),"rag_correct":ok_rag,"rag_total":len(qs)},
         "by_category":{k:{"kg":v["kg"],"rag":v["rag"],"total":v["total"]} for k,v in by_category.items() if v["total"]>0},
-        "cases":res
+        "cases":res,
+        "dataset":current_dataset
     }
+
+@app.post("/switch-dataset")
+def switch_dataset(file: str):
+    """データセットを動的に切り替える
+
+    使い方:
+    - curl -X POST "http://localhost:8000/switch-dataset?file=docs.jsonl"
+    - curl -X POST "http://localhost:8000/switch-dataset?file=docs-50.jsonl"
+    """
+    global current_dataset
+
+    if file not in ["docs.jsonl", "docs-50.jsonl"]:
+        return {"error": f"Unknown dataset: {file}", "available": ["docs.jsonl", "docs-50.jsonl"]}
+
+    try:
+        # ファイルを読み込む
+        with open(file) as f:
+            texts = [json.loads(l) for l in f]
+
+        # ベクトル埋め込みを計算
+        vecs = embed.encode([t["text"] for t in texts])
+
+        # Qdrant を初期化（既存データを削除）
+        try:
+            qdrant.delete_collection(collection_name=COL)
+        except:
+            pass
+
+        qdrant.recreate_collection(
+            collection_name=COL,
+            vectors_config=VectorParams(size=len(vecs[0]), distance=Distance.COSINE)
+        )
+
+        # ドキュメントをアップサート
+        points = [PointStruct(id=i+1, vector=vecs[i], payload=texts[i]) for i in range(len(texts))]
+        qdrant.upsert(collection_name=COL, points=points)
+
+        # グローバル変数を更新
+        current_dataset = {"file": file, "count": len(texts)}
+
+        return {
+            "status": "success",
+            "dataset": current_dataset,
+            "message": f"Switched to {file} ({len(texts)} documents)"
+        }
+    except FileNotFoundError:
+        return {"error": f"File not found: {file}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/dataset")
+def get_dataset():
+    """現在のデータセット情報を取得"""
+    return current_dataset

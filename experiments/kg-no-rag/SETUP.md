@@ -4,41 +4,64 @@
 
 ## 📊 データセット概要
 
-### 小規模版 (5項目) - docs-5.jsonl
+### 小規模版 (5項目) - docs.jsonl
 - **特徴**: 明確で矛盾のない情報
 - **KG評価結果**: 5/5 ✅
 - **RAG評価結果**: 2/5 (Q1, Q5のみ成功)
 - **目的**: 基本動作確認、KGの基本的な優位性を示す
 
 ### 大規模版 (50項目) - docs-50.jsonl
-- **特徴**: 曖昧で重複・矛盾した情報を含む
+- **特徴**: 自然で説得力のあるノイズ、エンタープライズツール15種類を追加
 - **KG評価結果**: 5/5 ✅ (変わらず)
-- **RAG評価結果**: 0/5 (すべて失敗)
-- **目的**: スケール依存性を実証、KGのロバスト性を強調
+- **RAG評価結果**: 1/5 (Q2のみ成功)
+- **目的**: スケール依存性を実証、KGのロバスト性を強調、RAGのノイズ耐性テスト
 
 ## 🔄 データセット切り替え方法
 
-### 1. 小規模版 (デフォルト) で実行
+### 初回起動（デフォルト: 小規模版 5個）
 ```bash
-# 通常起動（docs-5.jsonlを使用）
 docker compose down -v
 docker compose up --detach
-sleep 45
-curl -s http://localhost:8000/eval | jq '.'
+sleep 60
+curl -s http://localhost:8000/eval | jq '.summary'
 ```
-
 期待される結果: **KG: 5/5, RAG: 2/5**
 
-### 2. 大規模版で実行
+### コンテナ再起動なしでデータセット切り替え
+
+#### 現在のデータセットを確認
 ```bash
-# docs-50.jsonlを使用
-docker compose down -v
-DOCS_FILE=docs-50.jsonl docker compose up --detach
-sleep 45
-curl -s http://localhost:8000/eval | jq '.'
+curl -s http://localhost:8000/dataset | jq '.'
+# 出力例: {"file": "docs.jsonl", "count": 5}
 ```
 
-期待される結果: **KG: 5/5, RAG: 0/5**
+#### 大規模版（50個）に切り替え
+```bash
+curl -X POST "http://localhost:8000/switch-dataset?file=docs-50.jsonl" | jq '.'
+# その後、テストを実行
+curl -s http://localhost:8000/eval | jq '.summary'
+```
+期待される結果: **KG: 5/5, RAG: 1/5**
+
+#### 小規模版（5個）に戻す
+```bash
+curl -X POST "http://localhost:8000/switch-dataset?file=docs.jsonl" | jq '.'
+# その後、テストを実行
+curl -s http://localhost:8000/eval | jq '.summary'
+```
+期待される結果: **KG: 5/5, RAG: 2/5**
+
+### 自動切り替えスクリプト
+```bash
+# 小規模版でテスト
+./switch-dataset.sh small
+
+# 大規模版でテスト
+./switch-dataset.sh large
+
+# 両方実行して比較
+./switch-dataset.sh compare
+```
 
 ## 📝 評価項目の詳細
 
