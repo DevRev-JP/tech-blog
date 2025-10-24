@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/DevRev-JP/tech-blog#readme",
   "devDependencies": {
-    "zenn-cli": "^0.2.6"
+    "zenn-cli": "^0.2.7"
   }
 }
