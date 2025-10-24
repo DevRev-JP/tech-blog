@@ -1,6 +1,6 @@
 # KG（ナレッジグラフ）と RAG（ベクトル検索）の比較実験
 
-このディレクトリは、「RAG なしで始めるナレッジグラフ QA」のコンパニオン実装です。記事で述べた理論を、実際に Docker で動作確認できます。
+このディレクトリは、「RAG なしで始めるナレッジグラフ QA」のサンプル実装です。記事で述べた理論を、実際に Docker で動作確認できます。
 
 **記事**: https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter
 
@@ -334,7 +334,7 @@ curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_qu
 ### DOCS_FILE
 
 - **デフォルト**: `docs.jsonl`
-- **オプション**: `docs-5.jsonl`, `docs-50.jsonl`, カスタムファイル
+- **オプション**: `docs-50.jsonl`, カスタムファイル
 - **使用方法**:
 
 ```bash
