@@ -3,7 +3,7 @@ title: "RAGなしで始めるナレッジグラフQA——コンテナで再現�
 emoji: "🧠"
 type: "tech"
 topics: ["ナレッジグラフ", "Neo4j", "Cypher", "SPARQL", "SHACL"]
-published: false
+published: true
 ---
 
 # RAG なしで始めるナレッジグラフ QA——コンテナで再現する比較検証
@@ -258,9 +258,6 @@ RAG:
 
 ## 更新履歴
 
-- **2025-10-24** — 初稿制作中
-  - セクション構成を完成（5つの意味問合せ型例を追加）
-  - リンク整備（beyond-rag-knowledge-graph への参照追加）
-  - 実装例へのリンク追加
+- **2025-10-24** — 初版公開
 
 ※本記事は AI を活用して執筆しています。
