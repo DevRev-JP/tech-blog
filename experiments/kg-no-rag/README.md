@@ -173,10 +173,42 @@ curl -s http://localhost:8000/eval | jq '.'
   "summary": {
     "kg_correct": 5,
     "kg_total": 5,
-    "rag_correct": 0,
+    "rag_correct": 1,
     "rag_total": 5
   }
 }
+```
+
+### コンテナ再起動なしでデータセット切り替え
+
+起動後、コンテナを止めずにデータセットを動的に切り替えられます。
+
+```bash
+# 現在のデータセットを確認
+curl -s http://localhost:8000/dataset | jq '.'
+
+# 大規模版（50個）に切り替え
+curl -X POST "http://localhost:8000/switch-dataset?file=docs-50.jsonl" | jq '.'
+curl -s http://localhost:8000/eval | jq '.summary'
+
+# 小規模版（5個）に戻す
+curl -X POST "http://localhost:8000/switch-dataset?file=docs.jsonl" | jq '.'
+curl -s http://localhost:8000/eval | jq '.summary'
+```
+
+### 動的質問更新（コンテナ再起動不要）
+
+質問文を変更してもコンテナを再起動する必要がありません。
+
+```bash
+# 現在の質問セットを確認
+curl -s http://localhost:8000/questions | jq '.'
+
+# 特定の質問を更新
+curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_question=新しい質問文"
+
+# テストを実行
+curl -s http://localhost:8000/eval | jq '.summary'
 ```
 
 ---
@@ -222,6 +254,92 @@ curl "http://localhost:8000/ask/rag?q=Acme%20が提供する全ユニークな�
 
 ```bash
 curl "http://localhost:8000/eval" | jq '.'
+```
+
+### `/dataset`
+
+現在のデータセット情報を取得します。
+
+```bash
+curl "http://localhost:8000/dataset" | jq '.'
+```
+
+### `/switch-dataset?file=<ファイル名>`
+
+データセットを動的に切り替えます（POST）。
+
+```bash
+curl -X POST "http://localhost:8000/switch-dataset?file=docs-50.jsonl"
+```
+
+### `/questions`
+
+現在の質問セットを取得します。
+
+```bash
+curl "http://localhost:8000/questions" | jq '.'
+```
+
+### `/update-question?question_id=<ID>&new_question=<質問文>`
+
+特定の質問を更新します（POST）。
+
+```bash
+curl -X POST "http://localhost:8000/update-question?question_id=Q2-差分&new_question=新しい質問文"
+```
+
+---
+
+## 📝 試験問い詳細
+
+### Q1-集合: Acme が提供する全ユニークな機能は？
+
+- **期待値**: `["Realtime Query", "Semantic Index"]`
+- **小規模版（5項目）**: KG✅ RAG✅
+- **大規模版（50項目）**: KG✅ RAG❌ (曖昧な情報が多すぎて機能が埋もれる)
+- **理由**: 集合操作は明確だが、ノイズが増えると効果が減少
+
+### Q2-差分: Semantic Index を提供するが Policy Audit を提供していない製品は？
+
+- **期待値**: `["Acme Search"]`
+- **小規模版（5項目）**: KG✅ RAG❌
+- **大規模版（50項目）**: KG✅ RAG⚠️ (変動)
+- **理由**: 論理的な差分（A ∩ B ∧ ¬(A ∩ C)）はベクトル検索に不向き
+
+### Q3-経路: Globex Graph を規制するポリシーは？
+
+- **期待値**: `["POL-002"]`
+- **小規模版（5項目）**: KG✅ RAG❌
+- **大規模版（50項目）**: KG✅ RAG❌
+- **理由**: グラフの多段階経路（Globex → 製品 → ポリシー）をベクトル検索では追跡できない
+
+### Q4-否定: Semantic Index を持たない機能は？
+
+- **期待値**: `["Policy Audit", "Realtime Query"]`
+- **小規模版（5項目）**: KG✅ RAG❌
+- **大規模版（50項目）**: KG✅ RAG❌
+- **理由**: 論理的否定条件が曖昧で、テキスト検索には不向き
+
+### Q5-交差: Acme と Globex の共通機能は？
+
+- **期待値**: `["Semantic Index"]`
+- **小規模版（5項目）**: KG✅ RAG⚠️ (変動)
+- **大規模版（50項目）**: KG✅ RAG❌
+- **理由**: 複数条件の厳密な AND 検索が難しい
+
+---
+
+## 🔧 環境変数
+
+### DOCS_FILE
+
+- **デフォルト**: `docs.jsonl`
+- **オプション**: `docs-5.jsonl`, `docs-50.jsonl`, カスタムファイル
+- **使用方法**:
+
+```bash
+export DOCS_FILE=docs-50.jsonl
+docker compose up --detach
 ```
 
 ---
