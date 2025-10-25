@@ -80,29 +80,21 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph 入力データ
-    A1["顧客情報_営業部.csv"]:::input
-    A2["CustomerData.xlsx"]:::input
-    A3["cust_id_list.txt"]:::input
-    end
+    A1["data1.csv"]
+    A2["data2.xlsx"]
+    A3["data3.txt"]
 
-    subgraph 名寄せ・統合処理
-    B1["同義語辞書 + LLM補正"]
-    B2["エンティティリンク生成"]
-    B3["統合ナレッジグラフ構築"]
-    end
+    B1["Dictionary + LLM"]
+    B2["Entity Linking"]
+    B3["Build Graph"]
 
-    subgraph 出力グラフ
-    C1["ノード: 顧客ID"]
-    C2["属性: 契約情報, 地域, 取引履歴"]
-    end
+    C1["Node: Customer"]
+    C2["Attrs: Contract, Region, History"]
 
     A1 --> B1 --> B2 --> B3 --> C1
     A2 --> B1
     A3 --> B1
     C1 --> C2
-
-    classDef input fill:#e3f2fd,stroke:#2196f3,stroke-width:1px;
 ```
 **キャプション：**  
 複数部署・システムからのデータを、**同義語・異表記を統合しながら1つの知識グラフにまとめる**。企業内の「言葉の壁」を超え、生成AIが利用できる“構造化知識”として再利用可能にする。
