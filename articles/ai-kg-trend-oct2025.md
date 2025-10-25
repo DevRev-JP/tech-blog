@@ -3,7 +3,7 @@ title: "各社はナレッジグラフをどう扱っているか──LLM時代
 emoji: "🧩"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["ナレッジグラフ", "LLM", "構造化知識", "AI基盤"]
-published: false
+published: true
 ---
 
 ※本記事では「ナレッジグラフ（Knowledge Graph）」に焦点を当てています。
