@@ -8,7 +8,7 @@ published: false
 
 ※本記事では「ナレッジグラフ（Knowledge Graph）」に焦点を当てています。
 「GraphRAG」はナレッジグラフを検索補強に利用する**手法**であり、本記事で扱うナレッジグラフは企業の**知識基盤そのもの**です。
-詳細な比較については「[RAG を超える知識統合 ── ナレッジグラフで"つながる推論"を実現する](./beyond-rag-knowledge-graph.md)」をご参照ください。
+詳細な比較については「[RAG を超える知識統合 ── ナレッジグラフで"つながる推論"を実現する](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph.md)」をご参照ください。
 
 ---
 
@@ -28,7 +28,7 @@ published: false
 
 Google は 2012 年に Knowledge Graph を検索へ導入し、"Things, not strings"（「文字列ではなく実体を」）という理念のもと、単なるキーワードマッチングから、**実体（エンティティ）と関係（リレーション）**で世界を表現する検索へと進化させました。
 • 公式発表: https://blog.google/products/search/introducing-knowledge-graph-things-not/
-• 開発者向け Knowledge Graph Search API: https://developers.google.com/knowledge-graph
+• 開発者向け Google Knowledge Graph Search API: https://cloud.google.com/enterprise-knowledge-graph/docs/search-api
 • 企業向け Vertex AI Search（エンティティ抽出・リンク付けと生成の統合）: https://cloud.google.com/enterprise-search
 
 実装の要点：生成（LLM）は"出力層"、その下に"構造化された外部知識層（KG）"がある階層設計を採用しています。まずエンティティと関係をモデル化し、そこから QA や生成に接続する構成が自然です。
@@ -113,17 +113,6 @@ LangChain は、テキストからエンティティと関係を抽出し、グ�
 
 ---
 
-## n8n：KG の更新・同期・整合性を自動化
-
-n8n は、ワークフロー自動化ツールとして Neo4j 連携をコミュニティノードで提供しています。
-• n8n 統合ドキュメント: https://docs.n8n.io/integrations/
-• コミュニティ例（GPT-4 ＋ Neo4j）:
-https://community.n8n.io/t/build-a-knowledge-graph-with-gpt-4-and-neo4j/26481
-
-実装の要点：ナレッジグラフは一度作って終わりではありません。新しいデータを取り込み、重複や関係性を整理し続ける自動更新フローを設計することで、グラフの品質と再利用性を維持できます。
-
----
-
 ## 各社のナレッジグラフ対応の全体像
 
 ```mermaid
@@ -141,7 +130,6 @@ graph TB
 
     subgraph TOOLS["実装支援層"]
         LangChain["LangChain<br/>統合ライブラリ"]
-        n8n["n8n<br/>ワークフロー自動化"]
     end
 
     subgraph RESEARCH["理論基礎"]
@@ -159,7 +147,7 @@ _図：ナレッジグラフは、インフラ層で構築され、LLM と統合
 
 ## まとめ：ナレッジグラフへのアプローチの多様性
 
-Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain、n8n といった主要プレイヤーは、ナレッジグラフに対して異なるアプローチで取り組んでいます。
+Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain といった主要プレイヤーは、ナレッジグラフに対して異なるアプローチで取り組んでいます。
 
 **基盤層（インフラ）**では、Google・AWS・Oracle がグラフ型データベースやナレッジグラフを直接提供しています。
 各企業の方針の違いは明確です：
@@ -170,7 +158,7 @@ Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain、n8n といった
 
 **LLM 層**では、OpenAI は参考実装（Cookbook）を提供し、Anthropic はセッション内の文脈保持機能を備えています。ただし、Anthropic はナレッジグラフの活用を明示的に推奨していません。
 
-**実装支援層**では、LangChain と n8n が抽出・統合・ワークフロー自動化を支援しています。
+**実装支援層**では、LangChain がテキストからナレッジグラフへの抽出・統合を支援しています。
 
 **理論基礎**では、Meta がグラフ表現学習の研究を深掘りしています。
 
