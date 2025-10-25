@@ -6,23 +6,19 @@ topics: ["ナレッジグラフ", "LLM", "構造化知識", "AI基盤"]
 published: false
 ---
 
-# 各社はナレッジグラフをどう扱っているか──LLM時代に「構造化知識」が再び重要になっている理由
-
 ※本記事では「ナレッジグラフ（Knowledge Graph）」に焦点を当てています。
 「GraphRAG」はナレッジグラフを検索補強に利用する**手法**であり、本記事で扱うナレッジグラフは企業の**知識基盤そのもの**です。
 詳細な比較については「[RAGを超える知識統合──ナレッジグラフで"つながる推論"を実現する](./beyond-rag-knowledge-graph.md)」をご参照ください。
 
-⸻
+---
 
 ## はじめに
 
-生成AIが普及した現在、単に「LLMに文書を読ませる」だけでは、精度や再現性には限界があります。
-その背景には、知識の構造が失われていることがあります。
+生成AIが普及した現在、単に「LLMに文書を読ませる」だけでは、精度や再現性には限界があります。その背景には、知識の構造が失われていることがあります。
 
 多くの企業やOSSプロジェクトは今、知識を関係性を保ったまま構造化・更新・再利用する仕組み──つまり**ナレッジグラフ（Knowledge Graph）**に再び注目しています。
 
-本記事では、Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain、n8nといった主要プレイヤーが、
-どのようにナレッジグラフを扱っているのかを整理します。
+本記事では、Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain、n8nといった主要プレイヤーが、どのようにナレッジグラフを扱っているのかを整理します。
 
 目的は、各社の取り組みの**多様性と実態**を明確にすることです。
 
@@ -30,14 +26,12 @@ published: false
 
 ## Google：検索と生成を支える長期的知識基盤
 
-Googleは2012年にKnowledge Graphを検索へ導入し、"Things, not strings"（「文字列ではなく実体を」）という理念のもと、
-単なるキーワードマッチングから、**実体（エンティティ）と関係（リレーション）**で世界を表現する検索へと進化させました。
+Googleは2012年にKnowledge Graphを検索へ導入し、"Things, not strings"（「文字列ではなく実体を」）という理念のもと、単なるキーワードマッチングから、**実体（エンティティ）と関係（リレーション）**で世界を表現する検索へと進化させました。
 	•	公式発表: https://blog.google/products/search/introducing-knowledge-graph-things-not/
 	•	開発者向け Knowledge Graph Search API: https://developers.google.com/knowledge-graph
 	•	企業向け Vertex AI Search（エンティティ抽出・リンク付けと生成の統合）: https://cloud.google.com/enterprise-search
 
-実装の要点：生成（LLM）は"出力層"、その下に"構造化された外部知識層（KG）"がある階層設計を採用しています。
-まずエンティティと関係をモデル化し、そこからQAや生成に接続する構成が自然です。
+実装の要点：生成（LLM）は"出力層"、その下に"構造化された外部知識層（KG）"がある階層設計を採用しています。まずエンティティと関係をモデル化し、そこからQAや生成に接続する構成が自然です。
 
 ---
 
@@ -51,23 +45,19 @@ https://aws.amazon.com/blogs/database/using-knowledge-graphs-to-build-graphrag-a
 	•	映像・ドキュメントからのKG構築例:
 https://aws.amazon.com/blogs/database/build-a-knowledge-graph-on-amazon-neptune-with-ai-powered-video-analysis-using-media2cloud/
 
-実装の要点：Neptune上に**永続的なナレッジグラフ（構造化された外部知識層）**を構築し、
-BedrockなどのLLMがそれを参照する形で設計するのが基本です。
+実装の要点：Neptune上に**永続的なナレッジグラフ（構造化された外部知識層）**を構築し、BedrockなどのLLMがそれを参照する形で設計するのが基本です。
 
 ---
 
 ## Oracle：RDF/Property GraphとPGQLでエンタープライズKG
 
-OracleはOracle GraphとAutonomous Database上で、
-RDF（知識グラフ）とProperty Graphをサポートし、PGQL（SQLライクなグラフ問い合わせ）を提供しています。
+OracleはOracle GraphとAutonomous Database上で、RDF（知識グラフ）とProperty Graphをサポートし、PGQL（SQLライクなグラフ問い合わせ）を提供しています。
 	•	「Integrated Graph Database Features」: https://www.oracle.com/database/integrated-graph-database/features/
 	•	「Using Oracle Graph with Autonomous AI Database」:
 https://docs.oracle.com/en-us/iaas/autonomous-database-shared/doc/graph-autonomous-database.html
 	•	ハンズオン（KG構築チュートリアル）: https://docs.oracle.com/en/learn/oci-graph-23ai/index.html
 
-実装の要点：厳格なスキーマ／RDF推論が必要な領域ではRDF、
-柔軟で高速な探索にはProperty Graphと使い分け、
-ナレッジグラフを企業データベースの中核層に置く設計が効果的です。
+実装の要点：厳格なスキーマ／RDF推論が必要な領域ではRDF、柔軟で高速な探索にはProperty Graphと使い分け、ナレッジグラフを企業データベースの中核層に置く設計が効果的です。
 
 ---
 
@@ -108,20 +98,16 @@ https://ai.meta.com/research/publications/joint-knowledge-graph-completion-and-q
 	•	Using Local Knowledge Graph Construction to Scale Seq2Seq Models to Multi-Document Inputs:
 https://research.facebook.com/publications/using-local-knowledge-graph-construction-to-scale-seq2seq-models-to-multi-document-inputs/
 
-実装の要点：Metaは理論的基礎を提供していますが、
-ナレッジグラフの商用製品やプラットフォームは公開していません。
-研究成果が実際の推奨アーキテクチャとしてどう活用されているかについては、公開情報が限定的です。
+実装の要点：Metaは理論的基礎を提供していますが、ナレッジグラフの商用製品やプラットフォームは公開していません。研究成果が実際の推奨アーキテクチャとしてどう活用されているかについては、公開情報が限定的です。
 
 ---
 
 ## LangChain：テキスト→KG（エンティティ＆関係）を最短で実装
 
-LangChainは、テキストからエンティティと関係を抽出し、
-グラフデータベース（Neo4jなど）に保存する機能を提供しています。
+LangChainは、テキストからエンティティと関係を抽出し、グラフデータベース（Neo4jなど）に保存する機能を提供しています。
 	•	Neo4j連携ドキュメント: https://python.langchain.com/docs/integrations/graphs/neo4j_cypher/
 
-実装の要点：文書→抽出→グラフ化→参照→応答の流れをOSSで構築できます。
-まずナレッジグラフを作り、その上にQA/RAGを重ねる順序が堅実です。
+実装の要点：文書→抽出→グラフ化→参照→応答の流れをOSSで構築できます。まずナレッジグラフを作り、その上にQA/RAGを重ねる順序が堅実です。
 
 ---
 
@@ -132,9 +118,7 @@ n8nは、ワークフロー自動化ツールとしてNeo4j連携をコミュニ
 	•	コミュニティ例（GPT-4＋Neo4j）:
 https://community.n8n.io/t/build-a-knowledge-graph-with-gpt-4-and-neo4j/26481
 
-実装の要点：ナレッジグラフは一度作って終わりではありません。
-新しいデータを取り込み、重複や関係性を整理し続ける自動更新フローを設計することで、
-グラフの品質と再利用性を維持できます。
+実装の要点：ナレッジグラフは一度作って終わりではありません。新しいデータを取り込み、重複や関係性を整理し続ける自動更新フローを設計することで、グラフの品質と再利用性を維持できます。
 
 ---
 
@@ -189,17 +173,13 @@ Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain、n8nといった�
 
 **理論基礎**では、Metaがグラフ表現学習の研究を深掘りしています。
 
-各社が共通して指摘しているのは、
-「LLMの精度や再現性を高めるために、外部の構造化知識層が有効である」という点です。
-ただし、その実装方法・推奨アーキテクチャ・投資レベルは企業ごとに大きく異なっています。
+各社が共通して指摘しているのは、「LLMの精度や再現性を高めるために、外部の構造化知識層が有効である」という点です。ただし、その実装方法・推奨アーキテクチャ・投資レベルは企業ごとに大きく異なっています。
 
 ---
 
 ## 注記
 
-本記事は、各社の公開情報に基づいて調査・整理したものです。
-ナレッジグラフに関する各社の取り組みについて、誤りや最新でない情報がありましたら、
-お知らせいただければ幸いです。
+本記事は、各社の公開情報に基づいて調査・整理したものです。ナレッジグラフに関する各社の取り組みについて、誤りや最新でない情報がありましたら、お知らせいただければ幸いです。
 
 ---
 
