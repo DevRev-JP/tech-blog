@@ -1,5 +1,5 @@
 ---
-title: "MCPの課題とナレッジグラフ──「USB-C」化するAI接続と、意味をつなぐ記憶層"
+title: "MCPの課題とナレッジグラフ"
 emoji: "🧩"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["MCP", "ナレッジグラフ", "AI"]
