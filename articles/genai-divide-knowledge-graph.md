@@ -109,8 +109,16 @@ AI の精度やモデルの進化だけでは、組織の知識は進化しま�
 
 - **2025-10-21** — 初版公開
 - **2025-10-23** — トピック調整、記事フォーマット正規化
+- **2025-10-30** — 参考文献とリンク先を整理
 
 ---
 
 ※本記事は AI を活用して執筆しています。
-（出典：MIT Media Lab Project NANDA『[The GenAI Divide – State of AI in Business 2025](https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf)』）
+
+---
+
+## 参考文献
+
+- MIT Media Lab Project NANDA (2025), *The GenAI Divide – State of AI in Business 2025*. https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf
+- Anthropic (2024), *Introducing the Model Context Protocol*. https://www.anthropic.com/news/model-context-protocol
+- Edge, D. et al. (2024), *A Graph RAG Approach to Query-Focused Summarization*. https://arxiv.org/abs/2404.16130

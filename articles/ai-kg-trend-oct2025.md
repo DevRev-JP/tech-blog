@@ -166,6 +166,25 @@ Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain といった主要
 
 ---
 
+## 参考文献
+
+- Google (2012), *Introducing the Knowledge Graph: things, not strings*. https://blog.google/products/search/introducing-knowledge-graph-things-not/
+- Google Cloud (2024), *Enterprise Knowledge Graph Search API Overview*. https://cloud.google.com/enterprise-knowledge-graph/docs/search-api
+- Google Cloud (2024), *Vertex AI Search*. https://cloud.google.com/enterprise-search
+- AWS (2024), *Knowledge Graphs on AWS*. https://aws.amazon.com/neptune/knowledge-graphs-on-aws/
+- AWS (2024), *Using knowledge graphs to build GraphRAG applications with Amazon Bedrock and Amazon Neptune*. https://aws.amazon.com/blogs/database/using-knowledge-graphs-to-build-graphrag-applications-with-amazon-bedrock-and-amazon-neptune/
+- AWS (2024), *Build a knowledge graph on Amazon Neptune with AI-powered video analysis using Media2Cloud*. https://aws.amazon.com/blogs/database/build-a-knowledge-graph-on-amazon-neptune-with-ai-powered-video-analysis-using-media2cloud/
+- Oracle (2024), *Integrated Graph Database Features*. https://www.oracle.com/database/integrated-graph-database/features/
+- Oracle (2024), *Using Oracle Graph with Autonomous AI Database*. https://docs.oracle.com/en-us/iaas/autonomous-database-shared/doc/graph-autonomous-database.html
+- Oracle (2024), *Build graphs with Oracle Cloud Infrastructure*. https://docs.oracle.com/en/learn/oci-graph-23ai/index.html
+- OpenAI (2024), *Temporal agents with knowledge graphs*. https://cookbook.openai.com/examples/partners/temporal_agents_with_knowledge_graphs/temporal_agents_with_knowledge_graphs
+- OpenAI (2024), *RAG with a graph database*. https://cookbook.openai.com/examples/rag_with_graph_db
+- Anthropic (2024), *Introducing the Model Context Protocol*. https://www.anthropic.com/news/model-context-protocol
+- Meta AI (2024), *Research overview*. https://ai.meta.com/research/
+- LangChain (2024), *Graph use cases*. https://python.langchain.com/docs/use_cases/graph/
+
+---
+
 ## 注記
 
 本記事は、各社の公開情報に基づいて調査・整理したものです。ナレッジグラフに関する各社の取り組みについて、誤りや最新でない情報がありましたら、お知らせいただければ幸いです。
@@ -175,5 +194,6 @@ Google、AWS、Oracle、OpenAI、Anthropic、Meta、LangChain といった主要
 ## 更新履歴
 
 - **2025-10-25** — 初版公開
+- **2025-10-30** — 参考文献とリンク先を整理
 
 ※本記事は AI を活用して執筆しています。

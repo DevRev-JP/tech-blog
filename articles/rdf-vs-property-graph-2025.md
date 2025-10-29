@@ -158,6 +158,12 @@ RDF と Property Graph はそれぞれ異なる強みを持つグラフデータ
 
 ---
 
+## 更新履歴
+
+- **2025-10-30** — 初版公開
+
+---
+
 ## 参考文献
 
 - W3C (2014), _RDF 1.1 Concepts and Abstract Syntax_. https://www.w3.org/TR/rdf11-concepts/

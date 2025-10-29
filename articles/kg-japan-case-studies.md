@@ -172,9 +172,22 @@ graph TB
 
 ---
 
+## 参考文献
+
+- 富士通 (2024), *因果ナレッジグラフによるICT障害解析の高度化*（研究紹介）. https://www.fujitsu.com/jp/about/research/article/202410-causal-knowledge-graph.html
+- 富士通 (2024), *生成AIとナレッジグラフの融合による業務高度化の取り組み*（プレスリリース）. https://pr.fujitsu.com/jp/news/2024/05/17.html
+- 富士通 (2025), *NEDO「GENIAC」採択について*（プレスリリース）. https://pr.fujitsu.com/jp/news/updatesfj/2025/03/6.html
+- ストックマーク (2025), *日本触媒との共同実証結果*（ニュース）. https://stockmark.co.jp/news/20250327
+- ストックマーク (2024a), *日本ガイシとの共同研究開始*（ニュース）. https://stockmark.co.jp/news/20240208
+- ストックマーク (2024b), *産総研との産学連携開始*（ニュース）. https://stockmark.co.jp/news/20241015
+- NEC (2019), *異種データ連携を支援するナレッジグラフ技術*（プレスリリース）. https://jpn.nec.com/press/201908/20190805_02.html
+
+---
+
 ## 更新履歴
 
 - **2025-10-25** — 初版公開
+- **2025-10-30** — 参考文献を追記しリンクを整理
 
 ---
 
