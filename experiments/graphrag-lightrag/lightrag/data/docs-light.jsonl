@@ -1,0 +1,8 @@
+{"id":"d1","text":"Acme Search は検索体験を革新する製品です。特に Semantic Index 機能を備えており、超低遅延の Realtime Query を提供します。Policy Audit 機能も搭載されており、コンプライアンス要件に対応します。"}
+{"id":"d2","text":"Globex Graph はグラフ指向の製品で、Semantic Index を搭載しています。コンプライアンスに配慮した Policy Audit 機能も含まれており、エンタープライズ環境での利用に適しています。"}
+{"id":"d3","text":"AI Model Governance（POL-002）はデータ統合プロダクトに関連する政策です。統合されたシステムでは、このガイドラインが適用され、モデルの使用とデータ管理が規制されます。"}
+{"id":"d4","text":"Personal Data Protection（POL-001）は主にユーザデータの保護観点から定義された政策です。Acme Search はこの政策の対象となっており、個人情報の取り扱いに関する要件を満たす必要があります。"}
+{"id":"d5","text":"Globex Graph は Acme Search の技術に依存している部分があり、相互運用性が高い。両製品は共通のインデックス技術を共有し、データ連携が容易です。"}
+{"id":"d6","text":"政策強化後、Semantic Index の利用要件が厳格化され、すべての製品で対応が求められています。特に Acme Search と Globex Graph は先行対応を実施しています。"}
+{"id":"d7","text":"Policy Audit 機能は、POL-001 と POL-002 の両方の要件をチェックできます。リアルタイムでの監査ログ生成と、コンプライアンスレポートの自動生成をサポートします。"}
+{"id":"d8","text":"Realtime Query 機能は、Semantic Index を活用して高速な検索を実現します。Acme Search では特に低遅延を重視した設計が行われています。"}

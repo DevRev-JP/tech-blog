@@ -1,0 +1,8 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.4
+neo4j==5.15.0
+qdrant-client==1.7.0
+# GraphRAG dependencies (will use subprocess for CLI initially)
+# graphrag>=1.0.0  # TODO: Add when stable package is available
+openai>=1.0.0  # For embedding generation (GraphRAG uses OpenAI API)

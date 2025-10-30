@@ -1,0 +1,7 @@
+[
+  { "id": "Q1-製品一覧", "ask": "製品一覧", "expected": ["Acme Search", "Globex Graph"], "category": "simple" },
+  { "id": "Q2-Acmeの機能", "ask": "Acme が提供する全ユニークな機能は？", "expected": ["Realtime Query", "Semantic Index"], "category": "simple" },
+  { "id": "Q3-関連ポリシー", "ask": "Globex Graph を規制するポリシーは？", "expected": ["POL-002"], "category": "path" },
+  { "id": "Q4-Acmeの機能詳細", "ask": "Acme の機能は？", "expected": ["Semantic Index", "Realtime Query", "Policy Audit"], "category": "simple" },
+  { "id": "Q5-共通機能", "ask": "AcmeとGlobexの共通機能は？", "expected": ["Semantic Index"], "category": "intersection" }
+]

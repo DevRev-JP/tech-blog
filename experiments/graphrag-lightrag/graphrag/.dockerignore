@@ -1,0 +1,16 @@
+# Ignore data directory from Docker build (will be mounted separately)
+data/
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+
