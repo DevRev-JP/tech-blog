@@ -1,0 +1,100 @@
+{"id": "d51", "text": "Acme Search は検索体験を革新。特に Semantic Index を備え、超低遅延の Realtime Query を提供します。"}
+{"id": "d52", "text": "Globex Graph はグラフ指向の製品で、Semantic Index を搭載、コンプライアンスに配慮した Policy Audit 機能も。"}
+{"id": "d53", "text": "AI Model Governance（POL-002）はデータ統合プロダクトに関連します。統合されたシステムではガイドライン適用あり。"}
+{"id": "d54", "text": "Personal Data Protection（POL-001）は主にユーザデータの保護観点で Acme Search を対象としています。"}
+{"id": "d55", "text": "Globex Graph は Acme Search の技術に依存している部分があり、相互運用性が高い。"}
+{"id": "d56", "text": "CloudBridge Platform はマルチクラウド環境での統合運用を実現。AWS、Azure、GCP の各環境シームレス連携が特徴。"}
+{"id": "d57", "text": "DataVault Pro はエンタープライズデータ保護ソリューション。暗号化、キー管理、監査ログ機能を統合提供。"}
+{"id": "d58", "text": "NetworkGuard Suite はセキュリティ脅威検知プラットフォーム。機械学習ベースの異常検知アルゴリズムを採用。"}
+{"id": "d59", "text": "AutoScale Manager はクラウドリソースの自動スケーリング製品。負荷予測とコスト最適化を同時実現。"}
+{"id": "d60", "text": "IntegrationHub は API ゲートウェイとして機能。REST、GraphQL、gRPC プロトコル対応で柔軟な統合可能。"}
+{"id": "d61", "text": "MonitorFlow は統合監視・アラート管理プラットフォーム。リアルタイムダッシュボードとカスタムメトリクス定義をサポート。"}
+{"id": "d62", "text": "AnalyticsCore はビジネスインテリジェンスツール。データ可視化と予測分析を統合、意思決定支援が主目的。"}
+{"id": "d63", "text": "WorkflowEngine は業務プロセス自動化フレームワーク。ノーコード設計で複雑なワークフロー構築可能。"}
+{"id": "d64", "text": "CacheOptimizer はデータベースキャッシング管理製品。メモリ効率化とクエリ応答速度を大幅改善。"}
+{"id": "d65", "text": "MessageQueue Pro はイベント駆動型メッセージング基盤。高スループット・低遅延の配信を保証。"}
+{"id": "d66", "text": "StorageSync はハイブリッドストレージ管理システム。オンプレミスとクラウドストレージの自動同期機能搭載。"}
+{"id": "d67", "text": "AuthenticationCore は認証・認可の統一プラットフォーム。OAuth2、SAML、OIDC マルチプロトコル対応。"}
+{"id": "d68", "text": "LogAggregator は分散ログ管理ツール。複数システムからのログ統一収集・検索・分析が可能。"}
+{"id": "d69", "text": "DeploymentOrchestrator はコンテナオーケストレーション製品。Kubernetes 互換、マルチリージョン展開対応。"}
+{"id": "d70", "text": "ConfigurationManager は構成管理・環境設定ツール。バージョン管理とロールバック機能を統合。"}
+{"id": "d71", "text": "DocumentProcessor はテキスト・PDF 処理エンジン。OCR と自然言語処理で文書の自動分類・抽出実現。"}
+{"id": "d72", "text": "ReportGenerator はレポート作成・配信自動化ツール。複数データソース統合、スケジュール配信可能。"}
+{"id": "d73", "text": "BackupManager はエンタープライズバックアップソリューション。差分バックアップと復旧時間短縮が特徴。"}
+{"id": "d74", "text": "PerformanceProfiler はアプリケーション性能分析ツール。CPU、メモリ、I/O ボトルネック特定に活用。"}
+{"id": "d75", "text": "CodeRepository は分散バージョン管理システム。ブランチ戦略とマージ競合自動解決機能搭載。"}
+{"id": "d76", "text": "TestAutomation は品質保証プラットフォーム。ユニット、統合、UI テスト統一管理・実行。"}
+{"id": "d77", "text": "VirtualMachine Manager は仮想化管理ツール。リソース最適化と動的マイグレーション機能提供。"}
+{"id": "d78", "text": "LoadBalancer Pro はロードバランシング製品。セッション保持と地理的分散配信対応。"}
+{"id": "d79", "text": "DatabaseOptimizer はデータベース性能調査・改善ツール。インデックス分析とクエリプラン最適化をサポート。"}
+{"id": "d80", "text": "ServiceRegistry はマイクロサービスディスカバリープラットフォーム。ヘルスチェックと動的サービス登録機能あり。"}
+{"id": "d81", "text": "EventStream はリアルタイムイベント処理基盤。ストリーム処理とウィンドウ集約を統合。"}
+{"id": "d82", "text": "MetricsCollector はメトリクス収集・保存プラットフォーム。時系列データベースで高速クエリ実現。"}
+{"id": "d83", "text": "IntegrationFramework は統合開発プラットフォーム。コネクタライブラリとデータ変換テンプレート豊富。"}
+{"id": "d84", "text": "NotificationService は多形式通知配信システム。メール、SMS、Push、Slack 統一管理可能。"}
+{"id": "d85", "text": "FormBuilder はノーコードフォーム設計ツール。バリデーション、計算フィールド、条件分岐対応。"}
+{"id": "d86", "text": "DataQuality はデータ品質管理プラットフォーム。プロファイリング、クレンジング、マッチング機能統合。"}
+{"id": "d87", "text": "SchedulerEngine はジョブスケジューリング・実行管理製品。時間ベース・イベントベース実行対応。"}
+{"id": "d88", "text": "VisualizationEngine はインタラクティブ可視化ライブラリ。カスタムダッシュボード構築が簡単。"}
+{"id": "d89", "text": "SearchIndex はフルテキスト検索エンジン。言語別アナライザと複合クエリ構文サポート。"}
+{"id": "d90", "text": "ComplianceFramework はコンプライアンス管理プラットフォーム。規制ルール実装とレポート生成自動化。"}
+{"id": "d91", "text": "RiskAssessment はリスク分析・評価ツール。脅威スコアリングと緩和策提案機能搭載。"}
+{"id": "d92", "text": "IncidentManagement は障害対応管理システム。自動検出、エスカレーション、ポストモーテム記録対応。"}
+{"id": "d93", "text": "CapacityPlanner はリソース計画・予測ツール。トレンド分析と what-if シミュレーション機能。"}
+{"id": "d94", "text": "CostAnalyzer はクラウドコスト管理・最適化ソリューション。詳細な費用分析とリザベーション提案提供。"}
+{"id": "d95", "text": "SecurityScanner は脆弱性スキャン・検出ツール。既知脆弱性データベースと継続的モニタリング機能あり。"}
+{"id": "d96", "text": "APIManagement は API ライフサイクル管理プラットフォーム。バージョニング、レート制限、分析統合。"}
+{"id": "d97", "text": "ContentDelivery は CDN・コンテンツ配信サービス。グローバルエッジノードとキャッシュ戦略最適化。"}
+{"id": "d98", "text": "UserAnalytics はユーザ行動分析プラットフォーム。セッション追跡、ファネル分析、コホート分析対応。"}
+{"id": "d99", "text": "EmailCampaign はマーケティングオートメーション製品。セグメンテーション、A/B テスト、パフォーマンス分析統合。"}
+{"id": "d100", "text": "ChatBot は AI 会話型アシスタント。自然言語理解と企業システム連携で自動カスタマーサポート実現。"}
+{"id": "d51", "text": "Acme Search は検索体験を革新。特に Semantic Index を備え、超低遅延の Realtime Query を提供します。"}
+{"id": "d52", "text": "Globex Graph はグラフ指向の製品で、Semantic Index を搭載、コンプライアンスに配慮した Policy Audit 機能も。"}
+{"id": "d53", "text": "AI Model Governance（POL-002）はデータ統合プロダクトに関連します。統合されたシステムではガイドライン適用あり。"}
+{"id": "d54", "text": "Personal Data Protection（POL-001）は主にユーザデータの保護観点で Acme Search を対象としています。"}
+{"id": "d55", "text": "Globex Graph は Acme Search の技術に依存している部分があり、相互運用性が高い。"}
+{"id": "d56", "text": "CloudBridge Platform はマルチクラウド環境での統合運用を実現。AWS、Azure、GCP の各環境シームレス連携が特徴。"}
+{"id": "d57", "text": "DataVault Pro はエンタープライズデータ保護ソリューション。暗号化、キー管理、監査ログ機能を統合提供。"}
+{"id": "d58", "text": "NetworkGuard Suite はセキュリティ脅威検知プラットフォーム。機械学習ベースの異常検知アルゴリズムを採用。"}
+{"id": "d59", "text": "AutoScale Manager はクラウドリソースの自動スケーリング製品。負荷予測とコスト最適化を同時実現。"}
+{"id": "d60", "text": "IntegrationHub は API ゲートウェイとして機能。REST、GraphQL、gRPC プロトコル対応で柔軟な統合可能。"}
+{"id": "d61", "text": "MonitorFlow は統合監視・アラート管理プラットフォーム。リアルタイムダッシュボードとカスタムメトリクス定義をサポート。"}
+{"id": "d62", "text": "AnalyticsCore はビジネスインテリジェンスツール。データ可視化と予測分析を統合、意思決定支援が主目的。"}
+{"id": "d63", "text": "WorkflowEngine は業務プロセス自動化フレームワーク。ノーコード設計で複雑なワークフロー構築可能。"}
+{"id": "d64", "text": "CacheOptimizer はデータベースキャッシング管理製品。メモリ効率化とクエリ応答速度を大幅改善。"}
+{"id": "d65", "text": "MessageQueue Pro はイベント駆動型メッセージング基盤。高スループット・低遅延の配信を保証。"}
+{"id": "d66", "text": "StorageSync はハイブリッドストレージ管理システム。オンプレミスとクラウドストレージの自動同期機能搭載。"}
+{"id": "d67", "text": "AuthenticationCore は認証・認可の統一プラットフォーム。OAuth2、SAML、OIDC マルチプロトコル対応。"}
+{"id": "d68", "text": "LogAggregator は分散ログ管理ツール。複数システムからのログ統一収集・検索・分析が可能。"}
+{"id": "d69", "text": "DeploymentOrchestrator はコンテナオーケストレーション製品。Kubernetes 互換、マルチリージョン展開対応。"}
+{"id": "d70", "text": "ConfigurationManager は構成管理・環境設定ツール。バージョン管理とロールバック機能を統合。"}
+{"id": "d71", "text": "DocumentProcessor はテキスト・PDF 処理エンジン。OCR と自然言語処理で文書の自動分類・抽出実現。"}
+{"id": "d72", "text": "ReportGenerator はレポート作成・配信自動化ツール。複数データソース統合、スケジュール配信可能。"}
+{"id": "d73", "text": "BackupManager はエンタープライズバックアップソリューション。差分バックアップと復旧時間短縮が特徴。"}
+{"id": "d74", "text": "PerformanceProfiler はアプリケーション性能分析ツール。CPU、メモリ、I/O ボトルネック特定に活用。"}
+{"id": "d75", "text": "CodeRepository は分散バージョン管理システム。ブランチ戦略とマージ競合自動解決機能搭載。"}
+{"id": "d76", "text": "TestAutomation は品質保証プラットフォーム。ユニット、統合、UI テスト統一管理・実行。"}
+{"id": "d77", "text": "VirtualMachine Manager は仮想化管理ツール。リソース最適化と動的マイグレーション機能提供。"}
+{"id": "d78", "text": "LoadBalancer Pro はロードバランシング製品。セッション保持と地理的分散配信対応。"}
+{"id": "d79", "text": "DatabaseOptimizer はデータベース性能調査・改善ツール。インデックス分析とクエリプラン最適化をサポート。"}
+{"id": "d80", "text": "ServiceRegistry はマイクロサービスディスカバリープラットフォーム。ヘルスチェックと動的サービス登録機能あり。"}
+{"id": "d81", "text": "EventStream はリアルタイムイベント処理基盤。ストリーム処理とウィンドウ集約を統合。"}
+{"id": "d82", "text": "MetricsCollector はメトリクス収集・保存プラットフォーム。時系列データベースで高速クエリ実現。"}
+{"id": "d83", "text": "IntegrationFramework は統合開発プラットフォーム。コネクタライブラリとデータ変換テンプレート豊富。"}
+{"id": "d84", "text": "NotificationService は多形式通知配信システム。メール、SMS、Push、Slack 統一管理可能。"}
+{"id": "d85", "text": "FormBuilder はノーコードフォーム設計ツール。バリデーション、計算フィールド、条件分岐対応。"}
+{"id": "d86", "text": "DataQuality はデータ品質管理プラットフォーム。プロファイリング、クレンジング、マッチング機能統合。"}
+{"id": "d87", "text": "SchedulerEngine はジョブスケジューリング・実行管理製品。時間ベース・イベントベース実行対応。"}
+{"id": "d88", "text": "VisualizationEngine はインタラクティブ可視化ライブラリ。カスタムダッシュボード構築が簡単。"}
+{"id": "d89", "text": "SearchIndex はフルテキスト検索エンジン。言語別アナライザと複合クエリ構文サポート。"}
+{"id": "d90", "text": "ComplianceFramework はコンプライアンス管理プラットフォーム。規制ルール実装とレポート生成自動化。"}
+{"id": "d91", "text": "RiskAssessment はリスク分析・評価ツール。脅威スコアリングと緩和策提案機能搭載。"}
+{"id": "d92", "text": "IncidentManagement は障害対応管理システム。自動検出、エスカレーション、ポストモーテム記録対応。"}
+{"id": "d93", "text": "CapacityPlanner はリソース計画・予測ツール。トレンド分析と what-if シミュレーション機能。"}
+{"id": "d94", "text": "CostAnalyzer はクラウドコスト管理・最適化ソリューション。詳細な費用分析とリザベーション提案提供。"}
+{"id": "d95", "text": "SecurityScanner は脆弱性スキャン・検出ツール。既知脆弱性データベースと継続的モニタリング機能あり。"}
+{"id": "d96", "text": "APIManagement は API ライフサイクル管理プラットフォーム。バージョニング、レート制限、分析統合。"}
+{"id": "d97", "text": "ContentDelivery は CDN・コンテンツ配信サービス。グローバルエッジノードとキャッシュ戦略最適化。"}
+{"id": "d98", "text": "UserAnalytics はユーザ行動分析プラットフォーム。セッション追跡、ファネル分析、コホート分析対応。"}
+{"id": "d99", "text": "EmailCampaign はマーケティングオートメーション製品。セグメンテーション、A/B テスト、パフォーマンス分析統合。"}
+{"id": "d100", "text": "ChatBot は AI 会話型アシスタント。自然言語理解と企業システム連携で自動カスタマーサポート実現。"}

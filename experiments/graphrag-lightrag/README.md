@@ -57,7 +57,13 @@ Globex Graph --[HAS_FEATURE]--> Semantic Index
 
 ## 📊 試験データセット
 
-本実験では、データ量依存性を実証するため、3 つのデータセットサイズを用意しています。
+本実験では、データ量依存性を実証するため、複数のデータセットサイズを用意しています。
+
+### 5 項目版（kg-no-rag と同じ）
+
+`data/docs.jsonl` として提供。`kg-no-rag` 実験と同じデータセットを使用できます。最初の 5 エントリが含まれます。
+
+**特徴**: 小規模データセットで、ベクトル検索の精度の限界を実証します。
 
 ### 8 項目版（デフォルト）
 
@@ -67,32 +73,31 @@ Globex Graph --[HAS_FEATURE]--> Semantic Index
 - ポリシーと製品の関係
 - 政策変更による影響
 
-### 5 項目版（kg-no-rag と同じ）
-
-`data/docs.jsonl` として提供。`kg-no-rag` 実験と同じデータセットを使用できます。最初の 5 エントリが含まれます。
-
-**特徴**: 小規模データセットで、ベクトル検索の精度の限界を実証します。
-
 ### 50 項目版
 
 `data/docs-50.jsonl` として提供。最初の 5 エントリに加え、様々な製品・サービスの説明を追加した 50 エントリのデータセットです。
 
-**特徴**: 同じドメインの情報を様々な表現で繰り返し記述することで、データ量増加に伴うベクトル検索の精度変化を実証します。`kg-no-rag` 実験と同様に、スケール依存性のテストに使用できます。
+**特徴**: 同じドメインの情報を様々な表現で繰り返し記述することで、データ量増加に伴うベクトル検索の精度変化を実証します。
+
+### 100 項目版
+
+`data/docs-100.jsonl` として提供。50 項目版を 2 倍に拡張した 100 エントリのデータセットです。
+
+**特徴**: より大きなデータセットで、ベクトル検索のノイズ増加と軽量化の効果をより明確に確認できます。
+
+### 200 項目版
+
+`data/docs-200.jsonl` として提供。50 項目版を 4 倍に拡張した 200 エントリのデータセットです。
+
+**特徴**: 最大規模のデータセットで、データ量依存性の差を最も明確に確認できます。
 
 **データセット切り替え**:
 
-1. **環境変数で指定（推奨）**: `docker-compose.yml` の `environment` セクションで `DATA_FILE` を指定します。
+1. **スクリプトで切り替え（推奨・コンテナ再起動なし）**: `switch-dataset.sh` を使用して簡単に切り替えできます（後述）。
 
-```bash
-# docker-compose.yml の environment に以下を追加:
-DATA_FILE: data/docs.jsonl        # 5項目版
-DATA_FILE: data/docs-light.jsonl  # 8項目版（デフォルト）
-DATA_FILE: data/docs-50.jsonl     # 50項目版
-```
+2. **動的切り替え**: 実行中に `/switch-dataset` エンドポイントで切り替えることも可能です。
 
-2. **スクリプトで切り替え**: `switch-dataset.sh` を使用して簡単に切り替えできます（後述）。
-
-3. **動的切り替え**: 実行中に `/switch-dataset` エンドポイントで切り替えることも可能です。
+3. **環境変数で指定**: 初回起動時に `docker-compose.yml` の `environment` セクションで `DATA_FILE` を指定します。
 
 データセットは GraphRAG と LightRAG の両方で共通使用されます。
 
@@ -102,15 +107,17 @@ DATA_FILE: data/docs-50.jsonl     # 50項目版
 
 実装を手元で実行して、GraphRAG と LightRAG の動作を確認できます。
 
-| ID                     | 質問                                | 期待値                                       | 比較ポイント       |
-| ---------------------- | ----------------------------------- | -------------------------------------------- | ------------------ |
-| **Q1-製品一覧**        | 製品一覧                            | Acme Search, Globex Graph                    | 基本動作の確認     |
-| **Q2-Acme の機能**     | Acme が提供する全ユニークな機能は？ | Realtime Query, Semantic Index               | 集合演算の確認     |
-| **Q3-関連ポリシー**    | Globex Graph を規制するポリシーは？ | POL-002                                      | グラフ経路の確認   |
-| **Q4-Acme の機能詳細** | Acme の機能は？                     | Semantic Index, Realtime Query, Policy Audit | 多ホップ推論の確認 |
-| **Q5-共通機能**        | Acme と Globex の共通機能は？       | Semantic Index                               | 交差演算の確認     |
+**重要**: この質問セットは `kg-no-rag` 実験と同じ内容です。これにより、**KG（ナレッジグラフ）、RAG（ベクトル検索）、GraphRAG、LightRAG** の 4 つの手法を同じ質問で比較できます。
 
-**注記**: 評価のゆらぎ（バリエーション）を減らすため、質問数を 5 問に拡張しました。`kg-no-rag` 実験と同じデータセット（5 項目版）と質問で比較可能です。
+| ID          | 型   | 質問                                                                   | 期待値                         | 比較ポイント     |
+| ----------- | ---- | ---------------------------------------------------------------------- | ------------------------------ | ---------------- |
+| **Q1-集合** | 集合 | Acme が提供する全ユニークな機能は？                                    | Realtime Query, Semantic Index | 集合演算の確認   |
+| **Q2-差分** | 対比 | Semantic Index を提供する製品で、Policy Audit を提供していない製品は？ | Acme Search                    | 論理的差分の確認 |
+| **Q3-経路** | 経路 | Globex Graph を規制するポリシーは？                                    | POL-002                        | グラフ経路の確認 |
+| **Q4-否定** | 否定 | Semantic Index を持たない機能は？                                      | Policy Audit, Realtime Query   | 論理否定の確認   |
+| **Q5-交差** | 交差 | Acme と Globex の共通機能は？                                          | Semantic Index                 | 交差演算の確認   |
+
+**注記**: `kg-no-rag` 実験と同じデータセット（5 項目版の `docs.jsonl`）と質問セットを使用することで、4 つの手法（KG、RAG、GraphRAG、LightRAG）を同じ条件で比較できます。
 
 **自動評価**: `/eval` エンドポイントで全質問を一括実行できます（後述）。
 
@@ -157,37 +164,52 @@ docker compose ps
 
 > ⏳ **重要**: コンテナ起動後、データベース初期化と埋め込みモデルのダウンロードに **約 60-90 秒** かかります。特に LightRAG は `sentence-transformers/all-MiniLM-L6-v2`（約 80MB）のダウンロードが必要です。初期化が完了していないまま評価を実行するとエラーが発生します。
 
+### 初期化完了の確認
+
+ヘルスチェックエンドポイントで初期化完了を確認できます：
+
 ```bash
-# 初期化完了後、自動評価実行
-sleep 60
+curl -sf http://localhost:8200/healthz
+curl -sf http://localhost:8100/healthz
+```
+
+**初期化完了の判定**:
+
+- 以下のような JSON レスポンスが返ってくれば準備完了です：
+  ```json
+  {
+    "status": "ok",
+    "service": "lightrag-api",
+    "version": "0.1.0",
+    "connections": { "neo4j": true, "qdrant": true, "embedding_model": true }
+  }
+  ```
+- `connections` の各項目が `true` になっていれば、データベース接続と埋め込みモデルの準備が完了しています
+- エラーが返る、または接続タイムアウトする場合は、まだ初期化中です（60-90 秒待ってから再試行してください）
+
+初期化完了後、評価を実行できます：
+
+```bash
+# 自動評価実行
 curl -s http://localhost:8100/eval | jq '.'
 ```
 
-**期待される結果**:
+**評価結果の例**:
 
 ```json
 {
   "summary": {
-    "graphrag_ok": 3,
-    "lightrag_ok": 4,
+    "graphrag_ok": 5,
+    "lightrag_ok": 5,
     "total": 5
   },
   "cases": [
     {
-      "id": "Q1-製品一覧",
-      "ask": "製品一覧",
-      "expected": ["Acme Search", "Globex Graph"],
-      "graphrag_nodes": ["Acme Search", "Globex Graph"],
-      "lightrag_nodes": ["Acme Search", "Globex Graph"],
-      "gr_ok": true,
-      "lr_ok": true
-    },
-    {
-      "id": "Q2-Acmeの機能",
+      "id": "Q1-集合",
       "ask": "Acme が提供する全ユニークな機能は？",
       "expected": ["Realtime Query", "Semantic Index"],
-      "graphrag_nodes": ["Realtime Query", "Semantic Index", ...],
-      "lightrag_nodes": ["Realtime Query", "Semantic Index", ...],
+      "graphrag_nodes": ["POL-002", "Realtime Query", "POL-001", "Acme Search", "Policy Audit", "Semantic Index"],
+      "lightrag_nodes": ["Globex Graph", "Realtime Query", "POL-001", "Acme Search", "Policy Audit", "Semantic Index"],
       "gr_ok": true,
       "lr_ok": true
     }
@@ -196,16 +218,59 @@ curl -s http://localhost:8100/eval | jq '.'
 }
 ```
 
-**注記**: 実際の実行結果は実装の簡易性により変動する可能性があります。評価のゆらぎを減らすため、質問数を 5 問に拡張しました。
+> **重要**: `/eval` の結果だけでは、**精度の比較**しかできません。両方が全問正解（5/5）の場合、一見違いがわかりません。
+>
+> **LightRAG の特徴（軽量化、階層化）を確認するには**、以下のいずれかの方法を使用してください：
+>
+> - 個別の質問で `/ask` を実行し、`metadata.subgraph` や `vector_nodes`/`graph_nodes` を確認
+> - `/compare` エンドポイントで、同じ質問での探索ノード数やメタデータを比較
+>
+> 詳しくは「[比較結果の解釈](#-比較結果の解釈)」セクションを参照してください。
 
 ### 個別の質問で比較
 
-特定の質問で GraphRAG と LightRAG を比較する場合：
+**注意**: `/compare` だけでは**精度の違い（正答率）は確認できません**。精度を比較するには `/eval` を使用してください。
+
+特定の質問で GraphRAG と LightRAG の**探索プロセスの違い**を確認する場合：
 
 ```bash
-# 比較実行
-curl "http://localhost:8100/compare?question=製品一覧" | jq
+# 推奨: --data-urlencode を使用（日本語を含む質問でも安全）
+curl -G "http://localhost:8100/compare" --data-urlencode "question=Acme Search の機能は？" | jq '.'
 ```
+
+**`/compare` で確認できること**:
+
+- `graphrag.metadata.nodes_explored`: GraphRAG が探索したノード数（例: 7）
+- `lightrag.metadata.alpha_beta_ratio`: ベクトル検索とグラフ探索の重み比率（階層的検索の証拠）
+- `lightrag.metadata.final_scores`: 各ノードの最終スコア（階層的検索の証拠）
+
+**`/compare` では確認できないこと**:
+
+- **精度の違い**: 期待値との一致度を確認するには `/eval` を使用
+- **軽量化の違い**: `subgraph.total_nodes` や `vector_nodes` を確認するには個別に `/ask` を使用
+- **階層的検索の詳細**: `vector_nodes` と `graph_nodes` の分離を確認するには個別に `/ask` を使用
+
+**LightRAG の特徴を詳しく確認するには**、個別に `/ask` を実行してください。詳しくは「[比較結果の解釈](#-比較結果の解釈)」セクションを参照してください。
+
+---
+
+## 🔎 小規模環境での傾向と解釈（技術的注意）
+
+このリポの実装は学習用の簡易構成です。実測では次のような傾向が観測されます。
+
+- 精度（/eval）: 小規模〜中規模データでは GraphRAG と LightRAG が同点になることがある
+- 圧縮（LightRAG の可変性）: `top_k` を小さくすると `vector_nodes`/`graph_nodes` が減り、回答長（`answer_len`）も短くなる（文脈予算を制御可能）
+- 探索規模（GraphRAG）: `metadata.nodes_explored` で探索ノード数を確認でき、局所探索ではデータ量の影響が限定的に見えることがある
+- レイテンシ（本実装）: 小規模では GraphRAG（簡易実装）の方が速く見える場合がある。LightRAG は埋め込み生成＋ベクトル検索の固定オーバーヘッドがあるため
+
+重要な前提:
+
+- 研究版 GraphRAG は「全体グラフ構築・コミュニティ要約」などの重い前処理を伴い、運用・更新コストが増大しやすい
+- LightRAG は「クエリ毎の局所サブグラフ＋圧縮＋フィードバック」で、データ増大時も `top_k` と `depth` により計算を局所化しやすい（運用効率）
+
+したがって、本実装での小規模比較でレイテンシが GraphRAG 有利に見えるとしても、LightRAG の価値は「文脈圧縮の可制御性」「局所化によるスケール対応」「フィードバックでの即時調整」といった運用面にある点に注意してください。実測は上のコマンドであなたの環境に合わせて再現できます。
+
+---
 
 ### 評価スクリプト（便利ツール）
 
@@ -227,30 +292,53 @@ curl "http://localhost:8100/compare?question=製品一覧" | jq
 ## 📝 テスト質問詳細
 
 > **注記**: 以下の結果は、この実装の手元での実行結果を参考として示しています。実装は簡易版のため、完全な GraphRAG / LightRAG とは異なる場合があります。**あなたの環境での実行結果が異なる場合は、それも正常です**。上記のセクション「クイックスタート」で実装を実行して、実際の動作を確認することをお勧めします。
+>
+> **重要な注意**: これらの質問は `kg-no-rag` 実験と同じものです。これにより、KG（ナレッジグラフ）、RAG（ベクトル検索）、GraphRAG、LightRAG の 4 つの手法を同じ質問で比較できます。
 
-### Q1-製品一覧: 製品一覧
+### Q1-集合: Acme が提供する全ユニークな機能は？
 
-- **期待値**: `["Acme Search", "Globex Graph"]`
-- **比較ポイント**: 基本動作の確認
-- **GraphRAG**: キーワードベースの簡易検索で製品を返す
-- **LightRAG**: ベクトル検索 → グラフ探索の二層検索で製品を返す
+- **期待値**: `["Realtime Query", "Semantic Index"]`
+- **比較ポイント**: 集合演算の確認
+- **GraphRAG**: キーワードベースの簡易検索で機能を返す
+- **LightRAG**: ベクトル検索 → グラフ探索の二層検索で機能を返す
 - **違い**: LightRAG は `vector_nodes` と `graph_nodes` を分けて返す（階層的検索の証拠）
+- **kg-no-rag との比較**: KG✅ RAG✅（小規模）→ RAG❌（大規模でノイズ増加）
 
-### Q2-関連ポリシー: 関連ポリシー
+### Q2-差分: Semantic Index を提供する製品で、Policy Audit を提供していない製品は？
 
-- **期待値**: `["POL-001", "POL-002"]`
-- **比較ポイント**: グラフ探索の確認
-- **GraphRAG**: ポリシーノードをキーワード検索で取得
+- **期待値**: `["Acme Search"]`
+- **比較ポイント**: 論理的差分（A かつ NOT B）の確認
+- **GraphRAG**: キーワード検索ベースだが、論理的差分の処理は限定的
+- **LightRAG**: ベクトル検索とグラフ探索を組み合わせるが、論理的否定条件は困難
+- **違い**: 両手法とも論理的差分には課題がある（KG が最も得意とする領域）
+- **kg-no-rag との比較**: KG✅ RAG❌（論理的差分はベクトル検索に不向き）
+
+### Q3-経路: Globex Graph を規制するポリシーは？
+
+- **期待値**: `["POL-002"]`
+- **比較ポイント**: グラフ経路探索の確認（製品 → ポリシーの間接関係）
+- **GraphRAG**: グラフ探索で経路をたどるが、簡易実装のため限定的
 - **LightRAG**: ベクトル検索で関連文書を取得し、その中からポリシーを抽出
-- **違い**: LightRAG は多段階の推論（文書 → ポリシー）を実行
+- **違い**: GraphRAG はグラフ探索に優れるが、LightRAG は間接関係の把握が困難な場合がある
+- **kg-no-rag との比較**: KG✅ RAG❌（グラフ経路の間接関係を見落とす）
 
-### Q3-Acme の機能: Acme の機能は？
+### Q4-否定: Semantic Index を持たない機能は？
 
-- **期待値**: `["Semantic Index", "Realtime Query", "Policy Audit"]`
-- **比較ポイント**: 多ホップ推論の確認
-- **GraphRAG**: キーワード検索で直接機能を取得
-- **LightRAG**: ベクトル検索で Acme Search を取得 → グラフ探索で関連機能を取得
-- **違い**: LightRAG は局所サブグラフを構築して関連機能を見つける
+- **期待値**: `["Policy Audit", "Realtime Query"]`
+- **比較ポイント**: 論理否定条件の確認
+- **GraphRAG**: キーワード検索ベースで否定条件の処理は限定的
+- **LightRAG**: ベクトル検索では否定条件が曖昧になる
+- **違い**: 両手法とも論理否定には課題がある（KG が最も得意とする領域）
+- **kg-no-rag との比較**: KG✅ RAG❌（論理的否定条件が曖昧）
+
+### Q5-交差: Acme と Globex の共通機能は？
+
+- **期待値**: `["Semantic Index"]`
+- **比較ポイント**: 交差演算（AND 検索）の確認
+- **GraphRAG**: グラフ探索で両製品の機能を比較
+- **LightRAG**: ベクトル検索とグラフ探索を組み合わせて共通機能を抽出
+- **違い**: 両手法とも可能だが、GraphRAG の方が構造的比較に優れる
+- **kg-no-rag との比較**: KG✅ RAG⚠️（小規模では成功、大規模では失敗）
 
 ---
 
@@ -281,8 +369,19 @@ curl -X POST "http://localhost:8100/ask" \
 同一質問で GraphRAG と LightRAG を同時実行し、結果を比較します。
 
 ```bash
-curl "http://localhost:8100/compare?question=製品一覧" | jq
+# 推奨: --data-urlencode を使用（日本語を含む質問でも安全）
+curl -G "http://localhost:8100/compare" --data-urlencode "question=Acme Search の機能は？" | jq '.'
 ```
+
+**レスポンス構造**:
+
+- `graphrag.metadata.nodes_explored`: GraphRAG が探索したノード数
+- `lightrag.metadata.alpha_beta_ratio`: ベクトル検索とグラフ探索の重み比率（階層的検索の証拠）
+- `lightrag.metadata.final_scores`: 各ノードの最終スコア（階層的検索の証拠）
+
+> **注意**: `/compare` だけでは**精度の違い（正答率）は確認できません**。精度を比較するには `/eval` を使用してください。
+
+**注意**: 初期化未完了の場合、JSON でないレスポンスが返る可能性があります。ヘルスチェックで準備完了を確認してください。
 
 ### `/eval`
 
@@ -375,33 +474,11 @@ curl -X POST http://localhost:8100/reset  # LightRAG
 
 ---
 
-## 📝 テスト質問詳細
+## 📝 テスト質問詳細（重複セクション - 参考用）
 
-> **注記**: 以下の結果は、この実装の手元での実行結果を参考として示しています。実装は簡易版のため、完全な GraphRAG / LightRAG とは異なる場合があります。**あなたの環境での実行結果が異なる場合は、それも正常です**。上記のセクション「クイックスタート」で実装を実行して、実際の動作を確認することをお勧めします。
-
-### Q1-製品一覧: 製品一覧
-
-- **期待値**: `["Acme Search", "Globex Graph"]`
-- **比較ポイント**: 基本動作の確認
-- **GraphRAG**: キーワードベースの簡易検索で製品を返す
-- **LightRAG**: ベクトル検索 → グラフ探索の二層検索で製品を返す
-- **違い**: LightRAG は `vector_nodes` と `graph_nodes` を分けて返す（階層的検索の証拠）
-
-### Q2-関連ポリシー: 関連ポリシー
-
-- **期待値**: `["POL-001", "POL-002"]`
-- **比較ポイント**: グラフ探索の確認
-- **GraphRAG**: ポリシーノードをキーワード検索で取得
-- **LightRAG**: ベクトル検索で関連文書を取得し、その中からポリシーを抽出
-- **違い**: LightRAG は多段階の推論（文書 → ポリシー）を実行
-
-### Q3-Acme の機能: Acme の機能は？
-
-- **期待値**: `["Semantic Index", "Realtime Query", "Policy Audit"]`
-- **比較ポイント**: 多ホップ推論の確認
-- **GraphRAG**: キーワード検索で直接機能を取得
-- **LightRAG**: ベクトル検索で Acme Search を取得 → グラフ探索で関連機能を取得
-- **違い**: LightRAG は局所サブグラフを構築して関連機能を見つける
+> **注記**: このセクションは上の「📝 テスト質問詳細」セクションと重複しています。詳細は上のセクションを参照してください。
+>
+> **重要な注意**: これらの質問は `kg-no-rag` 実験と同じものです。これにより、KG（ナレッジグラフ）、RAG（ベクトル検索）、GraphRAG、LightRAG の 4 つの手法を同じ質問で比較できます。
 
 ---
 
@@ -930,20 +1007,253 @@ docker compose logs lightrag | grep "Data seeding"
 - Microsoft GraphRAG: [GitHub](https://github.com/microsoft/graphrag)
 - HKUDS LightRAG: [GitHub](https://github.com/HKUDS/LightRAG)
 
-## 📖 記事に沿ったテストガイド
+## 📖 記事に沿った GraphRAG vs LightRAG テストガイド
 
-記事を読みながら、実際に動作確認できる比較ポイントをまとめたテストガイドを用意しています：
+このセクションは、記事「[GraphRAG の限界と LightRAG の登場](../articles/graphrag-light-rag-2025-10.md)」を読みながら、実際に実験環境で動作確認できる比較ポイントをまとめたものです。
 
-**→ [TESTING_GUIDE.md](./TESTING_GUIDE.md)**
+---
 
-このガイドでは、記事の各章に対応したテスト方法を説明しています：
+### 1. 「LightRAG とは ── 軽量化と階層化の設計思想」
 
-- 軽量化（Lightweight）の実証
-- 階層化（Hierarchical Retrieval）の二層検索の確認
-- 適応（Adaptive Feedback）の動作確認
-- GraphRAG との定量的比較
+#### ✅ 1-1. 軽量化（Lightweight）
 
-記事を読み進めながら、このガイドに沿って実際に API を呼び出すことで、理論と実装の違いを体感できます。
+**記事の説明**: グラフ全体ではなくクエリ依存のサブグラフを対象にする
+
+**テスト方法**:
+
+```bash
+# LightRAG: クエリ依存のサブグラフのみを構築（depth=1で制限）
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Acme Search の機能は？",
+    "top_k": 3,
+    "depth": 1,
+    "theta": 0.3
+  }' | jq '.metadata.subgraph'
+
+# GraphRAG: 全体グラフを探索（max_depth=3で広範囲探索）
+curl -X POST "http://localhost:8200/ask" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Acme Search の機能は？",
+    "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}
+  }' | jq
+```
+
+**期待される違い**: LightRAG の`subgraph.total_nodes`が GraphRAG より少ない
+
+#### ✅ 1-2. 階層化（Hierarchical Retrieval）
+
+**記事の説明**: ベクトルレベル（低レベル）とグラフレベル（高レベル）の二層検索
+
+**テスト方法**:
+
+```bash
+# LightRAGの階層的検索を確認
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Globex Graph に関連する製品と機能は？",
+    "top_k": 4,
+    "depth": 2,
+    "theta": 0.3
+  }' | jq '{vector_nodes, graph_nodes, subgraph}'
+```
+
+**確認ポイント**:
+
+- `vector_nodes`: ベクトル検索（低レベル）で取得したノード
+- `graph_nodes`: グラフ探索（高レベル）で追加されたノード
+- 2 つのリストが異なることを確認（階層的検索の証拠）
+
+#### ⚠️ 1-3. 適応（Adaptive Feedback）
+
+**記事の説明**: LLM の attention 重みをもとに、次回検索時のエッジ重みを動的調整
+
+**現在の実装状況**:
+
+- `/feedback`エンドポイントは実装済み
+- ただし、LLM からの自動的な attention 重み取得は未実装（簡易実装のため）
+- 手動でフィードバックを送信することで動作をシミュレート可能
+
+**テスト方法**:
+
+```bash
+# 同じ質問を複数回実行
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Policy Audit に関連する製品は？", "top_k": 3, "depth": 2, "theta": 0.3}' | jq
+
+# 手動でフィードバックを送信（実装では自動だが、簡易版では手動）
+curl -X POST "http://localhost:8100/feedback" \
+  -H "Content-Type: application/json" \
+  -d '{"node_id": "Policy Audit", "weight": 1.5}'
+
+# フィードバックログを確認
+curl http://localhost:8100/feedback-log | jq
+```
+
+**注意**: 実装の完全版では、LLM の attention 重みが自動的に取得・反映されますが、現在の簡易実装では手動フィードバックが必要です。
+
+---
+
+### 2. 「内部構造とアルゴリズム」
+
+#### ✅ 2-1. Retrieval Flow の 2 段階検索
+
+**記事の説明**:
+
+1. ベクトル検索層（Vector-level Retrieval）: top-k 文書を取得
+2. グラフ探索層（Graph-level Retrieval）: 取得ノードを中心に ego-network を構築
+
+**テスト方法**:
+
+```bash
+# パラメータを変えて、2段階検索の挙動を確認
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "製品と機能の関係を教えて",
+    "top_k": 2,      # ベクトル検索で取得するノード数（低レベル）
+    "depth": 2,      # グラフ探索の深さ（高レベル）
+    "theta": 0.3     # スコア閾値
+  }' | jq '{vector_nodes, graph_nodes: [.graph_nodes[] | {name: .name, type: .type}]}'
+```
+
+**確認ポイント**:
+
+- `top_k`を小さくすると、ベクトル検索段階で取得するノードが減る
+- `depth`を大きくすると、グラフ探索でより多くのノードが追加される
+- `theta`を高くすると、低スコアのノードが除外される
+
+#### ✅ 2-2. コンテキスト圧縮（Context Compression）
+
+**記事の説明**: 取得したノード群を重要度で上位 k 件に圧縮（トークン入力量 30-50%削減）
+
+**テスト方法**:
+
+```bash
+# top_kパラメータで圧縮度を確認
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "すべての製品と機能の関係", "top_k": 2, "depth": 3, "theta": 0.3}' \
+  | jq '{answer, graph_nodes_count: (.graph_nodes | length)}'
+
+# top_kを大きくすると、より多くのノードが返される
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "すべての製品と機能の関係", "top_k": 10, "depth": 3, "theta": 0.3}' \
+  | jq '{answer, graph_nodes_count: (.graph_nodes | length)}'
+```
+
+---
+
+### 3. 「GraphRAG との定量的比較と改善点」
+
+#### ✅ 3-1. 構造探索: 全体グラフトラバース vs クエリ依存サブグラフ
+
+**記事の改善点**: 検索計算量を O(n²)→O(k log n)に削減
+
+**テスト方法**:
+
+```bash
+# GraphRAG: 全体グラフを探索（max_depthを大きくすると探索範囲が広がる）
+time curl -s -X POST "http://localhost:8200/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品一覧", "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}}' > /dev/null
+
+# LightRAG: クエリ依存サブグラフのみ（depthで制限）
+time curl -s -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品一覧", "top_k": 4, "depth": 2, "theta": 0.3}' > /dev/null
+```
+
+**確認ポイント**: LightRAG の方がレスポンスタイムが短いことを確認（簡易実装のため、大きな差は出ない可能性あり）
+
+#### ✅ 3-2. コンテキスト処理: 静的連結 vs 動的圧縮
+
+**記事の改善点**: トークン効率化・応答速度向上
+
+**テスト方法**:
+
+```bash
+# GraphRAG: 静的連結（すべての関連ノードを含む）
+curl -X POST "http://localhost:8200/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品一覧", "graph_walk": {"max_depth": 2, "prune_threshold": 0.2}}' \
+  | jq '.answer' | wc -w
+
+# LightRAG: 動的圧縮（top_kで制限）
+curl -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品一覧", "top_k": 3, "depth": 2, "theta": 0.3}' \
+  | jq '.answer' | wc -w
+```
+
+**確認ポイント**: LightRAG の回答がよりコンパクト（単語数が少ない）
+
+---
+
+## 🎯 総合比較テスト
+
+記事全体を通して理解できる主な違いを一度に確認するテスト：
+
+```bash
+#!/bin/bash
+
+echo "=== GraphRAG vs LightRAG 総合比較 ==="
+
+echo -e "\n【テスト1: 階層的検索】"
+echo "LightRAG: ベクトル検索→グラフ探索"
+curl -s -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Acme Search", "top_k": 3, "depth": 2, "theta": 0.3}' \
+  | jq '{vector_nodes, graph_node_count: (.graph_nodes | length)}'
+
+echo -e "\n【テスト2: 局所サブグラフ】"
+curl -s -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品一覧", "top_k": 3, "depth": 1, "theta": 0.3}' \
+  | jq '.metadata.subgraph'
+
+echo -e "\n【テスト3: コンテキスト圧縮】"
+echo "LightRAG (top_k=2):"
+curl -s -X POST "http://localhost:8100/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品と機能", "top_k": 2, "depth": 2, "theta": 0.3}' \
+  | jq '{answer_length: (.answer | length), node_count: (.graph_nodes | length)}'
+
+echo "GraphRAG (全ノード):"
+curl -s -X POST "http://localhost:8200/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "製品と機能", "graph_walk": {"max_depth": 2, "prune_threshold": 0.2}}' \
+  | jq '{answer_length: (.answer | length)}'
+```
+
+---
+
+## ⚠️ 現在の実装の制限事項
+
+記事で説明されている機能のうち、現在の簡易実装では以下の制限があります：
+
+1. **自動的な attention 重み取得**: LLM からの自動取得は未実装。手動で`/feedback`エンドポイントを使用する必要があります。
+2. **グラフ一貫性の検証**: 部分再構築を繰り返した際の整合性チェックは未実装。
+3. **意味推論**: 記事で言及されている「LLM + 重み最適化」による部分的推論強化は、LLM 統合が未完了のため完全にはテストできません。
+4. **ベンチマーク数値**: 記事の「O(n²)→O(k log n)」などの計算量改善は概念的に確認できますが、大規模データでの実測値は未実装です。
+
+---
+
+## 📝 補足: 実装の完全版との違い
+
+現在の実装は**簡易版**であり、以下の機能は今後追加予定です：
+
+- Microsoft GraphRAG CLI との統合（GraphRAG 側）
+- 完全な LLM 統合と attention 重みの自動取得（LightRAG 側）
+- オンライン正規化アルゴリズム（グラフ一貫性の検証）
+- 大規模データセットでのベンチマーク
+
+ただし、記事で説明されている**主な設計思想やアルゴリズムの違い**は、現在の実装でも十分に確認できます。
 
 ---
 
@@ -973,23 +1283,32 @@ curl http://localhost:8100/eval | jq
 
 #### 方法 1: スクリプトで切り替え（推奨）
 
-`switch-dataset.sh` スクリプトを使用すると、簡単にデータセットを切り替えてテストできます：
+`switch-dataset.sh` スクリプトを使用すると、**コンテナ再起動なしで**簡単にデータセットを切り替えてテストできます：
 
 ```bash
-# 小規模版（5個）でテスト
+# コンテナが起動している必要があります（初回のみ）
+docker compose up -d
+
+# 小規模版（5個）に切り替え
 ./switch-dataset.sh small
 
-# 中規模版（8個）でテスト
+# 中規模版（8個）に切り替え
 ./switch-dataset.sh medium
 
-# 大規模版（50個）でテスト
+# 大規模版（50個）に切り替え
 ./switch-dataset.sh large
 
-# 小規模と大規模を比較
+# 超大規模版（100個）に切り替え
+./switch-dataset.sh xlarge
+
+# 超超大規模版（200個）に切り替え
+./switch-dataset.sh xxlarge
+
+# 小規模と大規模を比較（コンテナ再起動なし）
 ./switch-dataset.sh compare
 ```
 
-スクリプトは自動的にコンテナを再起動し、初期化完了後に評価を実行します。
+**注意**: スクリプトはコンテナを再起動せず、実行中のコンテナに対して `/switch-dataset` エンドポイントを呼び出してデータを切り替えます。初回のみ `docker compose up -d` でコンテナを起動してください。
 
 #### 方法 2: 環境変数で切り替え
 
@@ -1033,26 +1352,34 @@ curl http://localhost:8100/dataset | jq
 
 `kg-no-rag` 実験と同様に、データ量による精度変化を実証できます：
 
-1. **小規模（5 個）と大規模（50 個）の比較**: `./switch-dataset.sh compare` を実行すると、自動的に両方をテストして結果を比較表示します。
+1. **小規模（5 個）と大規模（50 個）の比較**: `./switch-dataset.sh compare` を実行すると、自動的に両方をテストして結果を比較表示します（コンテナ再起動なし）。
 
-2. **手動での比較**: 以下の手順で実行することも可能です：
+2. **より大きなデータセットで比較**: 100 個、200 個のデータセットを使用して、より明確に違いを確認できます：
 
 ```bash
-# 小規模版のテスト
+# コンテナ起動（初回のみ）
+docker compose up -d
+
+# 初期化完了まで待機
+curl -sf http://localhost:8100/healthz
+
+# 小規模版（5個）でテスト
 ./switch-dataset.sh small
+# 結果を確認・記録
 
-# 結果を確認・記録（例: GraphRAG: 5/5, LightRAG: 3/5）
+# 超大規模版（100個）でテスト
+./switch-dataset.sh xlarge
+# 結果を確認・記録
 
-# 大規模版のテスト
-./switch-dataset.sh large
-
-# 結果を確認・記録（例: GraphRAG: 5/5, LightRAG: 2/5）
+# 超超大規模版（200個）でテスト
+./switch-dataset.sh xxlarge
+# 結果を確認・記録
 ```
 
 **期待される動作**:
 
 - GraphRAG: データ量に依存せず、グラフ構造に基づく検索のため安定した精度を維持
-- LightRAG: データ量が増えると、ベクトル検索段階でノイズが増え、精度が低下する可能性がある（簡易実装の制約による）
+- LightRAG: データ量が増えると、ベクトル検索段階でノイズが増え、精度が低下する可能性がある（特に 100 個、200 個のデータセットで差が明確になる）
 
 これは `kg-no-rag` 実験で実証される「RAG はデータ量に依存するが、KG は依存しない」という仮説の検証に使用できます。
 

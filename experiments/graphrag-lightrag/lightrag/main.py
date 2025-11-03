@@ -276,7 +276,7 @@ def switch_dataset(file: str) -> dict:
         raise HTTPException(status_code=503, detail="Database connections not ready")
     
     # Validate file name
-    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl"]
+    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl", "data/docs-100.jsonl", "data/docs-200.jsonl"]
     if file not in allowed_files:
         return {
             "error": f"Unknown dataset: {file}",
