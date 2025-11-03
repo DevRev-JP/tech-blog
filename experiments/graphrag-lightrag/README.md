@@ -148,8 +148,8 @@ curl -G "http://localhost:8100/compare" --data-urlencode "question=Acme Search �
 ```bash
 curl -X POST "http://localhost:8100/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "top_k": 4, "depth": 2, "theta": 0.3}' \
-  | jq '{vector_nodes, graph_nodes: .graph_nodes, subgraph: .metadata.subgraph}'
+  -d '{"question": "Acme Search の機能は？", "top_k": 4, "depth": 2, "theta": 0.3}' \
+  | jq '{vector_nodes, graph_nodes: .graph_nodes, subgraph}'
 ```
 
 ---
@@ -165,7 +165,7 @@ LightRAG はベクトル検索（低レベル）とグラフ探索（高レベ�
 ```bash
 curl -X POST "http://localhost:8100/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "top_k": 4, "depth": 2, "theta": 0.3}' \
+  -d '{"question": "Acme Search の機能は？", "top_k": 4, "depth": 2, "theta": 0.3}' \
   | jq '{vector_nodes, graph_nodes: .graph_nodes, alpha_beta_ratio: .metadata.alpha_beta_ratio}'
 ```
 
@@ -185,13 +185,13 @@ LightRAG はクエリ依存の局所サブグラフのみを構築します。
 # GraphRAG: 探索ノード数を確認
 curl -X POST "http://localhost:8200/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}}' \
+  -d '{"question": "Acme Search の機能は？", "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}}' \
   | jq '.metadata.nodes_explored'
 
 # LightRAG: サブグラフのノード数を確認
 curl -X POST "http://localhost:8100/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "top_k": 4, "depth": 2, "theta": 0.3}' \
+  -d '{"question": "Acme Search の機能は？", "top_k": 4, "depth": 2, "theta": 0.3}' \
   | jq '.metadata.subgraph.total_nodes'
 ```
 
@@ -261,7 +261,7 @@ curl -s http://localhost:8100/eval | jq '.summary'
 ```bash
 curl -X POST "http://localhost:8200/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}}'
+  -d '{"question": "Acme Search の機能は？", "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}}'
 ```
 
 ### `/ask` (LightRAG)
@@ -269,7 +269,7 @@ curl -X POST "http://localhost:8200/ask" \
 ```bash
 curl -X POST "http://localhost:8100/ask" \
   -H "Content-Type: application/json" \
-  -d '{"question": "製品一覧", "top_k": 4, "depth": 2, "theta": 0.3}'
+  -d '{"question": "Acme Search の機能は？", "top_k": 4, "depth": 2, "theta": 0.3}'
 ```
 
 ### `/compare`
@@ -308,7 +308,7 @@ curl http://localhost:8100/healthz  # LightRAG
 ./evaluate.sh health
 
 # 特定の質問で比較
-./evaluate.sh compare "製品一覧は？"
+./evaluate.sh compare "Acme Search の機能は？"
 
 # 自動評価実行
 ./evaluate.sh eval
@@ -341,7 +341,7 @@ curl http://localhost:8100/healthz  # LightRAG
 A: `/compare` エンドポイントを使用して、同じ質問で両方を同時に実行し、結果を比較できます：
 
 ```bash
-curl "http://localhost:8100/compare?question=製品一覧は？" | jq
+curl -G "http://localhost:8100/compare" --data-urlencode "question=Acme Search の機能は？" | jq
 ```
 
 **Q: 自動で複数の質問をテストしたい場合は？**

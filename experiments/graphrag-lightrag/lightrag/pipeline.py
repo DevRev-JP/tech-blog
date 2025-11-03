@@ -202,6 +202,7 @@ def build_local_graph(
     for node_name in seed_nodes:
         beta_scores[node_name] = 1.0
     
+    max_depth_reached = 0
     for depth in range(max_depth):
         new_frontier = []
         
@@ -234,6 +235,7 @@ def build_local_graph(
                         beta_scores[neighbor_name] = graph_score * parent_beta  # Simplified: multiply parent beta
                         new_frontier.append(neighbor_name)
         
+        max_depth_reached = depth + 1
         frontier = new_frontier
         if not new_frontier:
             break
@@ -241,7 +243,7 @@ def build_local_graph(
     return {
         "nodes": list(all_nodes),
         "visited_count": len(visited),
-        "max_depth_reached": depth + 1 if frontier else depth,
+        "max_depth_reached": max_depth_reached,
         "beta_scores": beta_scores  # Return beta scores for integration
     }
 
@@ -347,8 +349,14 @@ def query_lightrag(
                     alpha_scores[node_name] = 0.5  # Default alpha for fallback nodes
     
     # Step 2: Graph-level retrieval (high-level) - build local subgraph and get beta scores
-    subgraph = build_local_graph(seed_nodes, max_depth=depth, theta=theta)
-    beta_scores = subgraph.get("beta_scores", {})  # Beta scores (graph-level)
+    try:
+        subgraph = build_local_graph(seed_nodes, max_depth=depth, theta=theta)
+        beta_scores = subgraph.get("beta_scores", {})  # Beta scores (graph-level)
+    except Exception as e:
+        # Fallback if subgraph building fails
+        print(f"⚠ build_local_graph failed: {e}")
+        subgraph = {"visited_count": len(seed_nodes), "max_depth_reached": 0, "beta_scores": {}}
+        beta_scores = {}
     
     # Step 3: Score integration - combine alpha and beta with 0.6/0.4 ratio
     # final_score = alpha * 0.6 + beta * 0.4
@@ -413,14 +421,25 @@ def query_lightrag(
             answer = "\n".join(answer_parts) if answer_parts else "情報を取得しました。"
             nodes = [{"name": n["name"], "type": n["type"]} for n in nodes_info]
     
+    # Build subgraph metadata safely
+    subgraph_metadata = None
+    if subgraph and isinstance(subgraph, dict):
+        try:
+            subgraph_metadata = {
+            "total_nodes": subgraph.get("visited_count", len(seed_nodes)),
+            "depth": subgraph.get("max_depth_reached", 0)
+        }
+        except (KeyError, TypeError):
+            subgraph_metadata = {
+                "total_nodes": len(seed_nodes),
+                "depth": 0
+            }
+    
     return {
         "answer": answer,
         "vector_nodes": seed_nodes[:top_k],
         "graph_nodes": nodes,
-        "subgraph": {
-            "total_nodes": subgraph["visited_count"],
-            "depth": subgraph["max_depth_reached"]
-        },
+        "subgraph": subgraph_metadata,
         "metadata": {
             "top_k": top_k,
             "depth": depth,
