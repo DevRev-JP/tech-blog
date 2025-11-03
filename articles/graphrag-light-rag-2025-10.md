@@ -8,19 +8,19 @@ published: false
 
 # GraphRAG の限界と LightRAG の登場
 
-## はじめに — Beyond-RAG の続編として
+## はじめに — GraphRAGの限界とLightRAGの登場
 
-本稿は、既報「[RAG を超える知識統合](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)」の続編です。  
-前稿では、RAG（Retrieval-Augmented Generation）の限界として「文脈の連鎖を理解できない」「関係性を推論できない」という問題を扱いました。
+RAG（Retrieval-Augmented Generation）は、外部知識を検索して回答生成を補う代表的な仕組みです。  
+しかし、文書間の関係や因果構造を十分に理解できず、「文脈をつなぐ推論」が難しいという課題がありました。
 
-その課題を克服しようとするのが **GraphRAG** でした。  
-GraphRAG は「物語（narrative）」の発見を目指し、文書をグラフ構造として結びつけることで、生成 AI に“語り”を与えようとする試みです。  
-しかし、運用や拡張の段階で新たな問題が生まれます。
+この弱点を補う試みとして登場したのが **GraphRAG** です。  
+GraphRAG は文書やエンティティをグラフ構造として結びつけ、LLM が「語り（narrative）」の流れをたどれるようにするアプローチです。  
+ただし、その実装には探索コストや更新の難しさなど、現場での課題も多く指摘されています。
 
-本稿では、GraphRAG の**narrative discovery 構造の限界**を整理し、それを超えるために設計された**LightRAG**の技術的意図と構造を分析します。  
-最終的には、LightRAG を「RAG の次」ではなく、**“構造化生成モデル（Structure-first Generation）”**として再定義します。
+本稿では、GraphRAG の**構造的な限界**と、それを継承・発展させた **LightRAG** の設計思想・アーキテクチャを詳しく解説します。  
+また、LightRAG を「RAG の改良版」ではなく、**“構造化生成モデル（Structure-first Generation）”**として捉え直す方向性を提示します。
 
----
+> 関連資料：GraphRAGや背景理論の基礎は「[RAGを超える知識統合](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)」を参照してください。
 
 ## 背景 — GraphRAG の語り構造とその限界
 
@@ -82,7 +82,7 @@ graph TD
 
 - ベクトル検索：`O(log n)` × k
 - グラフ探索：`O(|E_q|)`
-- 全体：GraphRAG の`O(n²)`に対し、LightRAG は**`O(k × d_max × avg_degree)`**
+- 全体：GraphRAG の探索は構造全域に依存しやすく、O(n²) 相当まで膨らむことがあります。一方、LightRAG は **O(k × d_max × avg_degree)** 程度に抑制される傾向があります。
 
 ---
 
@@ -91,9 +91,11 @@ graph TD
 詳細なセットアップ・API・評価手順・トラブルシュートは、実験用 README に集約しました。  
 👉 [GitHub 上の実験用 README](https://github.com/DevRev-JP/tech-blog/blob/main/experiments/graphrag-lightrag/README.md) を参照してください。
 
-（記事本文では設計意図と比較観点のみを扱います。手元で再現して差分を体感したい方は上記 README へ。）
+（※ 実験環境の詳細手順・比較スクリプトは「ベンチマークと再現性」章末尾に統合しました。）
 
 ## GraphRAG から LightRAG への転換点 ─ 構造化生成モデル
+
+ここでは便宜上、生成前に構造を固定し、その構造に沿って生成を行う手法を“構造化生成モデル（Structure-first Generation）”と呼びます。  
 
 LightRAG は、単なる RAG の改良ではありません。  
 **生成の前に構造を計画する**“構造化生成モデル（Structure-first Generation）”として位置づけられます。
@@ -132,7 +134,7 @@ ans  = llm.generate(template, sections=plan, context=ctx)
 
 ---
 
-## RDF/OWL との橋渡し ─ Semantic GraphRAG の限界と実用域
+## RDF/OWL との橋渡し ─ Semantic GraphRAG の課題と適用範囲
 
 LightRAG は構造的推論に優れますが、RDF/OWL が担う**意味論的整合性**を完全には代替できません。  
 両者を組み合わせた **Semantic GraphRAG** は、次のように役割を分担します。
@@ -182,18 +184,18 @@ SET r.w_struct = toFloat(row.weight)
   - `top_k` による文脈圧縮の可制御性（回答長・投入トークン量の予算管理）
   - クエリ毎の局所サブグラフ構築（全体再構築を前提としない）
   - `/feedback` による即時フィードバック反映（重み更新）
-- 規模が大きいほど（全体グラフの維持コストが効くほど）、LightRAG は「入口で絞って局所化する」設計により、レイテンシや更新コスト面で相対優位になり得ます。小規模の実測が逆転することは理論に反しません。
+- 規模が大きいほど（全体グラフの維持コストが効くほど）、LightRAG は「入口で絞って局所化する」設計により、レイテンシや更新コスト面で相対優位になり得ます。小規模の実測が逆転することは設計上想定される挙動と一致します。
 
 ## まとめ ─ 構造を読む AI から構造を設計する AI へ
 
 GraphRAG は「物語を読む AI」でした。  
-LightRAG は「構造を学習し、最適化する AI」へと進化しました。  
-そして今後は、**構造を計画し、意味を設計する AI** への道が拓かれています。
+LightRAG は「構造を動的に最適化できる仕組み」へと発展しました。  
+今後は、**構造を計画し、意味を設計可能な生成パイプライン**への発展が期待されます。
 
 | 世代                       | 特徴           | 役割             |
 | -------------------------- | -------------- | ---------------- |
 | GraphRAG                   | 語りを読む     | 構造的探索の導入 |
-| LightRAG                   | 構造を学ぶ     | 自己更新と軽量化 |
+| LightRAG                   | 構造を動的に最適化 | 自己更新と軽量化 |
 | Structure-first Generation | 構造を設計する | 意味と生成の融合 |
 
 この流れは、「検索強化」ではなく「知識生成の体系化」そのものです。  
@@ -215,7 +217,7 @@ LightRAG は「構造を学習し、最適化する AI」へと進化しまし�
 
 ### 更新履歴
 
-- 2025-10-30 — 構造化生成モデルの位置づけを明確化した完全リライト版
+- 2025-11-03 — 初版公開
 
 ### 注記
 
