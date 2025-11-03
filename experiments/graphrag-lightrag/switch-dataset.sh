@@ -4,9 +4,10 @@
 # 使い方:
 #   ./switch-dataset.sh small   # 小規模版（5個）に切り替え
 #   ./switch-dataset.sh medium  # 中規模版（8個）に切り替え
-#   ./switch-dataset.sh large   # 大規模版（50個）に切り替え
-#   ./switch-dataset.sh xlarge  # 超大規模版（100個）に切り替え
-#   ./switch-dataset.sh xxlarge # 超超大規模版（200個）に切り替え
+#   ./switch-dataset.sh size50  # 中規模版（50ノード）に切り替え
+#   ./switch-dataset.sh size300 # 大規模版（300ノード）に切り替え
+#   ./switch-dataset.sh size500 # 超大規模版（500ノード）に切り替え
+#   ./switch-dataset.sh size1000 # 最大規模版（1000ノード）に切り替え
 #   ./switch-dataset.sh compare # 小規模と大規模を比較（コンテナ再起動なし）
 
 set -e
@@ -58,23 +59,30 @@ case "${1:-small}" in
     curl -s http://127.0.0.1:8100/eval | jq '{summary: .summary, cases: [.cases[] | {id, gr_ok, lr_ok}]}'
     ;;
 
-  large)
+  size50)
     check_containers
-    switch_dataset "data/docs-50.jsonl" "大規模版（50個）"
+    switch_dataset "data/docs-50.jsonl" "中規模版（約50ノード）"
     echo "📈 テスト結果:"
     curl -s http://127.0.0.1:8100/eval | jq '{summary: .summary, cases: [.cases[] | {id, gr_ok, lr_ok}]}'
     ;;
 
-  xlarge)
+  size300)
     check_containers
-    switch_dataset "data/docs-100.jsonl" "超大規模版（100個）"
+    switch_dataset "data/docs-300.jsonl" "大規模版（約300ノード）"
     echo "📈 テスト結果:"
     curl -s http://127.0.0.1:8100/eval | jq '{summary: .summary, cases: [.cases[] | {id, gr_ok, lr_ok}]}'
     ;;
 
-  xxlarge)
+  size500)
     check_containers
-    switch_dataset "data/docs-200.jsonl" "超超大規模版（200個）"
+    switch_dataset "data/docs-500.jsonl" "超大規模版（約500ノード）"
+    echo "📈 テスト結果:"
+    curl -s http://127.0.0.1:8100/eval | jq '{summary: .summary, cases: [.cases[] | {id, gr_ok, lr_ok}]}'
+    ;;
+
+  size1000)
+    check_containers
+    switch_dataset "data/docs-1000.jsonl" "最大規模版（約1000ノード）"
     echo "📈 テスト結果:"
     curl -s http://127.0.0.1:8100/eval | jq '{summary: .summary, cases: [.cases[] | {id, gr_ok, lr_ok}]}'
     ;;
@@ -111,9 +119,10 @@ case "${1:-small}" in
     echo "使い方:"
     echo "  $0 small     # 小規模版（5個）に切り替え"
     echo "  $0 medium    # 中規模版（8個）に切り替え"
-    echo "  $0 large     # 大規模版（50個）に切り替え"
-    echo "  $0 xlarge    # 超大規模版（100個）に切り替え"
-    echo "  $0 xxlarge   # 超超大規模版（200個）に切り替え"
+    echo "  $0 size50    # 中規模版（約50ノード）に切り替え"
+    echo "  $0 size300   # 大規模版（約300ノード）に切り替え"
+    echo "  $0 size500   # 超大規模版（約500ノード）に切り替え"
+    echo "  $0 size1000   # 最大規模版（約1000ノード）に切り替え"
     echo "  $0 compare   # 小規模と大規模を比較（コンテナ再起動なし）"
     echo ""
     echo "注意: コンテナが起動している必要があります（docker compose up -d）"

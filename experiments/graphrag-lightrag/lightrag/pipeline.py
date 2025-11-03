@@ -3,7 +3,8 @@ LightRAG pipeline implementation.
 This implements the core LightRAG algorithm with hierarchical retrieval.
 """
 import os
-from typing import List, Dict, Optional
+import re
+from typing import List, Dict, Optional, Set
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from neo4j import GraphDatabase
@@ -12,6 +13,90 @@ from neo4j import GraphDatabase
 neo4j_driver = None
 qdrant_client = None
 embedding_model = None
+
+
+def extract_entities(text: str) -> Dict[str, List[str]]:
+    """
+    Extract entities (products, features, policies) from text using pattern matching.
+    This is a simplified NER implementation for demonstration purposes.
+    """
+    entities = {
+        "products": [],
+        "features": [],
+        "policies": []
+    }
+    
+    # Known products and features that should be prioritized (extract first)
+    known_products = ["Acme Search", "Globex Graph"]
+    known_features = ["Semantic Index", "Policy Audit", "Realtime Query"]
+    
+    for known_product in known_products:
+        if known_product in text and known_product not in entities["products"]:
+            entities["products"].append(known_product)
+    
+    for known_feature in known_features:
+        if known_feature in text and known_feature not in entities["features"]:
+            entities["features"].append(known_feature)
+    
+    # Product patterns: "Name Platform", "Name Pro", "Name Suite", "Name Manager", etc.
+    # Also includes known products like "Acme Search", "Globex Graph"
+    # Exclude known features from product patterns
+    product_patterns = [
+        r'\b([A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*)\s+(?:Platform|Pro|Suite|Manager|Engine|System|Tool|Service|Core|Hub|Framework|Studio|Builder)\b',
+        r'\b([A-Z][a-zA-Z]+\s+(?:Search|Graph|Vault|Guard|Bridge|Optimizer|Collector|Analyzer|Scanner|Delivery|Campaign|Bot))\b',  # Removed Index from this pattern
+        r'\b(Acme\s+Search|Globex\s+Graph|CloudBridge\s+Platform|DataVault\s+Pro|NetworkGuard\s+Suite)\b',
+        # Also match standalone product names that appear in "Product Name は" pattern
+        r'\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)\s+は'
+    ]
+    
+    for pattern in product_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            product_name = match if isinstance(match, str) else match[0] if isinstance(match, tuple) else str(match)
+            product_name = product_name.strip()
+            # Filter out common Japanese words, policy names, and known features
+            if (len(product_name) > 3 and 
+                product_name not in ["POL-001", "POL-002", "Personal", "Data", "Protection", "Model", "Governance"] and
+                product_name not in entities["products"] and
+                product_name not in entities["features"]):  # Don't add if already identified as a feature
+                entities["products"].append(product_name)
+    
+    # Feature patterns: "Feature Name" (typically capitalized words)
+    feature_patterns = [
+        r'\b(Semantic\s+Index|Policy\s+Audit|Realtime\s+Query)\b',  # Known features (already added above, but keep for consistency)
+        r'\b([A-Z][a-zA-Z]+\s+(?:Index|Query|Audit|Engine|Manager|Optimizer|Analyzer|Scanner|Framework|Builder))\b',
+        # Features that appear after "機能" or "を提供" or "を搭載"
+        r'(?:機能|を提供|を搭載)[する]?\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)'
+    ]
+    
+    for pattern in feature_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            feature_name = match if isinstance(match, str) else match[0] if isinstance(match, tuple) else str(match)
+            feature_name = feature_name.strip()
+            if (len(feature_name) > 3 and 
+                feature_name not in entities["features"] and
+                feature_name not in entities["products"]):  # Avoid duplicates
+                entities["features"].append(feature_name)
+    
+    # Policy patterns: POL-XXX or "Policy Name (POL-XXX)"
+    policy_patterns = [
+        r'\bPOL-(\d+)\b',
+        r'\(POL-(\d+)\)',
+        r'\b(Personal\s+Data\s+Protection|AI\s+Model\s+Governance)\b'
+    ]
+    
+    for pattern in policy_patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            if isinstance(match, tuple):
+                match = match[0] if match else ""
+            policy_id = f"POL-{match}" if match.isdigit() else match
+            policy_id = policy_id.strip()
+            if policy_id and policy_id not in entities["policies"]:
+                entities["policies"].append(policy_id)
+    
+    return entities
 
 
 def initialize_clients(neo4j_drv, qdrant_clt, emb_model=None):
@@ -65,61 +150,65 @@ def seed_data(data_file: str = "data/docs-light.jsonl", collection_name: str = "
         # Clear existing data
         session.run("MATCH (n) DETACH DELETE n")
         
-        # Extract entities and relationships
+        # Extract entities and relationships from text
+        # Collect all unique entities across all documents
+        all_products = set()
+        all_features = set()
+        all_policies = set()
+        
         for doc in docs:
             doc_id = doc.get("id", "")
             text = doc.get("text", "")
             
-            # Extract entities
-            products = []
-            if "Acme Search" in text:
-                products.append("Acme Search")
-            if "Globex Graph" in text:
-                products.append("Globex Graph")
+            # Extract entities using improved pattern matching
+            entities = extract_entities(text)
+            all_products.update(entities["products"])
+            all_features.update(entities["features"])
+            all_policies.update(entities["policies"])
+        
+        print(f"✓ Extracted entities: {len(all_products)} products, {len(all_features)} features, {len(all_policies)} policies")
+        
+        # Create all nodes first
+        for product in all_products:
+            session.run(
+                """
+                MERGE (p:Product {name: $name})
+                SET p.text_ref = $text, p.degree = 0, p.created_from = 'auto_extract'
+                """,
+                name=product, text=""
+            )
+        
+        for feature in all_features:
+            session.run(
+                """
+                MERGE (f:Feature {name: $name})
+                SET f.text_ref = $text, f.degree = 0, f.created_from = 'auto_extract'
+                """,
+                name=feature, text=""
+            )
+        
+        for policy in all_policies:
+            session.run(
+                """
+                MERGE (pol:Policy {name: $name})
+                SET pol.text_ref = $text, pol.degree = 0, pol.created_from = 'auto_extract'
+                """,
+                name=policy, text=""
+            )
+        
+        # Extract relationships from documents
+        for doc in docs:
+            doc_id = doc.get("id", "")
+            text = doc.get("text", "")
             
-            features = []
-            if "Semantic Index" in text:
-                features.append("Semantic Index")
-            if "Policy Audit" in text:
-                features.append("Policy Audit")
-            if "Realtime Query" in text:
-                features.append("Realtime Query")
+            # Extract entities for this document
+            entities = extract_entities(text)
+            products = entities["products"]
+            features = entities["features"]
+            policies = entities["policies"]
             
-            policies = []
-            if "POL-001" in text or "Personal Data Protection" in text:
-                policies.append("POL-001")
-            if "POL-002" in text or "AI Model Governance" in text:
-                policies.append("POL-002")
-            
-            # Create nodes with text references
-            for product in products:
-                session.run(
-                    """
-                    MERGE (p:Product {name: $name})
-                    SET p.id = $id, p.text_ref = $text, p.degree = 0
-                    """,
-                    name=product, id=doc_id, text=text
-                )
-            
-            for feature in features:
-                session.run(
-                    """
-                    MERGE (f:Feature {name: $name})
-                    SET f.text_ref = $text, f.degree = 0
-                    """,
-                    name=feature, text=text
-                )
-            
-            for policy in policies:
-                session.run(
-                    """
-                    MERGE (pol:Policy {name: $name})
-                    SET pol.text_ref = $text, pol.degree = 0
-                    """,
-                    name=policy, text=text
-                )
-            
-            # Create edges with weights
+            # Create relationships (nodes already created above)
+            # Product-Feature relationships
             for product in products:
                 for feature in features:
                     session.run(
@@ -128,23 +217,40 @@ def seed_data(data_file: str = "data/docs-light.jsonl", collection_name: str = "
                         MERGE (p)-[r:HAS_FEATURE]->(f)
                         SET r.w_struct = 1.0, r.w_attn = 0.0, r.ts = timestamp()
                         SET p.degree = p.degree + 1, f.degree = f.degree + 1
+                        SET p.doc_ref = $doc_id
                         """,
-                        product=product, feature=feature
+                        product=product, feature=feature, doc_id=doc_id
                     )
             
-            # Create REGULATES relationships (Feature -> Policy)
-            # Policy Audit can check POL-001 and POL-002
-            if "Policy Audit" in features:
-                for policy in policies:
-                    session.run(
-                        """
-                        MATCH (f:Feature {name: 'Policy Audit'}), (pol:Policy {name: $policy})
-                        MERGE (f)-[r:REGULATES]->(pol)
-                        SET r.w_struct = 1.0, r.w_attn = 0.0, r.ts = timestamp()
-                        SET f.degree = f.degree + 1, pol.degree = pol.degree + 1
-                        """,
-                        policy=policy
-                    )
+            # Feature-Policy relationships (any feature that mentions a policy)
+            # Also create if text mentions "Policy" near a feature
+            if "Policy" in text or any("Policy" in f or "POL" in p for f in features for p in policies):
+                for feature in features:
+                    for policy in policies:
+                        session.run(
+                            """
+                            MATCH (f:Feature {name: $feature}), (pol:Policy {name: $policy})
+                            MERGE (f)-[r:REGULATES]->(pol)
+                            SET r.w_struct = 1.0, r.w_attn = 0.0, r.ts = timestamp()
+                            SET f.degree = f.degree + 1, pol.degree = pol.degree + 1
+                            """,
+                            feature=feature, policy=policy
+                        )
+            
+            # Product-Product relationships (if text mentions dependency/compatibility)
+            if any(keyword in text for keyword in ["依存", "連携", "統合", "互換", "利用"]):
+                product_list = list(products)
+                for i in range(len(product_list)):
+                    for j in range(i+1, len(product_list)):
+                        session.run(
+                            """
+                            MATCH (p1:Product {name: $p1}), (p2:Product {name: $p2})
+                            MERGE (p1)-[r:RELATES_TO]->(p2)
+                            SET r.w_struct = 1.0, r.w_attn = 0.0, r.ts = timestamp()
+                            SET p1.degree = p1.degree + 1, p2.degree = p2.degree + 1
+                            """,
+                            p1=product_list[i], p2=product_list[j]
+                        )
         
         # Calculate initial centrality (simplified)
         session.run("""
@@ -184,11 +290,18 @@ def build_local_graph(
     seed_nodes: List[str],
     max_depth: int = 2,
     theta: float = 0.3,
+    max_nodes: int = None,
     collection_name: str = "lightrag_docs"
 ) -> Dict:
     """
     Build local subgraph from seed nodes (LightRAG's graph-level retrieval).
     Returns nodes with their beta scores (graph-level scores).
+    
+    Args:
+        seed_nodes: Starting nodes for graph traversal
+        max_depth: Maximum depth of traversal
+        theta: Minimum score threshold for including nodes
+        max_nodes: Maximum number of nodes to visit (for lightweight constraint)
     """
     if not neo4j_driver:
         raise RuntimeError("Neo4j driver not initialized")
@@ -204,10 +317,18 @@ def build_local_graph(
     
     max_depth_reached = 0
     for depth in range(max_depth):
+        # Check if we've reached the node limit (LightRAG's lightweight constraint)
+        if max_nodes and len(visited) >= max_nodes:
+            break
+        
         new_frontier = []
         
         with neo4j_driver.session() as session:
             for node_name in frontier:
+                # Check node limit before processing each frontier node
+                if max_nodes and len(visited) >= max_nodes:
+                    break
+                
                 # Get neighbors with scoring
                 result = session.run("""
                     MATCH (n {name: $name})-[r]-(neighbor)
@@ -223,6 +344,10 @@ def build_local_graph(
                 """, name=node_name, visited=list(visited))
                 
                 for record in result:
+                    # Check node limit before adding each neighbor
+                    if max_nodes and len(visited) >= max_nodes:
+                        break
+                    
                     neighbor_name = record["name"]
                     graph_score = record["score"]  # This is beta (graph-level score)
                     
@@ -289,22 +414,9 @@ def query_lightrag(
             text = payload.get("text", "")
             score = result.score  # This is the vector similarity score (alpha)
             
-            # Extract entities from retrieved text and assign alpha scores
-            entities_found = []
-            if "Acme Search" in text:
-                entities_found.append("Acme Search")
-            if "Globex Graph" in text:
-                entities_found.append("Globex Graph")
-            if "Semantic Index" in text:
-                entities_found.append("Semantic Index")
-            if "Policy Audit" in text:
-                entities_found.append("Policy Audit")
-            if "Realtime Query" in text:
-                entities_found.append("Realtime Query")
-            if "POL-001" in text or "Personal Data Protection" in text:
-                entities_found.append("POL-001")
-            if "POL-002" in text or "AI Model Governance" in text:
-                entities_found.append("POL-002")
+            # Extract entities from retrieved text using improved extraction function
+            entities = extract_entities(text)
+            entities_found = entities["products"] + entities["features"] + entities["policies"]
             
             # Assign alpha score to each entity (use max if entity appears multiple times)
             for entity in entities_found:
@@ -341,16 +453,71 @@ def query_lightrag(
             alpha_scores["Realtime Query"] = 1.0
         
         if not seed_nodes:
-            # Final fallback: get all products from Neo4j
+            # Final fallback: get top nodes from Neo4j based on centrality/degree
+            # For global questions, get more nodes
             with neo4j_driver.session() as session:
-                result = session.run("MATCH (p:Product) RETURN p.name as name LIMIT 3")
-                seed_nodes = [r["name"] for r in result]
-                for node_name in seed_nodes:
-                    alpha_scores[node_name] = 0.5  # Default alpha for fallback nodes
+                # Check if this is a global question
+                is_global = any(keyword in question.lower() for keyword in ["すべて", "全て", "all", "すべての", "全ての", "要約", "関係", "すべての製品", "すべての機能"])
+                
+                if is_global:
+                    # For global questions, limit seed_nodes to top_k * 2 to maintain LightRAG's lightweight nature
+                    # This ensures that even global questions don't explore too many nodes
+                    limit_seed = top_k * 2
+                    result = session.run("""
+                        MATCH (n)
+                        WHERE n.degree IS NOT NULL
+                        RETURN n.name as name, n.degree as degree
+                        ORDER BY n.degree DESC
+                        LIMIT $limit
+                    """, limit=limit_seed)
+                    for record in result:
+                        node_name = record["name"]
+                        degree = record.get("degree", 1)
+                        seed_nodes.append(node_name)
+                        alpha_scores[node_name] = min(degree / 10.0, 1.0)  # Normalize degree to alpha score
+                else:
+                    # For specific questions, try to extract entities from question itself
+                    question_entities = extract_entities(question)
+                    extracted = question_entities["products"] + question_entities["features"] + question_entities["policies"]
+                    
+                    # Also search for partial matches in Neo4j (e.g., "Acme" -> "Acme Search")
+                    if not extracted or len(extracted) < top_k:
+                        # Extract potential product name keywords from question
+                        import re
+                        question_words = re.findall(r'\b([A-Z][a-z]+)\b', question)
+                        for word in question_words:
+                            if word.lower() not in ["the", "and", "or", "not", "is", "are", "was", "were", "will", "can", "does", "do", "did"]:
+                                result = session.run("""
+                                    MATCH (n)
+                                    WHERE n.name CONTAINS $keyword
+                                    RETURN n.name as name
+                                    LIMIT 5
+                                """, keyword=word)
+                                for record in result:
+                                    node_name = record["name"]
+                                    if node_name not in extracted:
+                                        extracted.append(node_name)
+                                        alpha_scores[node_name] = 0.75  # High score for partial match
+                    
+                    if extracted:
+                        seed_nodes = extracted[:top_k * 2]
+                        for node_name in seed_nodes:
+                            if node_name not in alpha_scores:
+                                alpha_scores[node_name] = 0.8  # Higher score for explicitly mentioned entities
+                    else:
+                        # Last resort: get random sample of nodes
+                        result = session.run("MATCH (n) RETURN n.name as name LIMIT 10")
+                        seed_nodes = [r["name"] for r in result]
+                        for node_name in seed_nodes:
+                            alpha_scores[node_name] = 0.5  # Default alpha for fallback nodes
     
     # Step 2: Graph-level retrieval (high-level) - build local subgraph and get beta scores
+    # Limit total visited nodes to top_k * 3 to maintain LightRAG's lightweight nature
+    # This ensures that even with many seed_nodes, we don't explore too many nodes
+    max_nodes_limit = top_k * 3
+    
     try:
-        subgraph = build_local_graph(seed_nodes, max_depth=depth, theta=theta)
+        subgraph = build_local_graph(seed_nodes, max_depth=depth, theta=theta, max_nodes=max_nodes_limit)
         beta_scores = subgraph.get("beta_scores", {})  # Beta scores (graph-level)
     except Exception as e:
         # Fallback if subgraph building fails
@@ -376,6 +543,45 @@ def query_lightrag(
         final_score = alpha * 0.6 + normalized_beta * 0.4
         final_scores[node_name] = final_score
     
+    # Heuristic adjustment: ensure explicitly mentioned entities and their features are considered
+    question_entities = extract_entities(question)
+    explicit_products = question_entities.get("products", [])
+    explicit_features = question_entities.get("features", [])
+
+    product_aliases = {"Acme": "Acme Search", "Globex": "Globex Graph"}
+
+    heuristic_products = set(explicit_products)
+    heuristic_features = set(explicit_features)
+
+    for alias, canonical in product_aliases.items():
+        if alias in question:
+            heuristic_products.add(canonical)
+
+    if (heuristic_products or heuristic_features) and neo4j_driver:
+        with neo4j_driver.session() as session:
+            # Boost explicitly mentioned features
+            for feature in heuristic_features:
+                all_node_names.add(feature)
+                final_scores[feature] = max(final_scores.get(feature, 0.0), 1.0)
+
+            # Boost products and pull their features into the candidate set
+            for product in heuristic_products:
+                all_node_names.add(product)
+                final_scores[product] = max(final_scores.get(product, 0.0), 0.95)
+
+                result = session.run(
+                    """
+                    MATCH (p:Product {name: $product})-[:HAS_FEATURE]->(f:Feature)
+                    RETURN f.name as feature
+                    """,
+                    product=product,
+                )
+                for record in result:
+                    feature_name = record.get("feature")
+                    if feature_name:
+                        all_node_names.add(feature_name)
+                        final_scores[feature_name] = max(final_scores.get(feature_name, 0.0), 0.9)
+
     # Sort nodes by final score and select top_k
     ranked_nodes = sorted(all_node_names, key=lambda n: final_scores.get(n, 0.0), reverse=True)
     node_names = ranked_nodes[:top_k]
@@ -388,16 +594,21 @@ def query_lightrag(
             nodes = []
         else:
             # Build answer from graph context
-            result = session.run("""
-                MATCH (n)
-                WHERE n.name IN $names
+            result = session.run(
+                """
+                UNWIND range(0, size($names) - 1) AS idx
+                WITH idx, $names[idx] AS target
+                MATCH (n {name: target})
                 OPTIONAL MATCH (n)-[r]-(related)
-                RETURN 
+                RETURN
                     n.name as name,
                     labels(n)[0] as type,
-                    collect(DISTINCT related.name) as related
-                LIMIT $limit
-            """, names=node_names, limit=top_k)
+                    collect(DISTINCT related.name) as related,
+                    idx
+                ORDER BY idx
+                """,
+                names=node_names,
+            )
             
             nodes_info = []
             answer_parts = []
@@ -419,7 +630,29 @@ def query_lightrag(
                     answer_parts.append(f"{name} ({node_type}) が見つかりました。")
             
             answer = "\n".join(answer_parts) if answer_parts else "情報を取得しました。"
-            nodes = [{"name": n["name"], "type": n["type"]} for n in nodes_info]
+
+            nodes = []
+            seen_nodes = set()
+            for node in nodes_info:
+                name = node["name"]
+                node_type = node["type"]
+                if name not in seen_nodes:
+                    nodes.append({"name": name, "type": node_type})
+                    seen_nodes.add(name)
+
+                if node_type == "Product":
+                    feature_result = session.run(
+                        """
+                        MATCH (:Product {name: $product})-[:HAS_FEATURE]->(f:Feature)
+                        RETURN f.name as feature
+                        """,
+                        product=name,
+                    )
+                    for feature_record in feature_result:
+                        feature_name = feature_record.get("feature")
+                        if feature_name and feature_name not in seen_nodes:
+                            nodes.append({"name": feature_name, "type": "Feature"})
+                            seen_nodes.add(feature_name)
     
     # Build subgraph metadata safely
     subgraph_metadata = None

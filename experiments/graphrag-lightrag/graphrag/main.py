@@ -200,10 +200,11 @@ def switch_dataset(file: str) -> dict:
         raise HTTPException(status_code=503, detail="Database connections not ready")
     
     # Validate file name
-    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl", "data/docs-100.jsonl", "data/docs-200.jsonl"]
+    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl", "data/docs-300.jsonl", "data/docs-500.jsonl", "data/docs-1000.jsonl"]
     if file not in allowed_files:
         return {
-            "error": f"Unknown dataset: {file}",
+            "status": "error",
+            "message": "Unsupported dataset file",
             "available": allowed_files
         }
     
@@ -242,7 +243,35 @@ def get_dataset() -> dict:
     except:
         pass
     
+    # Count nodes in Neo4j graph
+    graph_stats = {}
+    if neo4j_driver:
+        try:
+            with neo4j_driver.session() as session:
+                # Count nodes by label
+                result = session.run("""
+                    MATCH (n)
+                    WITH labels(n)[0] as label, count(n) as count
+                    RETURN collect({label: label, count: count}) as stats
+                """).single()
+                if result and result["stats"]:
+                    graph_stats = {s["label"]: s["count"] for s in result["stats"]}
+                
+                # Total node count
+                total_result = session.run("MATCH (n) RETURN count(n) as total").single()
+                total_nodes = total_result["total"] if total_result else 0
+                
+                # Total edge count
+                edge_result = session.run("MATCH ()-[r]->() RETURN count(r) as total").single()
+                total_edges = edge_result["total"] if edge_result else 0
+                
+                graph_stats["_total_nodes"] = total_nodes
+                graph_stats["_total_edges"] = total_edges
+        except Exception as e:
+            graph_stats["_error"] = str(e)
+    
     return {
         "file": data_file,
-        "count": doc_count
+        "count": doc_count,
+        "graph": graph_stats
     }

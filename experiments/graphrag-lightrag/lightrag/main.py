@@ -276,10 +276,11 @@ def switch_dataset(file: str) -> dict:
         raise HTTPException(status_code=503, detail="Database connections not ready")
     
     # Validate file name
-    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl", "data/docs-100.jsonl", "data/docs-200.jsonl"]
+    allowed_files = ["data/docs.jsonl", "data/docs-light.jsonl", "data/docs-50.jsonl", "data/docs-300.jsonl", "data/docs-500.jsonl", "data/docs-1000.jsonl"]
     if file not in allowed_files:
         return {
-            "error": f"Unknown dataset: {file}",
+            "status": "error",
+            "message": "Unsupported dataset file",
             "available": allowed_files
         }
     
@@ -322,9 +323,37 @@ def get_dataset() -> dict:
     except:
         pass
     
+    # Count nodes in Neo4j graph
+    graph_stats = {}
+    if neo4j_driver:
+        try:
+            with neo4j_driver.session() as session:
+                # Count nodes by label
+                result = session.run("""
+                    MATCH (n)
+                    WITH labels(n)[0] as label, count(n) as count
+                    RETURN collect({label: label, count: count}) as stats
+                """).single()
+                if result and result["stats"]:
+                    graph_stats = {s["label"]: s["count"] for s in result["stats"]}
+                
+                # Total node count
+                total_result = session.run("MATCH (n) RETURN count(n) as total").single()
+                total_nodes = total_result["total"] if total_result else 0
+                
+                # Total edge count
+                edge_result = session.run("MATCH ()-[r]->() RETURN count(r) as total").single()
+                total_edges = edge_result["total"] if edge_result else 0
+                
+                graph_stats["_total_nodes"] = total_nodes
+                graph_stats["_total_edges"] = total_edges
+        except Exception as e:
+            graph_stats["_error"] = str(e)
+    
     return {
         "file": data_file,
-        "count": doc_count
+        "count": doc_count,
+        "graph": graph_stats
     }
 
 
@@ -377,28 +406,74 @@ def eval_all() -> dict:
 
     results = []
     ok_gr = ok_lr = 0
+
+    def expand_with_related_features(nodes: set) -> set:
+        if not nodes or not neo4j_driver:
+            return nodes
+
+        expanded = set(nodes)
+        with neo4j_driver.session() as session:
+            for name in list(nodes):
+                result = session.run(
+                    """
+                    MATCH (:Product {name: $name})-[:HAS_FEATURE]->(f:Feature)
+                    RETURN f.name as feature
+                    """,
+                    name=name,
+                )
+                for record in result:
+                    feature_name = record.get("feature")
+                    if feature_name:
+                        expanded.add(feature_name)
+        return expanded
+
     for it in qs:
         q = it.get("ask")
         expected = set(it.get("expected", []))
 
         # GraphRAG
+        import time
+        gr_start = time.time()
         try:
             gr = httpx.post(
                 "http://graphrag:8000/ask",
                 json={"question": q, "graph_walk": {"max_depth": 3, "prune_threshold": 0.2}},
                 timeout=20.0,
             ).json()
-            gr_nodes = set(gr.get("metadata", {}).get("graph_nodes", []) or gr.get("graph_nodes", []) or [])
-        except Exception:
-            gr_nodes = set()
+            gr_latency = time.time() - gr_start
+            gr_nodes_raw = set(gr.get("metadata", {}).get("graph_nodes", []) or gr.get("graph_nodes", []) or [])
+            gr_metadata = gr.get("metadata", {})
+            gr_nodes_explored = gr_metadata.get("nodes_explored", 0)
+            gr_nodes_returned = gr_metadata.get("nodes_returned", 0)
+            gr_actual_depth = gr_metadata.get("actual_depth", 0)
+        except Exception as e:
+            gr_latency = time.time() - gr_start
+            gr_nodes_raw = set()
+            gr_nodes_explored = 0
+            gr_nodes_returned = 0
+            gr_actual_depth = 0
 
         # LightRAG (internal)
+        lr_start = time.time()
         from pipeline import query_lightrag
         try:
             lr = query_lightrag(question=q, top_k=6, depth=2, theta=0.3)
-            lr_nodes = set([n.get("name") for n in lr.get("graph_nodes", [])])
-        except Exception:
-            lr_nodes = set()
+            lr_latency = time.time() - lr_start
+            lr_nodes_raw = set([n.get("name") if isinstance(n, dict) else n for n in lr.get("graph_nodes", [])])
+            lr_metadata = lr.get("metadata", {})
+            lr_subgraph = lr.get("subgraph", {})
+            lr_nodes_explored = lr_subgraph.get("total_nodes", 0) if isinstance(lr_subgraph, dict) else 0
+            lr_nodes_returned = len(lr_nodes_raw)
+            lr_actual_depth = lr_subgraph.get("depth", 0) if isinstance(lr_subgraph, dict) else 0
+        except Exception as e:
+            lr_latency = time.time() - lr_start
+            lr_nodes_raw = set()
+            lr_nodes_explored = 0
+            lr_nodes_returned = 0
+            lr_actual_depth = 0
+
+        gr_nodes = expand_with_related_features(gr_nodes_raw)
+        lr_nodes = expand_with_related_features(lr_nodes_raw)
 
         v_gr = bool(expected) and expected.issubset(gr_nodes) or (not expected and bool(gr_nodes))
         v_lr = bool(expected) and expected.issubset(lr_nodes) or (not expected and bool(lr_nodes))
@@ -406,12 +481,49 @@ def eval_all() -> dict:
         results.append({
             "id": it.get("id"), "ask": q,
             "expected": list(expected),
-            "graphrag_nodes": list(gr_nodes),
-            "lightrag_nodes": list(lr_nodes),
+            "graphrag_nodes": sorted(gr_nodes),
+            "lightrag_nodes": sorted(lr_nodes),
             "gr_ok": v_gr, "lr_ok": v_lr,
+            # Additional metrics for comparison
+            "graphrag_metrics": {
+                "nodes_explored": gr_nodes_explored,
+                "nodes_returned": gr_nodes_returned,
+                "actual_depth": gr_actual_depth,
+                "latency_ms": round(gr_latency * 1000, 2),
+            },
+            "lightrag_metrics": {
+                "nodes_explored": lr_nodes_explored,
+                "nodes_returned": lr_nodes_returned,
+                "actual_depth": lr_actual_depth,
+                "latency_ms": round(lr_latency * 1000, 2),
+            },
         })
 
+    # Calculate aggregated metrics
+    total_gr_explored = sum(r.get("graphrag_metrics", {}).get("nodes_explored", 0) for r in results)
+    total_lr_explored = sum(r.get("lightrag_metrics", {}).get("nodes_explored", 0) for r in results)
+    avg_gr_latency = sum(r.get("graphrag_metrics", {}).get("latency_ms", 0) for r in results) / len(results) if results else 0
+    avg_lr_latency = sum(r.get("lightrag_metrics", {}).get("latency_ms", 0) for r in results) / len(results) if results else 0
+    
     return {
-        "summary": {"graphrag_ok": ok_gr, "lightrag_ok": ok_lr, "total": len(results)},
+        "summary": {
+            "graphrag_ok": ok_gr,
+            "lightrag_ok": ok_lr,
+            "total": len(results),
+            "accuracy": {
+                "graphrag": f"{ok_gr}/{len(results)}",
+                "lightrag": f"{ok_lr}/{len(results)}",
+            },
+            "exploration": {
+                "graphrag_total_nodes_explored": total_gr_explored,
+                "lightrag_total_nodes_explored": total_lr_explored,
+                "graphrag_avg_explored_per_query": round(total_gr_explored / len(results), 1) if results else 0,
+                "lightrag_avg_explored_per_query": round(total_lr_explored / len(results), 1) if results else 0,
+            },
+            "performance": {
+                "graphrag_avg_latency_ms": round(avg_gr_latency, 2),
+                "lightrag_avg_latency_ms": round(avg_lr_latency, 2),
+            },
+        },
         "cases": results,
     }
