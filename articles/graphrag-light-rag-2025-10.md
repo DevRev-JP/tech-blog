@@ -55,7 +55,7 @@ graph TD
   Q["ユーザクエリ"] --> E["Embedding生成"]
   E --> V["ベクトル検索（低レベル）"]
   V --> G["局所グラフ探索（高レベル）"]
-  G --> C["Context Compression\n(冗長文脈・低スコアノードを削除)"]
+  G --> C["Context Compression<br/>(冗長文脈・低スコアノードを削除)"]
   C --> LLM["LLM応答生成"]
   LLM --> F["Feedback更新（エッジ重み最適化）"]
   F --> G
