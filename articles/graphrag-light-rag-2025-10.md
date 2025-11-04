@@ -144,18 +144,21 @@ LightRAG は構造的推論に優れますが、RDF/OWL が担う**意味論的�
 ### 製造 BOM ユースケース
 
 1. RDF/OWL で部品階層・制約を定義
-2. `rdf2pg` により Property Graph に変換
+2. Neo4j の `neosemantics (n10s)` で RDF を取り込み（Property Graph 化）
 3. LightRAG で「設計変更の影響」を局所サブグラフで推論・生成
 
-```bash
-rdf2pg --input bom.ttl --out nodes.csv --edges edges.csv --format neo4j
+```cypher
+// 初期設定（語彙URIの短縮など）
+CALL n10s.graphconfig.init({ handleVocabUris: "SHORTEN" });
+// RDF/Turtle を直接取り込み
+CALL n10s.rdf.import.fetch("file:///bom.ttl", "Turtle");
 ```
 
 ```cypher
-LOAD CSV WITH HEADERS FROM 'file:///edges.csv' AS row
-MATCH (s:Part {id: row.src}), (t:Part {id: row.dst})
+// n10s が作成した関係（例: dependsOn）を業務向けの関係へマッピング
+MATCH (s)-[:dependsOn]->(t)
 MERGE (s)-[r:DEPENDS_ON]->(t)
-SET r.w_struct = toFloat(row.weight)
+SET r.w_struct = coalesce(r.w_struct, 1.0)
 ```
 
 これにより、「制約の整合性を保持しつつ、構造的に関連ノードを高速探索する」実運用構成が実現すると考えられます。
@@ -176,13 +179,13 @@ SET r.w_struct = toFloat(row.weight)
 
 本リポジトリの実験環境（同一マシン・同一データセット）で `/eval` を実行した際の参考値です。
 
-| データセット            | 精度 (GraphRAG/LightRAG) | 探索ノード数 平均 (GraphRAG/LightRAG) | レイテンシ 平均 ms (GraphRAG/LightRAG) |
-| ----------------------- | ------------------------ | ------------------------------------- | -------------------------------------- |
-| small (~7 ノード)       | 4/5 / 3/5                | 5.0 / 28.6                            | 12.39 / 50.19                          |
-| size50 (~50 ノード)     | 4/5 / 2/5                | 5.2 / 24.8                            | 13.95 / 55.48                          |
-| size300 (~300 ノード)   | 1/5 / 2/5                | 283.0 / 26.8 ← **逆転**               | 258.71 / 18.25 ← **逆転**              |
-| size500 (~500 ノード)   | 0/5 / 2/5                | 255.8 / 29.8                          | 266.47 / 23.58                         |
-| size1000 (~1000 ノード) | 0/5 / 2/5                | 457.8 / 30.0                          | 675.39 / 31.0                          |
+| データセット            | 精度 (GraphRAG vs LightRAG) | 探索ノード数 平均 (GraphRAG vs LightRAG) | レイテンシ 平均 ms (GraphRAG vs LightRAG) |
+| ----------------------- | --------------------------- | ---------------------------------------- | ----------------------------------------- |
+| small (~7 ノード)       | 4/5 vs 3/5                  | 5.0 vs 28.6                              | 12.39 vs 50.19                            |
+| size50 (~50 ノード)     | 4/5 vs 2/5                  | 5.2 vs 24.8                              | 13.95 vs 55.48                            |
+| size300 (~300 ノード)   | 1/5 vs 2/5                  | 283.0 vs 26.8 ← **逆転**                 | 258.71 vs 18.25 ← **逆転**                |
+| size500 (~500 ノード)   | 0/5 vs 2/5                  | 255.8 vs 29.8                            | 266.47 vs 23.58                           |
+| size1000 (~1000 ノード) | 0/5 vs 2/5                  | 457.8 vs 30.0                            | 675.39 vs 31.0                            |
 
 **主な観測点**:
 
@@ -231,11 +234,11 @@ GraphRAG は「物語を読む仕組み」として登場しました。LightRAG
 
 ### 参考文献
 
-- Z. Guo 他 (2024-09). _LightRAG: Simple and Fast Retrieval-Augmented Generation_（軽量かつ高速な RAG）. 出典: OpenReview. [https://openreview.net/forum?id=xxx](https://openreview.net/forum?id=xxx)
-- H. Han 他 (2024-12). _Retrieval-Augmented Generation with Graphs (GraphRAG)_. 出典: arXiv. [https://arxiv.org/abs/xxxx.xxxxx](https://arxiv.org/abs/xxxx.xxxxx)
-- H. Huang 他 (2025-03). _HiRAG: Retrieval-Augmented Generation with Hierarchical Knowledge_（階層知識による RAG）. 出典: arXiv. [https://arxiv.org/abs/xxxx.xxxxx](https://arxiv.org/abs/xxxx.xxxxx)
-- Y. Zhao 他 (2025-05). _E²GraphRAG: Streamlining Graph-based RAG for High Efficiency and Effectiveness_. 出典: arXiv. [https://arxiv.org/abs/xxxx.xxxxx](https://arxiv.org/abs/xxxx.xxxxx)
-- Neo4j Labs. _rdf2pg: RDF to Property Graph Conversion Toolkit_. 出典: GitHub. [https://github.com/neo4j-labs/rdf2pg](https://github.com/neo4j-labs/rdf2pg)
+- Z. Guo 他 (2024-10). _LightRAG: Simple and Fast Retrieval-Augmented Generation_. 出典: arXiv. [https://arxiv.org/abs/2410.05779](https://arxiv.org/abs/2410.05779)
+- H. Han 他 (2024-12). _Retrieval-Augmented Generation with Graphs (GraphRAG)_. 出典: arXiv. [https://arxiv.org/abs/2501.00309](https://arxiv.org/abs/2501.00309)
+- H. Huang 他 (2025-03). _HiRAG: Retrieval-Augmented Generation with Hierarchical Knowledge_. 出典: arXiv. [https://arxiv.org/abs/2503.10150](https://arxiv.org/abs/2503.10150)
+- Y. Zhao 他 (2025-05). _E²GraphRAG: Streamlining Graph-based RAG for High Efficiency and Effectiveness_. 出典: arXiv. [https://arxiv.org/abs/2505.24226](https://arxiv.org/abs/2505.24226)
+- Neo4j Labs. _neosemantics (n10s): RDF import/export for Neo4j_. 出典: GitHub. [https://github.com/neo4j-labs/neosemantics](https://github.com/neo4j-labs/neosemantics)
 - Microsoft. _GraphRAG Repository_. 出典: GitHub. [https://github.com/microsoft/graphrag](https://github.com/microsoft/graphrag)
 - HKUDS. _LightRAG Repository_. 出典: GitHub. [https://github.com/HKUDS/LightRAG](https://github.com/HKUDS/LightRAG)
 
@@ -243,6 +246,7 @@ GraphRAG は「物語を読む仕組み」として登場しました。LightRAG
 
 ### 更新履歴
 
+- 2025-11-04 — 参考文献のリンクを正規 URL に更新（GraphRAG/LightRAG/HiRAG/E²GraphRAG）。`rdf2pg` 言及を `neosemantics (n10s)` に置換し、BOM ユースケースの手順と Cypher 例を更新。
 - 2025-11-03 — 初版公開
 
 ### 注記
