@@ -3,7 +3,7 @@ title: "非エンジニア向け: AI新人たちの職場騒動──ルール�
 emoji: "🧩"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: ["生成AI", "ナレッジグラフ", "AI擬人化ネタ"]
-published: false
+published: true
 ---
 
 # 世界中から入社した AI 新人たちと、ルールで支える知識の話
