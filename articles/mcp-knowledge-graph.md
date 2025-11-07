@@ -154,6 +154,14 @@ sequenceDiagram
 
 > 要するに、「毎回コール」ではなく、**“意味付きキャッシュとしての KG”＋“必要時のみ MCP”**の 2 段構えが、コスト・SLA・信頼性の面で現実解です。
 
+## まとめ
+
+- **MCP でも API でも**、毎回の外部コールはレートリミットとレイテンシーの観点で不利になりがちです。
+- **ナレッジグラフ**を「意味のあるキャッシュ（記憶層）」として設け、取得データを構造化して再利用可能にすることが鍵です。
+- **LLM（CPU）× MCP（I/O）× ナレッジグラフ（メモリ）**という分業で、安定性・再現性・スピードを両立できます。
+
+---
+
 ### 参考文献
 
 - [Anthropic (2024), _Introducing the Model Context Protocol_（MCP SDK および開発者向け設計）](https://www.anthropic.com/news/model-context-protocol)
@@ -163,18 +171,12 @@ sequenceDiagram
 - [Milvus.io (2023), _What is schema matching in knowledge graphs?_（スキーママッチングの基礎解説）](https://milvus.io/ai-quick-reference/what-is-schema-matching-in-knowledge-graphs?utm_source=chatgpt.com)
 - [ArXiv (2021), _Declarative Mapping Languages for RDF Data_（スキーママッピング手法に関する調査）](https://arxiv.org/abs/2112.07493?utm_source=chatgpt.com)
 
----
-
-## まとめ
-
-- **MCP でも API でも**、毎回の外部コールはレートリミットとレイテンシーの観点で不利になりがちです。
-- **ナレッジグラフ**を「意味のあるキャッシュ（記憶層）」として設け、取得データを構造化して再利用可能にすることが鍵です。
-- **LLM（CPU）× MCP（I/O）× ナレッジグラフ（メモリ）**という分業で、安定性・再現性・スピードを両立できます。
-
----
-
----
-
 ### 更新履歴
 
-2025-10-28 — 初版公開
+- 2025-10-28 — 初版公開
+
+### 注記
+
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+

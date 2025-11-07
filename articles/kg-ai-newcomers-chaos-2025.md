@@ -375,7 +375,7 @@ AI くんを全社的に使うなら、
 裏に必ずこの参謀を置かなければいけません。  
 ナレッジグラフがいない組織は、**毎日が AI 文化祭**になります。
 
-しかも月曜朝には、**関係グラフの差分をまとめた週報**を自動配信するくらい几帳面。
+しかもナレッジグラフは月曜朝には、**関係グラフの差分をまとめた週報**を自動配信するくらい几帳面。
 
 ---
 
@@ -418,7 +418,7 @@ AI くんは素直で頑張り屋。
 
 ---
 
-### 💡 connecting dots── 秩序が生むひらめき
+### 💡 Connecting Dots── 秩序が生むひらめき
 
 さらにナレッジグラフは、単なる管理装置ではありません。  
 関係（リンク）を繋げることで、  
@@ -436,46 +436,50 @@ AI と人間はこれから共に進化していくのです。
 
 ---
 
-## 参考文献・関連リンク
+### 参考文献
 
 ※本記事はたとえ話中心のネタ寄り構成のため、詳細な技術・実装・評価については以下の関連記事・資料を参照してください。
 
-### 🧠 LLM と記憶・埋め込み
+#### 🧠 LLM と記憶・埋め込み
 
 - Liao, C. et al. (2024). _Exploring Forgetting in Large Language Model Pre-Training._ arXiv. https://arxiv.org/abs/2410.17018
 - Bender, E. M. et al. (2021). _On the Dangers of Stochastic Parrots: Can Language Models Be Too Big?_ FAccT. https://dl.acm.org/doi/10.1145/3442188.3445922 （LLM のバイアスとリスクに関する代表的議論。）
 
-### 📚 RAG・GraphRAG・検索拡張
+#### 📚 RAG・GraphRAG・検索拡張
 
 - [「RAG なしで始めるナレッジグラフ QA」](https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter) ── 検索と知識構造を組み合わせる考え方。
 - [「GraphRAG の限界と LightRAG の登場」](https://zenn.dev/knowledge_graph/articles/graphrag-light-rag-2025-10) ── ベクトル検索とグラフ構造をどう併用するか。
 - [「RAG を超える知識統合 ── ナレッジグラフで“つながる推論”を実現する」](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)
 
-### 🎓 ファインチューニングとドメイン特化
+#### 🎓 ファインチューニングとドメイン特化
 
 - [「国内企業の AI × ナレッジグラフ活用事例」](https://zenn.dev/knowledge_graph/articles/kg-japan-case-studies) ── 実務における特化モデルや知識統合の事例。
 - [「AI 時代のナレッジグラフ：トレンドと応用」](https://zenn.dev/knowledge_graph/articles/ai-kg-trend-oct2025) ── モデル高度化と知識基盤の関係性。
 
-### 🤝 MCP・エージェント・A2A
+#### 🤝 MCP・エージェント・A2A
 
 - [「MCP の課題とナレッジグラフ」](https://zenn.dev/knowledge_graph/articles/mcp-knowledge-graph)
 - [「GenAI Divide とナレッジグラフ」](https://zenn.dev/knowledge_graph/articles/genai-divide-knowledge-graph) ── 組織内システム連携やエージェント連携の文脈整理。
 - Anthropic Engineering Blog. _Code Execution with MCP._ https://www.anthropic.com/engineering/code-execution-with-mcp
 - Announcing the Agent2Agent Protocol (A2A). Google Developers Blog. https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/
 
-### 🕸 ナレッジグラフ構造・表現
+#### 🕸 ナレッジグラフ構造・表現
 
 - [「RDF vs Property Graph：知識グラフの二大構造を徹底比較」](https://zenn.dev/knowledge_graph/articles/rdf-vs-property-graph-2025) ── グラフ構造選定の観点。
 - [「ナレッジグラフ入門」](https://zenn.dev/knowledge_graph/articles/knowledge-graph-intro) ── 知識構造と推論レイヤーの基礎。
 
-### 💰 モデル運用・経済構造
+#### 💰 モデル運用・経済構造
 
 - [「OpenAI の『日本経済ブループリント』を読む」](https://zenn.dev/knowledge_graph/articles/openai-blueprint-japan-2025) ── モデル運用・コスト・産業構造の示唆。
 - OpenAI API Pricing ── 公式料金表（モデル別の従量課金）。https://openai.com/api/pricing
 - Anthropic API Pricing ── 公式料金表（Claude モデル群の従量課金）。https://docs.anthropic.com/en/docs/about-claude/pricing
 
+### 更新履歴
+
+- 2025-11-07 — 初版公開
+
 ### 注記
 
-本記事は AI を活用して執筆しています。  
-内容に誤りや追加情報があれば、Zenn のコメントまたは  
-[フィードバックフォーム](https://zenn.dev/knowledge_graph) よりお知らせください。
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+

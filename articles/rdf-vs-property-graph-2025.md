@@ -158,13 +158,7 @@ RDF と Property Graph はそれぞれ異なる強みを持つグラフデータ
 
 ---
 
-## 更新履歴
-
-- **2025-10-30** — 初版公開
-
----
-
-## 参考文献
+### 参考文献
 
 - W3C (2014), _RDF 1.1 Concepts and Abstract Syntax_. https://www.w3.org/TR/rdf11-concepts/
 - W3C RDF-star Working Group (2024), _RDF-star and SPARQL-star_（Working Draft）. https://w3c.github.io/rdf-star/cg-spec/
@@ -174,3 +168,13 @@ RDF と Property Graph はそれぞれ異なる強みを持つグラフデータ
 - Lehmann, J. et al. (2015), _DBpedia – A large-scale, multilingual knowledge base extracted from Wikipedia_. Semantic Web Journal 6(2). http://jens-lehmann.org/files/2015/swj_dbpedia.pdf
 - Vrandečić, D., & Krötzsch, M. (2014), _Wikidata: A free collaborative knowledgebase_. Communications of the ACM 57(10). https://cacm.acm.org/magazines/2014/10/178785-wikidata/
 - Neo4j (2022), _PayPal Fights Fraud with Neo4j_. https://neo4j.com/case-studies/paypal/
+
+### 更新履歴
+
+- **2025-10-30** — 初版公開
+
+### 注記
+
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+

@@ -267,17 +267,19 @@ KG (Cypher):
 
 ---
 
-## 参考文献
+### 参考文献
 
 - Neo4j (2024), *Neo4j Documentation*. https://neo4j.com/docs/
 - Neo4j (2024), *Cypher Query Language Manual*. https://neo4j.com/docs/cypher-manual/
 - Tech Blog (2024), *kg-no-rag 再現環境リポジトリ*. https://github.com/DevRev-JP/tech-blog/tree/main/experiments/kg-no-rag
 
----
-
-## 更新履歴
+### 更新履歴
 
 - **2025-10-24** — 初版公開
 - **2025-10-30** — 参考文献を追記
 
-※本記事は AI を活用して執筆しています。
+### 注記
+
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+

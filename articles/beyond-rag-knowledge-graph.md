@@ -55,7 +55,7 @@ Microsoft Research の公式ページによれば、GraphRAG は「LLM を用い
   - _DRIFT Search_：Local にコミュニティ情報を組み合わせて検索精度を高める。
 
 - **コンテキスト生成**：抽出した要約・証拠テキストをプロンプトに組み込み、LLM で回答生成。  
-（参考：Microsoft Research 公式[ブログ](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)／[プロジェクトサイト](https://www.microsoft.com/en-us/research/project/graphrag/)）
+  （参考：Microsoft Research 公式[ブログ](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)／[プロジェクトサイト](https://www.microsoft.com/en-us/research/project/graphrag/)）
 
 #### 図解：RAG/GraphRAG/Knowledge Graph の位置づけ
 
@@ -94,31 +94,31 @@ _図：RAG は外部知識を検索して生成を補助する仕組み。GraphR
 
 ---
 
-## RAGが苦手・KGが得意な「意味問合せの5型」
+## RAG が苦手・KG が得意な「意味問合せの 5 型」
 
-RAGやベクトル検索は、大量のテキストから類似情報を引き出すことに優れていますが、複雑な意味関係や論理的推論が必要な問いには弱い傾向があります。以下に、RAGが苦手でナレッジグラフ（KG）が得意とする代表的な「意味問合せの5型」を示します。
+RAG やベクトル検索は、大量のテキストから類似情報を引き出すことに優れていますが、複雑な意味関係や論理的推論が必要な問いには弱い傾向があります。以下に、RAG が苦手でナレッジグラフ（KG）が得意とする代表的な「意味問合せの 5 型」を示します。
 
 1. **集合・分類問合せ**  
    例：「全ての製品カテゴリに属する商品一覧を教えて」  
-   KGはオントロジーで階層構造を保持しているため、集合的な問合せに対して正確な回答を導けます。
+   KG はオントロジーで階層構造を保持しているため、集合的な問合せに対して正確な回答を導けます。
 
 2. **対比・差分問合せ**  
-   例：「A製品とB製品の機能の違いは何か？」  
-   KGは属性や関係性を明示的に管理しているため、対象間の違いや共通点を論理的に抽出可能です。
+   例：「A 製品と B 製品の機能の違いは何か？」  
+   KG は属性や関係性を明示的に管理しているため、対象間の違いや共通点を論理的に抽出可能です。
 
 3. **経路・関係探索問合せ**  
-   例：「社員Aから社員Bへの報告経路を教えて」  
-   KGはノード間のエッジを辿ることで、複雑な関係網の経路探索が得意です。
+   例：「社員 A から社員 B への報告経路を教えて」  
+   KG はノード間のエッジを辿ることで、複雑な関係網の経路探索が得意です。
 
 4. **否定・除外問合せ**  
    例：「特定の条件を満たさない製品を教えて」  
-   KGは属性の論理的条件を扱えるため、否定条件を含む問合せにも対応しやすいです。
+   KG は属性の論理的条件を扱えるため、否定条件を含む問合せにも対応しやすいです。
 
 5. **カウント・集計問合せ**  
-   例：「2025年に発売された製品の数はいくつか？」  
-   KGは属性情報を持つため、特定条件に基づく集計処理が可能です。
+   例：「2025 年に発売された製品の数はいくつか？」  
+   KG は属性情報を持つため、特定条件に基づく集計処理が可能です。
 
-これらの問合せは単なるテキスト類似検索では正確に答えられず、意味的な構造化と論理推論が不可欠です。ナレッジグラフはこれらの課題に対して自然な回答基盤を提供し、RAGの検索機能を補完・強化します。
+これらの問合せは単なるテキスト類似検索では正確に答えられず、意味的な構造化と論理推論が不可欠です。ナレッジグラフはこれらの課題に対して自然な回答基盤を提供し、RAG の検索機能を補完・強化します。
 
 ---
 
@@ -138,20 +138,6 @@ Knowledge Graph は、RAG や GraphRAG のように文脈を“再構築する�
 
 ---
 
-### 参考文献
-
-- Microsoft Research Blog: **GraphRAG — Unlocking LLM discovery on narrative private data**（2024-02-13）. [link](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)
-
-- Microsoft Research Project: **Project GraphRAG**（公式サイト：機能概要）. [link](https://www.microsoft.com/en-us/research/project/graphrag/)
-
-- Edge, D. et al., **A Graph RAG Approach to Query-Focused Summarization**（arXiv:2404.16130, 2024）. [arXiv](https://arxiv.org/abs/2404.16130)
-
-- Microsoft Research Blog: **Improving global search via dynamic community selection（Global/Local/DRIFT）**. [link](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)
-
-- AllegroGraph: **The foundation of data fabrics and AI — Semantic Knowledge Graphs**. [link](https://allegrograph.com/the-foundation-of-data-fabrics-and-ai-semantic-knowledge-graphs/)
-
-- Ontoforce Blog: **Gartner — Semantic technologies take centre stage in 2025**. [link](https://www.ontoforce.com/blog/gartner-semantic-technologies-take-center-stage-in-2025)
-
 ## まとめ ── 検索の限界を超えて、理解の AI へ
 
 RAG は生成 AI の外部知識参照を実現し、実務利用を大きく前進させました。しかし、その構造的制約ゆえに、知識を"理解する"段階には至っていません。GraphRAG はその延長として検索を強化しますが、あくまで「検索の中での改善」にすぎません。
@@ -162,19 +148,32 @@ RAG は生成 AI の外部知識参照を実現し、実務利用を大きく前
 
 ## 実装レベルでの比較
 
-理論的な違いを手で試したい方は、以下の記事で Docker コンテナを使った実装例と評価結果を確認できます。5項目/50項目のデータセットで KG と RAG の精度差を実測できます：
+理論的な違いを手で試したい方は、以下の記事で Docker コンテナを使った実装例と評価結果を確認できます。5 項目/50 項目のデータセットで KG と RAG の精度差を実測できます：
 
-- **[「RAGなしで始めるナレッジグラフQA──コンテナで再現する比較検証」](https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter)**
+- **[「RAG なしで始めるナレッジグラフ QA── コンテナで再現する比較検証」](https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter)**
   - KG: 常に 5/5 で安定（スケール不変）
-  - RAG: 5項目では 2～3/5、50項目では 0～1/5（スケール依存かつベクトル埋め込みの不確定性による実行ごとの変動）
-  - 意味問合せの5型（集合・対比・経路・否定・カウント）で実測可能
+  - RAG: 5 項目では 2 ～ 3/5、50 項目では 0 ～ 1/5（スケール依存かつベクトル埋め込みの不確定性による実行ごとの変動）
+  - 意味問合せの 5 型（集合・対比・経路・否定・カウント）で実測可能
 
 ---
 
-## 更新履歴
+### 参考文献
+
+- Microsoft Research Blog: **GraphRAG — Unlocking LLM discovery on narrative private data**（2024-02-13）. [link](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)
+- Microsoft Research Project: **Project GraphRAG**（公式サイト：機能概要）. [link](https://www.microsoft.com/en-us/research/project/graphrag/)
+- Edge, D. et al., **A Graph RAG Approach to Query-Focused Summarization**（arXiv:2404.16130, 2024）. [arXiv](https://arxiv.org/abs/2404.16130)
+- Microsoft Research Blog: **Improving global search via dynamic community selection（Global/Local/DRIFT）**. [link](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/)
+- AllegroGraph: **The foundation of data fabrics and AI — Semantic Knowledge Graphs**. [link](https://allegrograph.com/the-foundation-of-data-fabrics-and-ai-semantic-knowledge-graphs/)
+- Ontoforce Blog: **Gartner — Semantic technologies take centre stage in 2025**. [link](https://www.ontoforce.com/blog/gartner-semantic-technologies-take-center-stage-in-2025)
+
+### 更新履歴
 
 - **2025-10-21** — 初版公開
 - **2025-10-23** — トピック調整、記事フォーマット正規化
-- **2025-10-24** — RAGやベクトル検索で対応できない問合せ型（集合・対比・経路・否定・カウント）とナレッジグラフ推論との比較に関する内容を追加。実装レベルでの比較セクションで、RAG の結果がベクトル埋め込みの不確定性により実行ごとに変動することを明記し、より正確な測定結果の幅（5項目では 2～3/5、50項目では 0～1/5）を記載
+- **2025-10-24** — RAG やベクトル検索で対応できない問合せ型（集合・対比・経路・否定・カウント）とナレッジグラフ推論との比較に関する内容を追加。実装レベルでの比較セクションで、RAG の結果がベクトル埋め込みの不確定性により実行ごとに変動することを明記し、より正確な測定結果の幅（5 項目では 2 ～ 3/5、50 項目では 0 ～ 1/5）を記載
 
-※本記事は AI を活用して執筆しています。
+### 注記
+
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+

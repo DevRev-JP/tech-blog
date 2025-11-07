@@ -160,21 +160,21 @@ MIT レポートが示す課題と、筆者が考えるナレッジグラフが�
 
 ---
 
-## 更新履歴
+### 参考文献
+
+- MIT Media Lab Project NANDA (2025), _The GenAI Divide – State of AI in Business 2025_. https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf
+- Anthropic (2024), _Introducing the Model Context Protocol_. https://www.anthropic.com/news/model-context-protocol
+- Edge, D. et al. (2024), _A Graph RAG Approach to Query-Focused Summarization_. https://arxiv.org/abs/2404.16130
+
+### 更新履歴
 
 - **2025-10-21** — 初版公開
 - **2025-10-23** — トピック調整、記事フォーマット正規化
 - **2025-10-30** — 参考文献とリンク先を整理
 - **2025-11-01** — MIT レポート分析の強化
 
----
+### 注記
 
-※本記事は AI を活用して執筆しています。
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
 
----
-
-## 参考文献
-
-- MIT Media Lab Project NANDA (2025), _The GenAI Divide – State of AI in Business 2025_. https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf
-- Anthropic (2024), _Introducing the Model Context Protocol_. https://www.anthropic.com/news/model-context-protocol
-- Edge, D. et al. (2024), _A Graph RAG Approach to Query-Focused Summarization_. https://arxiv.org/abs/2404.16130

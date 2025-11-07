@@ -86,7 +86,7 @@ OpenAI が日本に向けてブループリントを出したのは、単に市�
 
 ---
 
-## 参考文献
+### 参考文献
 
 - OpenAI (2025), *日本の AI：OpenAI の経済ブループリント*. https://openai.com/ja-JP/index/japan-economic-blueprint/
 - OpenAI (2025), *AI in America: OpenAI’s Economic Blueprint*. https://cdn.openai.com/global-affairs/ai-in-america-oai-economic-blueprint-20250113.pdf
@@ -94,14 +94,13 @@ OpenAI が日本に向けてブループリントを出したのは、単に市�
 - OpenAI (2025), *AI in Australia — OpenAI’s Economic Blueprint*. https://openai.com/global-affairs/openais-australia-economic-blueprint/
 - MIT Media Lab Project NANDA (2025), *The GenAI Divide – State of AI in Business 2025*. https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf
 
----
-
-## 更新履歴
+### 更新履歴
 
 - **2025-10-23** — 初版公開
 - **2025-10-23** — 記事拡充、OpenAI 経済ブループリント全体の構想を詳述
 - **2025-10-30** — 参考文献を整理しリンク先を検証
+### 注記
 
----
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
 
-※本記事は AI を活用して執筆しています。

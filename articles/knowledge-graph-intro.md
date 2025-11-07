@@ -70,17 +70,7 @@ RDF は、知識を「主語-述語-目的語」の三つ組（トリプル）�
 
 ---
 
-## 更新履歴
-
-- **2025-10-21** — 初版公開
-- **2025-10-23** — トピック調整、記事フォーマット正規化
-- **2025-10-30** — 用語整理と参考文献を追記
-
-※本記事は AI を活用して執筆しています。
-
----
-
-## 参考文献
+### 参考文献
 
 - Berners-Lee, T., Hendler, J., & Lassila, O. (2001), *The Semantic Web*. Scientific American. https://www.scientificamerican.com/article/the-semantic-web/
 - Google (2012), *Introducing the Knowledge Graph: things, not strings*. https://blog.google/products/search/introducing-knowledge-graph-things-not/
@@ -88,3 +78,15 @@ RDF は、知識を「主語-述語-目的語」の三つ組（トリプル）�
 - W3C (2012), *OWL 2 Web Ontology Language Document Overview*. https://www.w3.org/TR/owl2-overview/
 - Vrandečić, D., & Krötzsch, M. (2014), *Wikidata: A free collaborative knowledgebase*. Communications of the ACM, 57(10). https://cacm.acm.org/magazines/2014/10/178785-wikidata/
 - Neo4j (2024), *What is a Knowledge Graph?* https://neo4j.com/knowledge-graph/
+
+### 更新履歴
+
+- **2025-10-21** — 初版公開
+- **2025-10-23** — トピック調整、記事フォーマット正規化
+- **2025-10-30** — 用語整理と参考文献を追記
+
+### 注記
+
+本記事は AI を活用して執筆しています。
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
+
