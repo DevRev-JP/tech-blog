@@ -6,7 +6,7 @@ topics: ["ナレッジグラフ", "生成AI", "形式レイヤ", "LLM設計"]
 published: false
 ---
 
-# LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド（強化版）
+# LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド
 
 本記事は前編[「LLM と RAG 盲信への警鐘」](https://zenn.dev/knowledge_graph/articles/rag-warning-2025-11)の続編です。
 
@@ -35,9 +35,9 @@ published: false
 
 LLM/RAG の曖昧性を外側で補完し、安全なアーキテクチャを構築するための基盤です。
 
-### 形式レイヤと意味レイヤの関係（他記事との整合性）
+### 形式レイヤと意味レイヤの関係
 
-既存記事「RAG を超える知識統合」では、KG を **意味レイヤ（Semantic Layer）** として扱っています。本記事はその立場を継承しつつ、意味レイヤを形式レイヤの構成要素の 1 つとして整理します。
+既存記事[「RAG を超える知識統合」](https://zenn.dev/articles/beyond-rag-knowledge-graph/)では、KG を **意味レイヤ（Semantic Layer）** として扱っています。本記事はその立場を継承しつつ、意味レイヤを形式レイヤの構成要素の 1 つとして整理します。
 
 ---
 
@@ -122,7 +122,7 @@ console.log(runQuery(fromLlm));
 
 ## KG が必要とされる理由（概要）
 
-KG の詳細な理解は「RAG を超える知識統合」で解説しています。  
+KG の詳細な理解は[「RAG を超える知識統合」](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)で解説しています。  
 本記事では KG を形式レイヤの中の **意味レイヤ**として扱い、
 
 - 顧客 → 契約 → プラン → SLA
