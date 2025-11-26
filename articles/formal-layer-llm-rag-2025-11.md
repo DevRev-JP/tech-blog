@@ -8,7 +8,9 @@ published: false
 
 # LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド（強化版）
 
-本記事は前編「LLM と RAG 盲信への警鐘」の続編です。前編では、LLM/RAG の曖昧性、Safe/Unsafe の境界、そして「LLM に決定させないための外側のレイヤ」の必要性について解説しました。
+本記事は前編[「LLM と RAG 盲信への警鐘」](https://zenn.dev/knowledge_graph/articles/rag-warning-2025-11)の続編です。
+
+前編では、LLM/RAG の曖昧性、Safe/Unsafe の境界、そして「LLM に決定させないための外側のレイヤ」の必要性について解説しました。
 
 後編となる本記事では、以下の 4 種のレイヤを **形式レイヤ（Formal Layer）** として扱い、  
 中級エンジニアが実際に手を動かせるレベルまで落とし込みます。

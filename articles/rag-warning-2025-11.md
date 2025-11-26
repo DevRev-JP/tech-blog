@@ -41,7 +41,7 @@ published: false
 
 本記事ではそれらと重複しないように、LLM/RAG の「限界」と「設計思想」に絞って解説します。
 
-形式レイヤの詳細な設計・実装については、続編「LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド」 (/Users/takanorisuzuki/work/projects/tech-blog/articles/formal-layer-llm-rag-2025-11.md) で解説しています。
+形式レイヤの詳細な設計・実装については、続編[「LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド」](https://zenn.dev/articles/formal-layer-llm-rag-2025-11) で解説しています。
 
 ---
 
