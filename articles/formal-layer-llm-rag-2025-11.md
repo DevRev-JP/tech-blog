@@ -1,7 +1,7 @@
 ---
-title: "LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド（強化版）"
+title: "LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド"
 emoji: "😸"
-type: "tech"
+type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["ナレッジグラフ", "生成AI", "形式レイヤ", "LLM設計"]
 published: false
 ---
