@@ -12,6 +12,13 @@ published: false
 
 前編では、LLM/RAG の曖昧性、Safe/Unsafe の境界、そして「LLM に決定させないための外側のレイヤ」の必要性について解説しました。
 
+先週 AWS re:Invent 2025 に参加し、Bedrock AgentCore の Policy Controls や
+AgentCore Evaluations を中心に、LLM の曖昧性を外側のレイヤで制御する動きが
+クラウドレベルで実装され始めていることを確認しました。
+
+本記事では、その知見も踏まえながら LLM/RAG の曖昧性を抑える
+「形式レイヤ（Formal Layer）」の具体的な実装ガイドを整理していきます。
+
 後編となる本記事では、以下の 4 種のレイヤを **形式レイヤ（Formal Layer）** として扱い、  
 中級エンジニアが実際に手を動かせるレベルまで落とし込みます。
 
@@ -266,6 +273,71 @@ LLM は **入口（自然言語 → 構造化）と出口（構造化 → 自然
 
 ---
 
+# AWS AgentCore に見る形式レイヤのクラウド実装（AWS re:Invent 2025）
+
+## Policy Controls（Cedar によるポリシーレイヤ）
+
+AWS re:Invent 2025 では、Amazon Bedrock AgentCore に Policy Controls が追加され、
+エージェントによるツール実行の境界を Cedar ポリシー言語で厳密に制御できるようになりました。
+
+- 「慎重なプロンプト設計」だけでは防ぎきれない誤動作を防止
+- 自然言語で「$1,000 を超える返金はブロックして」と指定すると内部で Cedar が生成
+- Runtime → Gateway → Tool の実行経路でミリ秒単位のポリシー検証
+- LLM は提案のみを担い、最終判断は Cedar が実施
+
+### Cedar による実際のポリシー例
+
+```
+permit (
+  principal == AgentCore::OAuthUser,
+  action == AgentCore::Action::"InsuranceAPI__file_claim",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:..."
+)
+when { context.input.has refundAmount && context.input.refundAmount < 1000 };
+```
+
+---
+
+## AgentCore Evaluations（品質レイヤ）
+
+AgentCore では Evaluations が導入され、エージェントの実世界の行動を継続的に検査できます。
+
+- 正確性、有用性、ツール選択精度、安全性など 13 種類の評価指標を標準提供
+- カスタム評価モデルやプロンプトも利用可能
+- 例：8 時間で満足度スコアが 10% 下落した場合は即アラート
+- 品質問題を顧客影響前に検知し、迅速な対応が可能
+
+形式レイヤが「決定の正しさ」を保証し、Evaluations が「挙動の品質」を監視する構造となる。
+
+---
+
+## Automated Reasoning（自動推論と形式レイヤの親和性）
+
+AWS が長年推進してきた Automated Reasoning（形式手法）は、形式レイヤの思想と本質的に一致します。
+
+- ユークリッドの数学証明と同じ厳密性でプログラムの全状態を検証
+- LLM の「おそらく正しい」という統計的性質に対し、「確実に正しい」ことを保証
+- 以下のような分野で実績：
+  - Kiro：仕様駆動開発
+  - Cedar：AgentCore におけるポリシー検証
+  - Smithy：API 形式化言語で API 整合性を検証
+
+---
+
+## Agentic Teammates（AI エージェントを“チームメイト”として扱う思想）
+
+re:Invent では「AI エージェントは人間のチームメイトになる」というメッセージが強調されました。
+
+- 真の企業変革は AI を日常業務に自然に組み込むことにある
+- AI は自動化にとどまらず、新製品開発・サービス改善・新規ビジネス創出に寄与
+- 技術よりも「人間の想像力」が最大の制約となる
+- Amazon Connect の事例では AI ネイティブな顧客サービスが世界的に運用されている
+- AI は完璧を待つのではなく、実践を通じた継続的改善が重要
+
+これらの発表は、LLM に決定を委ねず、外側の形式レイヤが行動を制御するという本記事の主張を強く裏づけています。
+
+---
+
 ### 参考文献
 
 - Zenn: ナレッジグラフ入門  
@@ -278,15 +350,16 @@ LLM は **入口（自然言語 → 構造化）と出口（構造化 → 自然
   https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph
 - Zenn: MCP の課題とナレッジグラフ  
   https://zenn.dev/knowledge_graph/articles/mcp-knowledge-graph
-- Hallucination Survey (2024)  
-  https://arxiv.org/abs/2311.05232
-- Retrieval-Augmented Generation Survey (2025)  
-  https://link.springer.com/article/10.1007/s00521-025-11666-9
+- Cedar Policy Language — Specification and Developer Guide  
+  https://www.cedarpolicy.com/
+- Cedar: Fast, Safe, and Analyzable Authorization  
+  https://github.com/cedar-policy/cedar
+- Amazon Bedrock AgentCore Adds Quality Evaluations and Policy Controls for Deploying Trusted AI Agents  
+  https://aws.amazon.com/jp/blogs/aws/amazon-bedrock-agentcore-adds-quality-evaluations-and-policy-controls-for-deploying-trusted-ai-agents/
 
 ### 更新履歴
 
-- 2025-11-25 — 初版作成
-- 2025-11-26 — ハンズオン拡充・比較表・文体統一を実施
+- 2025-12-8 — 初版作成
 
 ### 注記
 
