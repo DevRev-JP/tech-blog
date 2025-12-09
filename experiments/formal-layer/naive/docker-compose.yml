@@ -1,0 +1,24 @@
+version: "3.9"
+
+# アンチパターン例: 形式レイヤを使わない危険な実装
+# これらのサービスは、形式レイヤを使う場合と使わない場合の違いを理解するための例です。
+
+services:
+  sql-unsafe:
+    build:
+      context: ./sql-unsafe
+    image: sql-unsafe-api
+    container_name: sql-unsafe-api
+    ports:
+      - "8800:8000"
+    restart: unless-stopped
+
+  policy-unsafe:
+    build:
+      context: ./policy-unsafe
+    image: policy-unsafe-api
+    container_name: policy-unsafe-api
+    ports:
+      - "8900:8000"
+    restart: unless-stopped
+

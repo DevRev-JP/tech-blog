@@ -446,7 +446,7 @@ LLM や RAG は強力なツールで、UX を大きく変革します。
 
 なお、本文で触れた MCP など、LLM と形式レイヤの間に安全な境界を設けるためのプロトコルや API 設計も、プロダクト設計における重要度が増しています。MCP 自体の位置づけや想定ユースケース、ナレッジグラフとの役割分担については、既存記事「MCP の課題とナレッジグラフ」で整理しています。
 
-本記事と続編「LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド」を合わせて読むことで、LLM/RAG の限界から形式レイヤの具体実装まで一通り理解できる構成になっています。
+本記事と続編[ LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド ](https://zenn.dev/knowledge_graph/articles/formal-layer-llm-rag-2025-11)を合わせて読むことで、LLM/RAG の限界から形式レイヤの具体実装まで一通り理解できる構成になっています。
 
 ---
 
@@ -462,6 +462,8 @@ LLM や RAG は強力なツールで、UX を大きく変革します。
   https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph
 - Zenn: MCP の課題とナレッジグラフ
   https://zenn.dev/knowledge_graph/articles/mcp-knowledge-graph
+- Zenn: LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド
+  https://zenn.dev/knowledge_graph/articles/formal-layer-llm-rag-2025-11
 
 - RAG Survey: "A Survey on Retrieval-Augmentation Generation (RAG)", 2025  
   https://link.springer.com/article/10.1007/s00521-025-11666-9

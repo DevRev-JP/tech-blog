@@ -1,0 +1,105 @@
+version: "3.9"
+
+services:
+  neo4j:
+    image: neo4j:5
+    container_name: neo4j-formal-layer
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p password 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: opa-formal-layer
+    ports:
+      - "8181:8181"  # OPA REST API
+    command: ["run", "--server", "--addr", "0.0.0.0:8181"]
+    volumes:
+      - ./policy-layer/policies:/policies
+    restart: unless-stopped
+
+  sql-layer:
+    build:
+      context: ./sql-layer
+    image: sql-layer-api
+    container_name: sql-layer-api
+    ports:
+      - "8300:8000"
+    volumes:
+      - sql_db:/data
+    environment:
+      DB_PATH: /data/billing.db
+    restart: unless-stopped
+
+  kg-layer:
+    build:
+      context: ./kg-layer
+    image: kg-layer-api
+    container_name: kg-layer-api
+    ports:
+      - "8400:8000"
+    volumes:
+      - ./kg-layer:/app
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: password
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    restart: unless-stopped
+
+  policy-layer:
+    build:
+      context: ./policy-layer
+    image: policy-layer-api
+    container_name: policy-layer-api
+    ports:
+      - "8500:8000"
+    volumes:
+      - ./policy-layer:/app
+    environment:
+      OPA_URL: http://opa:8181
+    depends_on:
+      opa:
+        condition: service_started
+    restart: unless-stopped
+
+  optimization-layer:
+    build:
+      context: ./optimization-layer
+    image: optimization-layer-api
+    container_name: optimization-layer-api
+    ports:
+      - "8600:8000"
+    volumes:
+      - ./optimization-layer:/app
+    restart: unless-stopped
+
+  llm-mock:
+    build:
+      context: ./llm-mock
+    image: llm-mock-api
+    container_name: llm-mock-api
+    ports:
+      - "8700:8000"
+    volumes:
+      - ./llm-mock:/app
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
+  sql_db:
+

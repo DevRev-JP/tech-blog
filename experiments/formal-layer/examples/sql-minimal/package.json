@@ -1,0 +1,21 @@
+{
+  "name": "sql-minimal-example",
+  "version": "1.0.0",
+  "description": "SQL（値レイヤ）の最小構成例 - 記事のハンズオンセクション対応",
+  "main": "app.ts",
+  "scripts": {
+    "setup": "sqlite3 billing.db < schema.sql",
+    "start": "ts-node app.ts",
+    "build": "tsc app.ts --outDir dist --esModuleInterop --resolveJsonModule"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}
+
