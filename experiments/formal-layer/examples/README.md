@@ -91,4 +91,3 @@ python solve.py
 これらの例は、記事のハンズオンセクションで説明されている最小構成を実際に実行できるようにしたものです。
 
 実際の本番環境では、各レイヤは API サービスとして実装されています（`../sql-layer`, `../kg-layer`, `../policy-layer`, `../optimization-layer` を参照）。
-

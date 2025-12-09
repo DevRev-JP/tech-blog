@@ -10,18 +10,18 @@
 
 この実験環境は、記事の以下のセクションに対応しています：
 
-| 記事のセクション | 実装場所 | 説明 |
-|----------------|---------|------|
-| **1. SQL：値の一貫性を保証するレイヤ** | `sql-layer/` | API サービスとして実装 |
-| **ハンズオン：最小構成の SQL 実装** | `examples/sql-minimal/` | 記事の例をそのまま実行可能 |
-| **2. Knowledge Graph（KG）：意味レイヤ** | `kg-layer/` | API サービスとして実装 |
-| **ハンズオン：Neo4j + Cypher の最小例** | `examples/kg-minimal/` | 記事の例をそのまま実行可能 |
-| **3. ルールエンジン：ポリシーレイヤ** | `policy-layer/` | API サービスとして実装 |
-| **ハンズオン：OPA（Open Policy Agent）の最小例** | `examples/policy-minimal/` | 記事の例をそのまま実行可能 |
-| **4. 制約ソルバ：最適化レイヤ** | `optimization-layer/` | API サービスとして実装 |
-| **ハンズオン：OR-Tools の最小例** | `examples/optimization-minimal/` | 記事の例をそのまま実行可能 |
-| **統合シナリオ** | `end-to-end.sh` | 4 つの形式レイヤを連携した一気通貫フロー |
-| **アンチパターン例** | `naive/` | 形式レイヤを使わない危険な実装例 |
+| 記事のセクション                                 | 実装場所                         | 説明                                     |
+| ------------------------------------------------ | -------------------------------- | ---------------------------------------- |
+| **1. SQL：値の一貫性を保証するレイヤ**           | `sql-layer/`                     | API サービスとして実装                   |
+| **ハンズオン：最小構成の SQL 実装**              | `examples/sql-minimal/`          | 記事の例をそのまま実行可能               |
+| **2. Knowledge Graph（KG）：意味レイヤ**         | `kg-layer/`                      | API サービスとして実装                   |
+| **ハンズオン：Neo4j + Cypher の最小例**          | `examples/kg-minimal/`           | 記事の例をそのまま実行可能               |
+| **3. ルールエンジン：ポリシーレイヤ**            | `policy-layer/`                  | API サービスとして実装                   |
+| **ハンズオン：OPA（Open Policy Agent）の最小例** | `examples/policy-minimal/`       | 記事の例をそのまま実行可能               |
+| **4. 制約ソルバ：最適化レイヤ**                  | `optimization-layer/`            | API サービスとして実装                   |
+| **ハンズオン：OR-Tools の最小例**                | `examples/optimization-minimal/` | 記事の例をそのまま実行可能               |
+| **統合シナリオ**                                 | `end-to-end.sh`                  | 4 つの形式レイヤを連携した一気通貫フロー |
+| **アンチパターン例**                             | `naive/`                         | 形式レイヤを使わない危険な実装例         |
 
 ### 使い分け
 
@@ -444,7 +444,7 @@ curl -X POST http://localhost:8900/evaluate \
    - 最適解探索
 
 6. **LLM**: 構造化データから自然言語の応答を生成
-   - 「優先度は High です。Agent1 に割り当てました。」
+   - 「CUST-123 の優先度は Medium です。Agent1 に割り当てました（未処理請求 1 件）。」
 
 **このフローでは、LLM は自然言語 ↔ 構造化データの変換のみを担当し、判断・整合性・推論・最適化は形式レイヤが決定性を持って実行します。**
 
@@ -566,7 +566,7 @@ docker compose restart policy-layer
 ## 📌 実装上の注意点
 
 - **SQL Layer**: TypeScript + better-sqlite3 を使用。データは `/data/billing.db` に永続化されます。
-- **KG Layer**: Neo4j を使用。起動時にサンプルデータを自動シードします。
+- **KG Layer**: Neo4j を使用。起動時にサンプルデータを自動シードします（`Customer` / `Contract` / `Plan` / `SLA` ラベルを持つノードのみを初期化する想定です。専用の Neo4j コンテナでの利用を前提としてください）。
 - **Policy Layer**: OPA を使用。`policies/sla.rego` が自動的に読み込まれます。
 - **Optimization Layer**: OR-Tools を使用。制約充足問題（CSP）を解決します。
 - **LLM Mock**: 実際の LLM API の代わりに、簡単なルールベースで自然言語を構造化データに変換します。実際の実装では、OpenAI API や Anthropic API などを使用します。

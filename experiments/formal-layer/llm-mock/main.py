@@ -140,11 +140,24 @@ async def format_response(data: dict):
     構造化データから自然言語の応答を生成
     
     例:
-    - {"priority": "High", "customer_id": "CUST-123"} 
-      → "CUST-123 の優先度は High です。"
+    - {"customer_id": "CUST-123", "priority": "Medium", "assigned_agent": "Agent1", "billing_count": 1}
+      → "CUST-123 の優先度は Medium です。Agent1 に割り当てました（未処理請求 1 件）。"
     """
     # 簡易的なテンプレートベースの応答生成
-    if "priority" in data:
+    if "customer_id" in data and "priority" in data and "assigned_agent" in data:
+        billing_suffix = ""
+        if "billing_count" in data:
+            try:
+                count = int(data["billing_count"])
+                billing_suffix = f"（未処理請求 {count} 件）"
+            except (ValueError, TypeError):
+                # billing_count が数値でない場合は無視
+                billing_suffix = ""
+        return {
+            "text": f"{data['customer_id']} の優先度は {data['priority']} です。{data['assigned_agent']} に割り当てました{billing_suffix}。",
+            "data": data,
+        }
+    elif "priority" in data:
         return {
             "text": f"優先度は {data['priority']} です。",
             "data": data

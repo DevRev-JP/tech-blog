@@ -51,8 +51,13 @@ async def startup_event():
 def seed_data():
     """Seed sample knowledge graph data."""
     with neo4j_driver.session() as session:
-        # Clear existing data
-        session.run("MATCH (n) DETACH DELETE n")
+        # Clear existing sample data for this experiment only
+        # ※ 専用の Neo4j コンテナ内での利用を前提とし、ラベルベースで削除しています。
+        session.run("""
+            MATCH (n)
+            WHERE n:Customer OR n:Contract OR n:Plan OR n:SLA
+            DETACH DELETE n
+        """)
         
         # Create sample graph: Customer -> Contract -> Plan -> SLA
         session.run("""

@@ -79,10 +79,10 @@ test_policy_layer() {
       -d '{"customer_tier": "Platinum", "issue": "Critical"}' | jq '.'
     
     echo ""
-    echo "2. 重要なお客様 + クリティカル課題 → Medium優先度"
+    echo "2. ゴールド顧客 + クリティカル課題 → Medium優先度"
     curl -s -X POST "$POLICY_URL/evaluate" \
       -H "Content-Type: application/json" \
-      -d '{"customer_tier": "Platinum", "issue": "Critical"}' | jq '.'
+      -d '{"customer_tier": "Gold", "issue": "Critical"}' | jq '.'
     
     echo ""
     echo "3. プラチナ顧客 + 高重要度課題 → Medium優先度"

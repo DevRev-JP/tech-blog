@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   neo4j:
-    image: neo4j:5
+    image: docker.io/library/neo4j@sha256:32e677b45ab2e44e678b4dc888b1eaa2ef97d40b4f44e38928d8106a35924a02
     container_name: neo4j-formal-layer
     ports:
       - "7474:7474"  # HTTP
@@ -21,7 +21,7 @@ services:
       start_period: 30s
 
   opa:
-    image: openpolicyagent/opa:latest
+    image: docker.io/openpolicyagent/opa@sha256:be59647c732a5dfb98489183bc07883f06bf6b643aa343e47e9176e9090bf60a
     container_name: opa-formal-layer
     ports:
       - "8181:8181"  # OPA REST API
