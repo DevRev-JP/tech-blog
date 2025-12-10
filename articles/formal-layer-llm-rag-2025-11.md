@@ -70,28 +70,23 @@ LLM に値を“推測させる”のは危険です。
 
 ---
 
-### ハンズオン：最小構成の SQL 実装
+### SQL レイヤを使うメリット
 
-#### 事前準備
+**なぜ SQL レイヤを使うのか？**
 
-```
-npm init -y
-npm install better-sqlite3 @types/better-sqlite3
-sqlite3 billing.db < schema.sql
-```
+- **SQL インジェクションのリスク低減**: LLM が生成した SQL 文字列をそのまま実行するのではなく、LLM は構造化されたクエリパラメータ（`BillingQuery` 型）のみを返し、SQL はアプリ側でパラメータ化クエリとして安全に構築されます
+- **型安全性の保証**: TypeScript の型システムにより、LLM が返すデータ構造がコンパイル時に検証されます
+- **整合性の自動保証**: CHECK 制約や FOREIGN KEY により、データベースレベルで整合性が保証されます
 
-#### schema.sql
+※課題: スキーマ設計やマイグレーションのコストが高く、要件変更のたびに DB 設計とアプリケーションの両方を更新する必要があります。
 
-```sql
-CREATE TABLE billing (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  customer_id TEXT NOT NULL,
-  amount INTEGER NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('open', 'closed'))
-);
-```
+**使うとどうなるのか？**
 
-#### app.ts
+- LLM は自然言語から `{"customerId": "CUST-123", "mode": "open"}` のような構造化データを抽出するだけ
+- アプリ側で `WHERE customer_id = ?` のようなパラメータ化クエリを実行
+- `OR 1=1` のような SQL インジェクション攻撃は物理的に不可能
+
+#### 最小構成の実装例
 
 ```ts
 import Database from "better-sqlite3";
@@ -115,13 +110,9 @@ function runQuery(q: BillingQuery) {
     .prepare("SELECT id, amount, status FROM billing WHERE customer_id = ?")
     .all(q.customerId);
 }
-
-const fromLlm: BillingQuery = { customerId: "CUST-123", mode: "open" };
-console.log(runQuery(fromLlm));
 ```
 
-ポイント：  
-**LLM は BillingQuery 型だけ返し、SQL はアプリ側で安全に決定します。**
+**詳細な実装手順や動作確認方法は、[実験環境の README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer#1-sql値レイヤ) を参照してください。**
 
 ---
 
@@ -139,34 +130,37 @@ KG の詳細な理解は[「RAG を超える知識統合」](https://zenn.dev/kn
 
 ---
 
-## ハンズオン：Neo4j + Cypher の最小例
+### KG レイヤを使うメリット
 
-#### 事前準備（Docker）
+**なぜ KG レイヤを使うのか？**
 
-```
-docker run -p 7474:7474 -p 7687:7687 neo4j:5
-```
+- **関係推論の決定性**: RAG の「似ている文書を返す」ではなく、「顧客 → 契約 → プラン → SLA」のような明確な関係性に基づいて推論できます
+- **内部 ID の隠蔽**: KG の内部 ID を LLM に見せず、経路テンプレート（`sla`, `contract`, `plan` など）だけを選択させることで、セキュリティリスクを低減します
+- **意味構造の明示**: 関係性がグラフとして明示されるため、推論の根拠が追跡可能です
 
-ブラウザで http://localhost:7474 を開く。
+※課題: ドメインモデリングと運用の初期コストが高く、小規模なユースケースではオーバーエンジニアリングになりがちです。
 
-#### モデル定義
+**使うとどうなるのか？**
+
+- LLM は自然言語から経路タイプ（`{"path_type": "sla"}`）を選択するだけ
+- KG レイヤが経路テンプレートに基づいて Cypher クエリを実行
+- 結果として、RAG の「似ている文書」ではなく、「確実に関係性が存在するデータ」のみが返されます
+
+#### 最小構成の実装例
 
 ```cypher
+// モデル定義: 顧客 → 契約 → プラン → SLA の関係を明示
 CREATE (:Customer {id:"CUST-123"})-[:HAS_CONTRACT]->
   (:Contract {id:"CON-1"})-[:ON_PLAN]->
   (:Plan {name:"Enterprise"})-[:HAS_SLA]->
   (:SLA {priority:"High"});
-```
 
-#### クエリ例
-
-```cypher
+// クエリ: 経路テンプレートに基づく決定性のある推論
 MATCH (c:Customer {id: "CUST-123"})-[:HAS_CONTRACT]->(:Contract)-[:ON_PLAN]->(:Plan)-[:HAS_SLA]->(s:SLA)
 RETURN s.priority;
 ```
 
-ポイント：  
-**KG 内部 ID を LLM に見せない。クエリはテンプレ化し、LLM は経路候補だけ出す。**
+**詳細な実装手順や動作確認方法は、[実験環境の README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer#2-kg意味レイヤ) を参照してください。**
 
 ---
 
@@ -179,13 +173,23 @@ LLM は自然言語からポリシー評価用の入力データ（`customer_tie
 
 ---
 
-## ハンズオン：OPA（Open Policy Agent）の最小例
+### ポリシーレイヤを使うメリット
 
-#### OPA バイナリ
+**なぜポリシーレイヤを使うのか？**
 
-https://www.openpolicyagent.org/docs/
+- **ポリシーの外部化**: if/else ベタ書きではなく、OPA Rego ファイルとして外部化することで、コード変更なしでポリシーを更新できます
+- **検証可能性**: ポリシーが外部ファイルとして定義されるため、監査や検証が容易になります
+- **決定性の保証**: LLM が「おそらく High 優先度」と推測するのではなく、OPA が入力データに基づいて確定的に判定します
 
-#### sla.rego
+※課題: Rego などのポリシー言語の学習コストがあり、非エンジニアが直接扱うにはハードルが高い場合があります。
+
+**使うとどうなるのか？**
+
+- LLM は自然言語から `{"customer_tier": "Platinum", "issue": "Critical"}` のような入力データを抽出するだけ
+- OPA が Rego ポリシーに基づいて確定的に優先度を判定（例: `Platinum + Critical → High`）
+- ポリシー変更時は Rego ファイルを更新するだけで、コード変更やデプロイが不要
+
+#### 最小構成の実装例
 
 ```rego
 package sla
@@ -197,20 +201,7 @@ priority = "High" if {
 }
 ```
 
-#### input.json
-
-```json
-{
-  "customer_tier": "Platinum",
-  "issue": "Critical"
-}
-```
-
-#### 実行
-
-```
-opa eval -i input.json -d sla.rego "data.sla.priority"
-```
+**詳細な実装手順や動作確認方法は、[実験環境の README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer#3-ルールエンジンポリシーレイヤ) を参照してください。**
 
 ---
 
@@ -221,11 +212,23 @@ LLM は **制約候補を JSON 化**させ、制約充足問題（CSP）の解�
 
 ---
 
-## ハンズオン：OR-Tools の最小例
+### 制約ソルバを使うメリット
 
-```
-pip install ortools
-```
+**なぜ制約ソルバを使うのか？**
+
+- **組合せ爆発の解決**: LLM が「おそらく Agent1 に割り当てるのが良さそう」と推測するのではなく、制約充足問題（CSP）として数学的に解決します
+- **実行可能性の保証**: 制約を満たす解が存在する場合、必ず実行可能な解を見つけます
+- **再現性**: 同じ制約と入力に対して、常に同じ解（または同等の解）を返します
+
+※課題: 制約モデルの設計が難しく、大規模問題では計算資源とチューニングコストが無視できません。
+
+**使うとどうなるのか？**
+
+- LLM は自然言語から制約を抽出（例: `{"agents": ["A", "B"], "tasks": ["T1", "T2", "T3"], "max_tasks_per_agent": 2}`）
+- OR-Tools が制約充足問題として解決
+- 結果として、LLM の「推測」ではなく、数学的に保証された実行可能な割り当てが得られます
+
+#### 最小構成の実装例
 
 ```python
 from ortools.sat.python import cp_model
@@ -239,20 +242,19 @@ for i,a in enumerate(agents):
   for j,t in enumerate(tasks):
     x[(i,j)] = model.NewBoolVar(f"x_{a}_{t}")
 
+# 各タスクは必ず1つのエージェントに割り当てられる
 for j,_ in enumerate(tasks):
   model.Add(sum(x[(i,j)] for i,_ in enumerate(agents)) == 1)
 
+# 各エージェントは最大2つのタスクを処理できる
 for i,_ in enumerate(agents):
   model.Add(sum(x[(i,j)] for j,_ in enumerate(tasks)) <= 2)
 
 solver = cp_model.CpSolver()
 solver.Solve(model)
-
-for i,a in enumerate(agents):
-  for j,t in enumerate(tasks):
-    if solver.Value(x[(i,j)]) == 1:
-      print(f"{a} -> {t}")
 ```
+
+**詳細な実装手順や動作確認方法は、[実験環境の README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer#4-制約ソルバ最適化レイヤ) を参照してください。**
 
 ---
 
@@ -274,11 +276,27 @@ LLM は **入口（自然言語 → 構造化）と出口（構造化 → 自然
 
 ---
 
-## 実験環境
+## 実験環境：実際に手を動かして確認する
 
 本記事で紹介した 4 つの形式レイヤを実際に動作確認できる Docker ベースの実験環境を用意しています。
 
-**実験環境**: `experiments/formal-layer/` ディレクトリを参照
+**実験環境**: [GitHub リポジトリ](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer)
+
+### 実験環境を使うメリット
+
+**なぜ実験環境を使うのか？**
+
+- **実際の動作を確認できる**: 記事の概念をコードレベルで体験し、「なぜ形式レイヤが必要なのか」を実感できます
+- **安全な実装と危険な実装を比較できる**: 形式レイヤを使う場合と使わない場合の違いを、実際に動作させて比較できます
+- **統合シナリオで一気通貫のフローを体験できる**: 4 つの形式レイヤが連携する実際のフローを、エンドツーエンドで確認できます
+
+※課題: Docker / Neo4j / OPA など複数コンポーネントのセットアップが必要で、ローカル環境によってはリソース消費や起動時間が問題になることがあります。
+
+**使うとどうなるのか？**
+
+- **SQL インジェクションのリスクを実感**: アンチパターン例で SQL インジェクションの危険性を実際に確認できます
+- **ポリシー変更の容易さを体験**: OPA Rego による外部化と、if/else ベタ書きの違いを比較できます
+- **LLM の役割が明確になる**: LLM が「入口（自然言語 → 構造化）と出口（構造化 → 自然言語）」のみを担当することを、実際のコードで確認できます
 
 ### 実験環境の構成
 
@@ -287,18 +305,7 @@ LLM は **入口（自然言語 → 構造化）と出口（構造化 → 自然
 - **LLM モック**: 自然言語から構造化データへの変換例
 - **統合シナリオ**: 顧客サポートフローを 4 レイヤで一気通貫で処理する例
 
-### クイックスタート
-
-```bash
-cd experiments/formal-layer
-docker compose up --build -d
-sleep 60
-./evaluate.sh all  # 全形式レイヤのテスト
-./end-to-end.sh    # 統合シナリオの実行
-```
-
-実験環境では、**形式レイヤを使う場合と使わない場合の違い**を実際に比較できます。  
-「LLM の曖昧性を外側の形式レイヤで制御する」という思想を、コードレベルで体験できます。
+**詳細なセットアップ手順、API エンドポイント、トラブルシューティングなどは、[実験環境の README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/formal-layer) を参照してください。**
 
 ---
 
