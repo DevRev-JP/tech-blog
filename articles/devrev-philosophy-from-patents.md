@@ -433,7 +433,7 @@ Bill.com の AI チームは多くのベンダーを評価しましたが、ど�
 
 ### 実現した効果
 
-既存ツールを置き換えることなく、**契約から 7 週間で本番環境で稼働**しました。
+Bill.com では、使っているツールを変えることも、オペレーションを変えることもありませんでした。AI がお客様対応を裏側でやってくれるようになっただけです。既存ツールを置き換えることなく、**契約から 7 週間で本番環境で稼働**しました。
 
 - **チケット削減率 73%**：POC では 40-50% の改善でしたが、本番では 73% に到達
 - **100 万件以上のチケットが AI によって自動対応**：人が関与せず AI のチャットのみで対応完了
@@ -471,8 +471,7 @@ DevRev は、
 - DevRev Inc., _COMMUNICATION PLATFORM FOR A CONNECTED ENVIRONMENT_  
   接続環境のためのコミュニケーションプラットフォームに関する特許。AI を UI ではなく業務参加者として位置づけ、業務文脈を前提に対話する仕組み。
 
-- How Bill.com uses Computer  
-  https://www.youtube.com/watch?v=Q7UXoxklI50  
+- [How Bill.com uses Computer](https://www.youtube.com/watch?v=Q7UXoxklI5o)
   Bill.com が DevRev の AI エージェントプラットフォームをどのように活用しているかの詳細な事例。
 
 ### 更新履歴
