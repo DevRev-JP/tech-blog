@@ -8,7 +8,8 @@ published: false
 
 # LLM 依存度を下げる業務 AI アーキテクチャ設計
 
-本記事では、業務 AI において **LLM の役割を意味理解に限定し、状態遷移や実行判断を形式レイヤとして分離する構成** を整理する。  
+本記事では、業務 AI において **LLM を形式レイヤでサンドイッチする構成** を整理する。  
+Salesforce のアプローチ（固定ワークフロー重視）との違いを明確にし、ナレッジグラフが意味理解を担い、LLM に制約やコンテキストを提供する構成を提案する。  
 評価や思想ではなく、アーキテクチャ上の構造変化に焦点を当てる。
 
 ---
@@ -16,17 +17,18 @@ published: false
 ## 目次
 
 1. [背景：Salesforce による言及](#背景salesforce-による言及)
-2. [Agentic AI の適応フレームワーク](#agentic-ai-の適応フレームワーク)
-3. [LLM 依存度が高い構成](#llm-依存度が高い構成)
+2. [LLM 依存度が高い構成](#llm-依存度が高い構成)
+3. [形式レイヤとは何か](#形式レイヤとは何か)
 4. [形式レイヤを分離した構成](#形式レイヤを分離した構成)
-5. [形式レイヤと Tool Adaptation の関係](#形式レイヤと-tool-adaptation-の関係)
-6. [Agent Adaptation と形式レイヤの協調](#agent-adaptation-と形式レイヤの協調)
-7. [「決定論的自動化」を構成要素に分解する](#決定論的自動化を構成要素に分解する)
-8. [実装パターンと適応戦略の選択](#実装パターンと適応戦略の選択)
-9. [まとめ](#まとめ)
-10. [参考文献](#参考文献)
-11. [更新履歴](#更新履歴)
-12. [注記](#注記)
+5. [「決定論的自動化」を構成要素に分解する](#決定論的自動化を構成要素に分解する)
+6. [Agentic AI の適応フレームワーク](#agentic-ai-の適応フレームワーク)
+7. [形式レイヤと Tool Adaptation の関係](#形式レイヤと-tool-adaptation-の関係)
+8. [Agent Adaptation と形式レイヤの協調](#agent-adaptation-と形式レイヤの協調)
+9. [実装パターンと適応戦略の選択](#実装パターンと適応戦略の選択)
+10. [まとめ](#まとめ)
+11. [参考文献](#参考文献)
+12. [更新履歴](#更新履歴)
+13. [注記](#注記)
 
 ---
 
@@ -65,12 +67,161 @@ The Information によると、"Salesforce Executives Say Trust in Generative AI
 本稿では、この発言内容を是非や評価として扱うのではなく、  
 **アーキテクチャ上どのような構造変更を意味するのか** に焦点を当てて整理する。
 
+## LLM 依存度が高い構成
+
+業務 AI の初期設計では、LLM の出力をそのまま業務ロジックに接続する構成が採られることが多い。
+
+```mermaid
+graph LR
+    User[User Input]
+    LLM[LLM]
+    Logic[Business Logic]
+    Action[Action / API Call]
+
+    User --> LLM
+    LLM --> Logic
+    Logic --> Action
+```
+
+- 推論結果がそのまま実行パスに影響する
+- 中間状態が構造化されていない
+- 再実行時の挙動が一定にならない
+
+## 形式レイヤとは何か
+
+形式レイヤの定義は、既存記事[「LLM/RAG の曖昧性を抑える『形式レイヤ』の実装ガイド」](https://zenn.dev/knowledge_graph/articles/formal-layer-llm-rag-2025-11)で詳しく解説している。
+
+形式レイヤとは、**論理的・数学的・規則的に正しい結果を返す"決定性のある外部レイヤ"** の総称である。本記事では以下の 4 種を扱う。
+
+- **SQL = 値レイヤ（Value Layer）**: 金額・在庫・残高などの値の整合性を保証
+- **KG = 意味レイヤ（Semantic Layer）**: 関係性・推論などの意味構造を保持
+- **ルールエンジン = ポリシーレイヤ（Policy Layer）**: アクセス制御・優先度判定などの判断を厳密化
+- **制約ソルバ = 最適化レイヤ（Optimization Layer）**: スケジューリング・割り当てなどの制約充足問題を解決
+
+KG は本記事では**形式レイヤの一部**として位置づける。主に長 LLM の意味理解を促進する Longterm memory としての役割を持つ。
+
+## 形式レイヤを分離した構成
+
+Salesforce のアプローチと、本記事で提案する構成の違いを整理する。
+
+### Salesforce のアプローチ
+
+Salesforce は、**LLM を意味理解に限定し、決定論的な形式レイヤが状態遷移や実行判断を担う構成**を推奨している。これは、広範なアクションのブレが許されないレイヤでの固定ワークフローを重視するアプローチである。
+
+```mermaid
+graph LR
+    User[User Input]
+    LLM["LLM<br/>Intent / Meaning Only"]
+    Schema[Structured Intent]
+    Formal["Formal Layer<br/>Fixed Workflow / Rules / State"]
+    Action[Action / API Call]
+
+    User --> LLM
+    LLM --> Schema
+    Schema --> Formal
+    Formal --> Action
+```
+
+- LLM の役割は Intent / Slot の抽出に限定される
+- 状態遷移や実行判断は形式レイヤ（固定ワークフロー、SQL、ルール、ポリシー）が決定論的に処理する
+- アクションのブレを最小化し、再現性を最優先する
+
+### 本記事で提案する構成：LLM を形式レイヤでサンドイッチ
+
+一方、本記事では、**LLM を形式レイヤでサンドイッチする構成**を提案する。この構成では、**KG が意味理解と制約提供を担い、SQL・ルール・ポリシーなどの KG 以外の形式レイヤがワークフロー制御を担う**。
+
+```mermaid
+graph LR
+    User[User Input]
+    Formal1["Formal Layer<br/>SQL / Rules / Policy<br/>Input Validation / Workflow"]
+    KG["Knowledge Graph<br/>Semantic Understanding<br/>Constraints / Context"]
+    LLM["LLM<br/>Reasoning / Generation"]
+    Formal2["Formal Layer<br/>SQL / Rules / Policy<br/>Output Validation / Execution"]
+    Action[Action / API Call]
+
+    User --> Formal1
+    Formal1 --> KG
+    KG --> LLM
+    LLM --> Formal2
+    Formal2 --> Action
+    KG -.制約・コンテキスト提供.-> LLM
+    LLM -.問い合わせ・履歴参照.-> KG
+```
+
+**特徴**:
+
+- **入力側の形式レイヤ（KG 以外）**: SQL、ルール、ポリシーなどでユーザー入力を検証し、ワークフローを制御。KG から制約やコンテキストを取得して LLM に渡す準備を行う
+- **ナレッジグラフ（KG）**: 意味理解を担い、LLM に制約・コンテキスト・過去の履歴を提供。関係性推論や意味構造の管理を行う
+- **LLM**: KG から提供された制約やコンテキストを活用し、人間の意図や過去の履歴を参照して新しい答えを導き出す
+- **出力側の形式レイヤ（KG 以外）**: SQL、ルール、ポリシーなどで LLM の出力を検証し、ワークフローに従って実行可能なアクションに変換
+
+この構成により、**KG が意味理解と制約提供を担い、KG 以外の形式レイヤ（SQL、ルール、ポリシー）がワークフロー制御を担い、LLM がその制約やコンテキストを活用して推論・生成を行う**という役割分担が実現される。既存記事[「RAG を超える知識統合」](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)や[「MCP の課題とナレッジグラフ」](https://zenn.dev/knowledge_graph/articles/mcp-knowledge-graph)で述べているとおり、KG は「意味の層（semantic layer）」として、LLM の理解力と学習能力を拡張する基盤となる。
+
+## 「決定論的自動化」を構成要素に分解する
+
+Salesforce はこれを _deterministic automation_ と表現しているが、  
+実装上は、形式レイヤを構成する要素として分解すると理解しやすい。
+
+### 形式レイヤの構成要素
+
+形式レイヤは、既存記事で定義した 4 種（SQL、KG、ルールエンジン、制約ソルバ）に加えて、実装パターンとして以下の要素に分解できる。
+
+```mermaid
+graph TB
+    Formal[Formal Layer]
+
+    SQL[SQL Layer<br/>Value Layer]
+    KG[KG Layer<br/>Semantic Layer]
+    Rule[Rule Engine<br/>Policy Layer]
+    Solver[Constraint Solver<br/>Optimization Layer]
+    State[State Machine]
+    Flow[Workflow Engine]
+
+    Formal --> SQL
+    Formal --> KG
+    Formal --> Rule
+    Formal --> Solver
+    Formal --> State
+    Formal --> Flow
+```
+
+- **SQL Layer（値レイヤ）**: 金額・在庫・残高などの値の整合性を保証
+- **KG Layer（意味レイヤ）**: 関係性・推論などの意味構造を保持
+- **ルールエンジン（ポリシーレイヤ）**: アクセス制御・優先度判定などの判断を厳密化
+- **制約ソルバ（最適化レイヤ）**: スケジューリング・割り当てなどの制約充足問題を解決
+- **State Machine**: 状態遷移の数学的定義
+- **Workflow Engine**: DAG による実行順序の保証
+
+### 形式レイヤの実装パターン
+
+各構成要素は、Tool Adaptation の文脈で以下のように実装される。
+
+| 構成要素          | 実装例                            | 適応戦略             | 決定性の保証                                          |
+| ----------------- | --------------------------------- | -------------------- | ----------------------------------------------------- |
+| SQL Layer         | PostgreSQL, MySQL, SQLite         | T1（Agent-Agnostic） | ACID トランザクション、制約による整合性保証           |
+| KG Layer          | Neo4j, Amazon Neptune             | T1 または T2         | グラフクエリ言語（Cypher, Gremlin）による決定論的推論 |
+| If-Then Rules     | OPA Rego, Cedar Policy            | T1（Agent-Agnostic） | ポリシー言語による厳密な判定                          |
+| State Machine     | ワークフローエンジン、状態遷移図  | T1（Agent-Agnostic） | 状態遷移の数学的定義                                  |
+| Workflow Engine   | Temporal, Airflow, Step Functions | T1（Agent-Agnostic） | DAG による実行順序の保証                              |
+| Constraint Solver | OR-Tools, Z3                      | T1（Agent-Agnostic） | 制約充足問題の数学的解決                              |
+
 ## Agentic AI の適応フレームワーク
 
 形式レイヤの分離を理解するために、まず Agentic AI における適応（Adaptation）の全体像を整理する。
 
-近年の研究では、Agentic AI システムの適応戦略を体系的に分類するフレームワークが提案されている。  
-Jiang et al. (2025) の "Adaptation of Agentic AI" では、適応を **Agent Adaptation** と **Tool Adaptation** の 2 次元で整理している。
+### 論文「Adaptation of Agentic AI」の位置づけ
+
+近年、Agentic AI システムの適応戦略に関する研究が急速に拡大しているが、体系的な整理が不足していた。  
+Jiang et al. (2025) の "Adaptation of Agentic AI"（arXiv:2512.16301）は、この分野を体系的に整理したサーベイ論文である。
+
+**論文の主な貢献**:
+
+- **統一フレームワークの提案**: Agentic AI の適応戦略を **Agent Adaptation** と **Tool Adaptation** の 2 次元で体系的に分類
+- **4 つの適応パラダイムの明確化**: A1（Tool Execution Signaled）、A2（Agent Output Signaled）、T1（Agent-Agnostic）、T2（Agent-Supervised）の 4 つのパラダイムを定義
+- **実装指針の提供**: 各パラダイムの強み・弱みを分析し、実装時の選択指針を提示
+- **包括的なサーベイ**: 300 以上の関連研究を整理し、各パラダイムの代表的なアプローチをレビュー
+
+このフレームワークは、形式レイヤの分離という設計判断を、より広範な Agentic AI の適応戦略の文脈で理解するための有用な視点を提供する。
 
 ### 4 つの適応パラダイム
 
@@ -99,83 +250,50 @@ graph TB
 
 ツール実行の結果（コードサンドボックスの出力、検索結果の関連度スコア、API 呼び出しの成否など）をシグナルとして、エージェントモデル自体を最適化する。
 
-- **例**: コード実行結果が正しい場合に報酬を与えてエージェントを学習
+**論文での位置づけ**: 論文では、コード実行結果、検索精度、API 呼び出しの成否など、**検証可能な結果**をシグナルとして用いる手法を A1 として分類している。
+
+- **例**: コード実行結果が正しい場合に報酬を与えてエージェントを学習（ReAct、Reflexion など）
 - **特徴**: 検証可能な結果に基づく学習が可能
+- **形式レイヤとの関係**: 形式レイヤ（SQL、KG、ルールエンジンなど）の実行結果をシグナルとして、エージェントが形式レイヤを正しく活用する方法を学習できる
 
 #### A2: Agent Output Signaled Agent Adaptation
 
 エージェントの出力（最終回答、計画、推論過程など）に対する評価をシグナルとして、エージェントモデルを最適化する。
 
-- **例**: 最終回答の正確性や好みスコアに基づく学習
+**論文での位置づけ**: 論文では、最終回答の正確性、ユーザー満足度、人間のフィードバック（RLHF）など、**エージェントの出力に対する評価**をシグナルとして用いる手法を A2 として分類している。
+
+- **例**: 最終回答の正確性や好みスコアに基づく学習（RLHF、DPO など）
 - **特徴**: ツールを使わない場合も含む、より広範な適応
+- **形式レイヤとの関係**: 形式レイヤを経由した最終出力の評価に基づいて、エージェントと形式レイヤの協調を改善できる
 
 #### T1: Agent-Agnostic Tool Adaptation
 
 エージェントから独立してツールを訓練する。凍結されたエージェントが、プラグアンドプレイ可能なモジュールとして使用する。
 
+**論文での位置づけ**: 論文では、エージェントに依存しない汎用的なツール（検索エンジン、ドメイン特化モデル、事前訓練済みコンポーネントなど）を T1 として分類している。これらは複数のエージェントから再利用可能で、エージェントの変更に影響されない。
+
 - **例**: 検索エンジン、ドメイン特化モデル、その他の事前訓練済みコンポーネント
 - **特徴**: エージェントに依存しない汎用的なツール
+- **形式レイヤとの関係**: SQL、KG、ルールエンジン、制約ソルバなどの形式レイヤは、典型的な T1 の例である。エージェントが変更されても、形式レイヤの動作は変わらない
 
 #### T2: Agent-Supervised Tool Adaptation
 
 エージェントは固定のまま、エージェントの出力から得られるシグナルを用いてツールを適応させる。
 
+**論文での位置づけ**: 論文では、エージェントの出力パターンに基づいてツールを最適化する手法を T2 として分類している。報酬駆動の検索エンジンチューニング、適応的リランカー、メモリ更新モジュールなどが含まれる。
+
 - **例**: 報酬駆動の検索エンジンチューニング、適応的リランカー、メモリ更新モジュール
 - **特徴**: 特定のエージェントに最適化されたツール
+- **形式レイヤとの関係**: KG クエリの最適化や、エージェントの使用パターンに基づく形式レイヤの調整は、T2 の例として位置づけられる
 
 ### 形式レイヤとの対応関係
 
-形式レイヤ（Formal Layer）は、このフレームワークにおいて **Tool Adaptation（T1, T2）** の文脈で位置づけられる。
+論文のフレームワークにおいて、形式レイヤ（Formal Layer）は主に **Tool Adaptation（T1, T2）** の文脈で位置づけられる。
 
-- **T1（Agent-Agnostic）**: SQL、KG、ルールエンジン、制約ソルバなど、エージェントに依存しない決定論的なツール
-- **T2（Agent-Supervised）**: エージェントの出力パターンに合わせて調整される形式レイヤ（例: エージェントが頻繁に参照する関係性に最適化された KG クエリ）
+- **T1（Agent-Agnostic）**: SQL、KG、ルールエンジン、制約ソルバなど、エージェントに依存しない決定論的なツール。論文で言及されている「プラグアンドプレイ可能なモジュール」の典型例である。
+- **T2（Agent-Supervised）**: エージェントの出力パターンに合わせて調整される形式レイヤ（例: エージェントが頻繁に参照する関係性に最適化された KG クエリ）。論文で言及されている「報酬駆動のツールチューニング」の一形態である。
 
-一方、**Agent Adaptation（A1, A2）** は、形式レイヤと協調しながらエージェント自体を改善する戦略として機能する。
-
-## LLM 依存度が高い構成
-
-業務 AI の初期設計では、LLM の出力をそのまま業務ロジックに接続する構成が採られることが多い。
-
-```mermaid
-graph LR
-    User[User Input]
-    LLM[LLM]
-    Logic[Business Logic]
-    Action[Action / API Call]
-
-    User --> LLM
-    LLM --> Logic
-    Logic --> Action
-```
-
-- 推論結果がそのまま実行パスに影響する
-- 中間状態が構造化されていない
-- 再実行時の挙動が一定にならない
-
-## 形式レイヤを分離した構成
-
-LLM を意味理解に限定し、状態遷移や実行判断を外部レイヤとして分離した構成を考える。
-
-```mermaid
-graph LR
-    User[User Input]
-    LLM["LLM<br/>Intent / Meaning"]
-    Schema[Structured Intent]
-    Formal["Formal Layer<br/>Rules / Workflow / State"]
-    KG["Knowledge Graph<br/>State / Relations"]
-    Action[Action / API Call]
-
-    User --> LLM
-    LLM --> Schema
-    Schema --> Formal
-    Formal --> Action
-    Formal --> KG
-    KG --> Formal
-```
-
-- LLM の役割は Intent / Slot の抽出に限定される
-- 状態と制約は形式レイヤ側で管理される
-- ナレッジグラフは状態・関係性の参照および更新対象となる
+一方、**Agent Adaptation（A1, A2）** は、形式レイヤと協調しながらエージェント自体を改善する戦略として機能する。論文では、これらの適応戦略を組み合わせることで、システム全体の性能向上が期待できると述べられている。
 
 ## 形式レイヤと Tool Adaptation の関係
 
@@ -326,7 +444,7 @@ graph LR
 
 ### 統合的な適応戦略
 
-実践的には、複数の適応戦略を組み合わせることが多い。
+論文では、実践的には複数の適応戦略を組み合わせることが多いと指摘されている。State-of-the-art システムでは、4 つのパラダイムを組み合わせることで最適な性能を達成している。
 
 ```mermaid
 graph TB
@@ -347,48 +465,14 @@ graph TB
     T1 -.基盤.-> T2
 ```
 
-**実装例**:
+**論文で言及されている実装例**:
 
-- **基盤**: T1 の形式レイヤ（SQL、Policy、KG、Optimization）を構築
-- **最適化**: T2 でエージェントの使用パターンに合わせて一部のツールを最適化
-- **学習**: A1 で形式レイヤの実行結果に基づいてエージェントを改善
-- **評価**: A2 で最終出力の評価に基づいてエージェントを改善
+- **基盤**: T1 の形式レイヤ（SQL、Policy、KG、Optimization）を構築。エージェントに依存しない決定論的動作を確保
+- **最適化**: T2 でエージェントの使用パターンに合わせて一部のツールを最適化。論文では、DeepResearch や AutoGPT などのシステムがこの組み合わせを採用している
+- **学習**: A1 で形式レイヤの実行結果に基づいてエージェントを改善。コード実行結果や検索精度をシグナルとして学習
+- **評価**: A2 で最終出力の評価に基づいてエージェントを改善。RLHF や DPO などの手法が含まれる
 
-## 「決定論的自動化」を構成要素に分解する
-
-Salesforce はこれを _deterministic automation_ と表現しているが、  
-実装上は、形式レイヤを構成する要素として分解すると理解しやすい。
-
-```mermaid
-graph TB
-    Formal[Formal Layer]
-
-    Rule[If-Then Rules]
-    State[State Machine]
-    Flow[Workflow Engine]
-    Graph["Graph-based State<br/>Knowledge Graph"]
-
-    Formal --> Rule
-    Formal --> State
-    Formal --> Flow
-    Formal --> Graph
-```
-
-- if-then ルール
-- state machine
-- workflow engine
-- graph-based state
-
-### 形式レイヤの実装パターン
-
-各構成要素は、Tool Adaptation の文脈で以下のように実装される。
-
-| 構成要素          | 実装例                            | 適応戦略             | 決定性の保証                                          |
-| ----------------- | --------------------------------- | -------------------- | ----------------------------------------------------- |
-| If-Then Rules     | OPA Rego, Cedar Policy            | T1（Agent-Agnostic） | ポリシー言語による厳密な判定                          |
-| State Machine     | ワークフローエンジン、状態遷移図  | T1（Agent-Agnostic） | 状態遷移の数学的定義                                  |
-| Workflow Engine   | Temporal, Airflow, Step Functions | T1（Agent-Agnostic） | DAG による実行順序の保証                              |
-| Graph-based State | Neo4j, Amazon Neptune             | T1 または T2         | グラフクエリ言語（Cypher, Gremlin）による決定論的推論 |
+論文では、これらの適応戦略の選択は、**監督シグナルの種類、タスク要件、システムレベルの制約**に基づいて行うべきだと述べられている。
 
 ## 実装パターンと適応戦略の選択
 
@@ -483,7 +567,7 @@ graph TB
 
 ### 主要なポイント
 
-1. **形式レイヤの分離**: LLM の役割を意味理解に限定し、状態遷移や実行判断を形式レイヤとして分離することで、業務フローの再現性や検証性を確保する。
+1. **形式レイヤの分離と LLM のサンドイッチ構成**: LLM を形式レイヤでサンドイッチすることで、入力検証・意味理解（ナレッジグラフ）・出力検証を分離し、業務フローの再現性や検証性を確保する。ナレッジグラフが意味理解を担い、LLM に制約やコンテキストを提供する。
 
 2. **Tool Adaptation フレームワーク**: 形式レイヤは Tool Adaptation（T1, T2）の文脈で位置づけられる。
 
@@ -499,7 +583,8 @@ graph TB
 Salesforce が言及した「決定論的自動化」は、単なる技術的改善ではなく、**Agentic AI システムのアーキテクチャ上の構造変化**を意味する。
 
 - **従来**: LLM の出力がそのまま業務ロジックに接続される構成
-- **新しい構成**: LLM は意味理解に限定し、決定論的な形式レイヤが状態遷移や実行判断を担う構成
+- **Salesforce のアプローチ**: LLM は意味理解に限定し、決定論的な形式レイヤ（固定ワークフロー）が状態遷移や実行判断を担う構成
+- **本記事で提案する構成**: LLM を形式レイヤでサンドイッチし、ナレッジグラフが意味理解を担って LLM に制約やコンテキストを提供する構成
 
 この構造変化により、LLM を利用しながらも、業務システムとしての再現性、安定性、検証性を確保できる。
 
