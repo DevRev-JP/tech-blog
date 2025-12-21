@@ -357,8 +357,6 @@ DevRev は、
 
 ### 参考文献
 
-#### 中核となる 4 つの特許
-
 - DevRev Inc., _METHOD AND SYSTEM FOR INTEGRATED ANALYSIS OF DATA FROM MULTIPLE SOURCE ENVIRONMENTS_  
   複数のソース環境からのデータの統合分析に関する特許。業務データの分断を前提に、分析可能な一つの現実として再構成する方法を定義。
 
@@ -370,12 +368,6 @@ DevRev は、
 
 - DevRev Inc., _COMMUNICATION PLATFORM FOR A CONNECTED ENVIRONMENT_  
   接続環境のためのコミュニケーションプラットフォームに関する特許。AI を UI ではなく業務参加者として位置づけ、業務文脈を前提に対話する仕組み。
-
-#### 特許から読み取れる設計思想
-
-これらの特許は、単なる技術的な実装方法ではなく、**業務をどう定義し直すか**という設計思想を法的に保護したものです。特許を読むことで、DevRev が何を「変えられない前提」として固定しているかが分かります。詳細は本文の「なぜ特許なのか」セクションを参照してください。
-
-#### 実例
 
 - How Bill.com uses Computer  
   https://www.youtube.com/watch?v=Q7UXoxklI50  
