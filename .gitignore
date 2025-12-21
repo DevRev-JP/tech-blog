@@ -7,3 +7,6 @@ node_modules/
 CLAUDE.md
 .gitignore
 instructions.md
+
+# Temporary test files
+tmp_codex_write_test
