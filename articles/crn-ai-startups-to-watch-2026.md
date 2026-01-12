@@ -374,6 +374,43 @@ CRN では、
 
 WitnessAI は、その「見えなさ」を解消するレイヤとして位置づけられています。
 
+### 筆者の視点
+
+#### 1. シャドー AI の可視化と制御
+
+WitnessAI は、2024 年 10 月に「Secure AI Enablement Platform」の商用提供を開始しました。このプラットフォームは、従業員が ChatGPT などのサードパーティ AI アプリケーションを使用する際の**可視性と制御**を提供し、データ漏洩を防止します。
+
+また、2024 年 9 月には Microsoft 365 Copilot および GitHub Copilot との統合を発表し、**シャドー AI のリスクを軽減**しています。企業が把握していない AI ツールの利用（シャドー AI）は、セキュリティリスクやコンプライアンス違反の原因となりますが、WitnessAI はこの課題に正面から取り組んでいます。
+
+#### 2. 自動レッドチーミングと AI ファイアウォール
+
+2025 年 8 月、WitnessAI は「Witness Attack」と「Witness Protect」という 2 つの新製品を発表しました。これらは、企業の大規模言語モデル（LLM）を脆弱性やリアルタイムの脅威から保護するための**自動レッドチーミングツールと AI ファイアウォール**として機能します。
+
+従来、AI モデルのセキュリティテストは手動で行われることが多く、時間とコストがかかっていました。WitnessAI の自動化されたアプローチにより、**継続的なセキュリティ監視と保護**が可能となり、企業の AI 活用を安全に加速させることができます。
+
+#### 3. 業界での評価と成長
+
+2025 年 10 月、WitnessAI は Fortune 誌と Lightspeed Ventures が選出する「Fortune Cyber 60」リストに名を連ねました。これは、サイバーセキュリティ分野で最も成長し、価値を提供しているベンチャー企業を称えるリストであり、**WitnessAI の AI セキュリティ分野での革新性と成長**が評価された結果です。
+
+企業が AI を本格導入する際、ガバナンスとセキュリティは不可欠な要素です。WitnessAI は、この課題に対する包括的なソリューションを提供することで、**企業の AI 活用を安全に支援するリーダー企業**としての地位を確立しつつあります。
+
+### 参考文献
+
+1. **Secure AI Enablement Platform の商用提供開始**
+
+   - [WitnessAI Releases Secure Enablement Platform for AI - WitnessAI](https://witness.ai/resources/witnessai-releases-secure-enablement-platform-for-ai/)
+
+2. **Fortune Cyber 60 リストへの選出**
+
+   - [WitnessAI Named to Fortune Cyber 60 List - WitnessAI](https://witness.ai/resources/witnessai-named-to-fortune-cyber-60-list-as-business-momentum-accelerates/)
+
+3. **新製品「Witness Attack」と「Witness Protect」**
+
+   - [WitnessAI Launches Red-Teaming and AI Firewall Tools - Channel Insider](https://www.channelinsider.com/ai/witness-ai-security-enterprise-llm/)
+
+4. **Microsoft Copilot との統合**
+   - [WitnessAI Announces Support for Microsoft Copilot to Control Shadow AI - CIOFirst](https://ciofirst.com/witnessai-announces-support-for-microsoft-copilot-to-control-shadow-ai/)
+
 ---
 
 ## 9. Writer
