@@ -132,20 +132,22 @@ POCを「技術デモが動いたか」だけで見ると、スケール失敗�
 
 ## 参考文献
 
-- PwC, _29th Annual Global CEO Survey_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/issues/c-suite-insights/ceo-survey.html
-- PwC, _PwC CEO Survey 2026 (PDF)_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/ceo-survey/2026/pwc-ceo-survey-2026.pdf
+（公開日時系列順）
+
 - PwC Japanグループ, _生成AIに関する実態調査 2025春 5カ国比較 ―進まない変革グローバル比較から読み解く日本企業の活路―_（2025-06-23）. 出典: PwC Japanグループ. https://www.pwc.com/jp/ja/knowledge/thoughtleadership/generative-ai-survey2025.html
-- PwC Japanグループ, _CAIO実態調査2025―AI経営の成否を分けるリーダーの条件_（2025-11-21）. 出典: PwC Japanグループ. https://www.pwc.com/jp/ja/knowledge/thoughtleadership/caio-survey-2025.html
-- McKinsey, _The State of AI: Global Survey_（2025-11-05）. 出典: McKinsey & Company. https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai
-- BCG, _Are You Generating Value from AI? The Widening Gap_（2025-09-30）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2025/are-you-generating-value-from-ai-the-widening-gap
-- BCG, _The Widening AI Value Gap (PDF)_（2025-09）. 出典: Boston Consulting Group. https://media-publications.bcg.com/The-Widening-AI-Value-Gap-Sept-2025.pdf
-- BCG, _AI Transformation Is a Workforce Transformation_（2026-02-04）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/ai-transformation-is-a-workforce-transformation
-- BCG, _Reinvention of the CHRO in an AI-Driven Enterprise_（2026-02-02）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/reinvention-of-the-chro-in-an-ai-driven-enterprise
 - Accenture, _Accenture Technology Vision 2025から見る自律型AIエージェントとの付き合い方_（2025-07-14）. 出典: アクセンチュア. https://www.accenture.com/jp-ja/blogs/technology/technology-vision-2025
+- BCG, _The Widening AI Value Gap (PDF)_（2025-09）. 出典: Boston Consulting Group. https://media-publications.bcg.com/The-Widening-AI-Value-Gap-Sept-2025.pdf
+- BCG, _Are You Generating Value from AI? The Widening Gap_（2025-09-30）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2025/are-you-generating-value-from-ai-the-widening-gap
 - Gartner（プレスリリース）, _Gartner、ITアプリケーション・リーダーのうち、完全自律型AIエージェントの検討、試験運用、導入を行っているのはわずか15%であるとの調査結果を発表_（2025-10-02）. 出典: Gartner Japan. https://www.gartner.co.jp/ja/newsroom/press-releases/pr-20251002-ai-ea-survey
 - Gartner（プレスリリース）, _Gartner、2026年の戦略的テクノロジのトップ・トレンドを発表_（2025-10-29）. 出典: Gartner Japan. https://www.gartner.co.jp/ja/newsroom/press-releases/pr-20251029-techtrends
+- McKinsey, _The State of AI: Global Survey_（2025-11-05）. 出典: McKinsey & Company. https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai
+- PwC Japanグループ, _CAIO実態調査2025―AI経営の成否を分けるリーダーの条件_（2025-11-21）. 出典: PwC Japanグループ. https://www.pwc.com/jp/ja/knowledge/thoughtleadership/caio-survey-2025.html
 - KPMG, _KPMG Global Tech Report 2026_（2026-01）. 出典: KPMG. https://kpmg.com/ee/en/insights/2026/01/kpmg-global-tech-report-2026.html
-- Deloitte Insights, _State of AI in the Enterprise_（2024）. 出典: Deloitte. https://www.deloitte.com/content/dam/insights/articles/2024/6462_state-of-ai-in-the-enterprise/DI_State-of-AI.pdf
+- PwC, _29th Annual Global CEO Survey_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/issues/c-suite-insights/ceo-survey.html
+- PwC, _PwC CEO Survey 2026 (PDF)_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/ceo-survey/2026/pwc-ceo-survey-2026.pdf
+- BCG, _Reinvention of the CHRO in an AI-Driven Enterprise_（2026-02-02）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/reinvention-of-the-chro-in-an-ai-driven-enterprise
+- BCG, _AI Transformation Is a Workforce Transformation_（2026-02-04）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/ai-transformation-is-a-workforce-transformation
+
 ## 更新履歴
 
 - 2026-02-14: 初版作成
