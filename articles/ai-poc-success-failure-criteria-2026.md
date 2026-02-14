@@ -8,8 +8,9 @@ published: false
 
 # 2026年のニュースから考えるAI POCの成功・失敗の基準
 
-2026年に入り、AIプロジェクトの失敗率に関する調査やレポートが相次いで報じられています。  
-「GenAIパイロットの95%が本番に至らない」「AIプロジェクト全体の80%が失敗」といった数字は、もはや耳慣れたフレーズになりつつあります。  
+2026年に入り、AIプロジェクトの「POC→本番」移行や価値創出に関する調査・レポートが相次いで公開されています。  
+同時に、2025年から2026年にかけてのレポートを比較すると、AIのフェーズが「実験・導入」から「本格的な価値創出・組織変革」へとシフトしていることが読み取れます。
+
 本記事では、こうした**2026年時点のニュースや統計を手がかりに、AI POC（概念実証）が「成功」か「失敗」かを判断する基準**について整理し、何を測り、何を避けるべきかを考えます。
 
 ---
@@ -20,23 +21,25 @@ published: false
 
 現在、次の二つの指標がとくに多く参照されています。
 
-- **GenAIパイロットの約95%が本番に到達しない**（MIT Media Lab 等のレポート）
-- **AIプロジェクト全体の80%がパイロットを超えられない、または測定可能なビジネス価値を生み出せない**（Gartner、McKinsey、RAND 等の調査）
+- **「POC（概念実証）→本番（Production）」で大きく脱落する**（各種調査・レポート）
+- **AI投資の財務的リターン（増収・コスト削減）を得ている企業は一部にとどまる**（PwC, _29th Annual Global CEO Survey_ / 2026-01-19 公開）
 
 前者は「生成AIに特化したパイロット」、後者は「AIプロジェクト全般」を対象としており、いずれも**POCやパイロットから本番・価値創出への断絶**を表しています。  
 この断絶は、[「GenAI Divide」とナレッジグラフ](/articles/genai-divide-knowledge-graph)の記事で触れた「パイロットから本番への chasm」とも一致します。
+
+また、2026年レポートでは「自律型AIエージェント」の実用化が前提となりつつあり、POCの成否も「単体精度」ではなく**ワークフロー統合・運用・人材設計**まで含めた観点で再定義され始めています。
 
 ### 「失敗」の内訳
 
 「失敗」といっても、その中身は一様ではありません。2026年時点の分析では、おおよそ次のような内訳が示されています。
 
-| 分類 | 割合の目安 | 内容 |
-|------|------------|------|
-| 完全な中止 | 約35% | 6〜18ヶ月開発後にプロジェクトを放棄 |
-| スケール失敗 | 約28% | パイロットは成功したが、企業全体への展開に失敗 |
-| ビジネス価値なし | 約17% | 技術的には動くが、ROIや意思決定改善に寄与しない |
-| ユーザー拒否 | 約12% | 従業員・顧客・ステークホルダーに採用されない |
-| 規制・倫理問題 | 約8% | コンプライアンス、バイアス、プライバシー等で停止 |
+| 分類             | 割合の目安 | 内容                                             |
+| ---------------- | ---------- | ------------------------------------------------ |
+| 完全な中止       | 約35%      | 6〜18ヶ月開発後にプロジェクトを放棄              |
+| スケール失敗     | 約28%      | パイロットは成功したが、企業全体への展開に失敗   |
+| ビジネス価値なし | 約17%      | 技術的には動くが、ROIや意思決定改善に寄与しない  |
+| ユーザー拒否     | 約12%      | 従業員・顧客・ステークホルダーに採用されない     |
+| 規制・倫理問題   | 約8%       | コンプライアンス、バイアス、プライバシー等で停止 |
 
 POCを「技術デモが動いたか」だけで見ると、スケール失敗やビジネス価値なしのケースを見逃しがちです。  
 **成功・失敗の基準を設けるなら、技術検証の先にある「本番化」「ビジネス成果」「採用」まで含めて定義する必要**があります。
@@ -58,6 +61,27 @@ POCを「技術デモが動いたか」だけで見ると、スケール失敗�
 
 これらは、[GenAI Divide](/articles/genai-divide-knowledge-graph)のレポートが指摘する「学習のギャップ」や、ワークフロー非統合・知識の分断とも整合的です。  
 **POCの段階から「本番でどう学習・改善するか」「どう業務に組み込むか」を前提にしないと、数字上の「成功」は本番では再現できません。**
+
+---
+
+## 2025→2026で変わった「POC成功」の前提
+
+提供ソース（2025年〜2026年公開）を並べて読むと、POCの評価軸そのものが変化しています。
+
+### 1. AIエージェント：期待から実装へ
+
+- 2025年は「AIエージェント」が注目されつつも、導入・検討は限定的（例：Gartner の調査で完全自律型AIエージェントを導入・検討している企業は 15%）。
+- 2026年は、エージェントを**ワークフローや製品に組み込む**前提が強まり、組織側の準備（役割設計・ガバナンス・運用）が成功要件として前面に出ています（例：KPMG _Global Tech Report 2026_）。
+
+### 2. 価値創出の格差拡大（The Widening Gap）
+
+- 2025年は「導入できたか」よりも「価値が出たか」に焦点が移り、成果を出せる企業が限定的であることが明確化しました（BCG _Are You Generating Value from AI? The Widening Gap_）。
+- 2026年は、成功企業がAIで得た利益を再投資し、次の高度化（エージェントなど）に進むことで、格差が固定化しやすい構図が語られています（PwC CEO Survey 2026）。
+
+### 3. 人材・組織：「使う」から「再定義する」へ
+
+- 2025年は CAIO の設置やリスキリングなど「推進体制づくり」が中心（PwC Japan _CAIO実態調査2025_）。
+- 2026年は「AI変革＝ワークフォース変革」として、CHRO/人事機能が役割再設計を主導する必要がある、といった論点が強まっています（BCG _AI Transformation Is a Workforce Transformation_ / BCG _Reinvention of the CHRO in an AI-Driven Enterprise_）。
 
 ---
 
@@ -108,14 +132,25 @@ POCを「技術デモが動いたか」だけで見ると、スケール失敗�
 
 ## 参考文献
 
-- MIT Media Lab Project NANDA, _The GenAI Divide – State of AI in Business 2025_.（[当ブログでの解説](/articles/genai-divide-knowledge-graph)）
-- Pertama Partners (2026), _AI Project Failure Statistics 2026: The Complete Picture_. https://www.pertamapartners.com/insights/ai-project-failure-statistics-2026
-- Netguru, _Why Most AI POCs Fail — and How Leaders Can Fix It_.（POC失敗要因とリーダーシップの役割）
-
+- PwC, _29th Annual Global CEO Survey_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/issues/c-suite-insights/ceo-survey.html
+- PwC, _PwC CEO Survey 2026 (PDF)_（2026-01-19）. 出典: PwC. https://www.pwc.com/gx/en/ceo-survey/2026/pwc-ceo-survey-2026.pdf
+- PwC Japanグループ, _生成AIに関する実態調査 2025春 5カ国比較 ―進まない変革グローバル比較から読み解く日本企業の活路―_（2025-06-23）. 出典: PwC Japanグループ. https://www.pwc.com/jp/ja/knowledge/thoughtleadership/generative-ai-survey2025.html
+- PwC Japanグループ, _CAIO実態調査2025―AI経営の成否を分けるリーダーの条件_（2025-11-21）. 出典: PwC Japanグループ. https://www.pwc.com/jp/ja/knowledge/thoughtleadership/caio-survey-2025.html
+- McKinsey, _The State of AI: Global Survey_（2025-11-05）. 出典: McKinsey & Company. https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai
+- BCG, _Are You Generating Value from AI? The Widening Gap_（2025-09-30）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2025/are-you-generating-value-from-ai-the-widening-gap
+- BCG, _The Widening AI Value Gap (PDF)_（2025-09）. 出典: Boston Consulting Group. https://media-publications.bcg.com/The-Widening-AI-Value-Gap-Sept-2025.pdf
+- BCG, _AI Transformation Is a Workforce Transformation_（2026-02-04）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/ai-transformation-is-a-workforce-transformation
+- BCG, _Reinvention of the CHRO in an AI-Driven Enterprise_（2026-02-02）. 出典: Boston Consulting Group. https://www.bcg.com/publications/2026/reinvention-of-the-chro-in-an-ai-driven-enterprise
+- Accenture, _Accenture Technology Vision 2025から見る自律型AIエージェントとの付き合い方_（2025-07-14）. 出典: アクセンチュア. https://www.accenture.com/jp-ja/blogs/technology/technology-vision-2025
+- Gartner（プレスリリース）, _Gartner、ITアプリケーション・リーダーのうち、完全自律型AIエージェントの検討、試験運用、導入を行っているのはわずか15%であるとの調査結果を発表_（2025-10-02）. 出典: Gartner Japan. https://www.gartner.co.jp/ja/newsroom/press-releases/pr-20251002-ai-ea-survey
+- Gartner（プレスリリース）, _Gartner、2026年の戦略的テクノロジのトップ・トレンドを発表_（2025-10-29）. 出典: Gartner Japan. https://www.gartner.co.jp/ja/newsroom/press-releases/pr-20251029-techtrends
+- KPMG, _KPMG Global Tech Report 2026_（2026-01）. 出典: KPMG. https://kpmg.com/ee/en/insights/2026/01/kpmg-global-tech-report-2026.html
+- Deloitte Insights, _State of AI in the Enterprise_（2024）. 出典: Deloitte. https://www.deloitte.com/content/dam/insights/articles/2024/6462_state-of-ai-in-the-enterprise/DI_State-of-AI.pdf
 ## 更新履歴
 
-- 2026-02-14: 初版作成（下書き）
+- 2026-02-14: 初版作成
 
-## フィードバック受け付け
+### 注記
 
-内容の誤りや、追加で扱ってほしい観点があれば、Zenn のコメントでお知らせいただけると助かります。
+本記事は AI を活用して執筆しています。  
+内容に誤りや追加情報があれば、Zenn のコメントよりお知らせください。
