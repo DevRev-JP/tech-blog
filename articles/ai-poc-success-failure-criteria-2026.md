@@ -3,7 +3,7 @@ title: "2026年のニュースから考えるAI POCの成功・失敗の基準"
 emoji: "📐"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["生成AI", "POC", "AI導入", "エンタープライズAI"]
-published: false
+published: true
 ---
 
 # 2026年のニュースから考えるAI POCの成功・失敗の基準
