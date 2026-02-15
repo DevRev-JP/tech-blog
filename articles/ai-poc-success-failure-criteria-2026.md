@@ -3,7 +3,7 @@ title: "2026年のニュースから考えるAI POCの成功・失敗の基準"
 emoji: "📐"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["生成AI", "POC", "AI導入", "エンタープライズAI"]
-published: false
+published: true
 ---
 
 # 2026年のニュースから考えるAI POCの成功・失敗の基準
@@ -75,7 +75,7 @@ published: false
 
 経営の視点では、こうした失敗は「学習コスト」ではなく、**予算・機会損失・変更管理コスト**として効いてきます。平均的なAI導入が百万ドル単位になり得る、という見立てがある以上、POCを「小さく試す」だけで終わらせると、失敗のコストもそのまま増幅します。
 
-これらは、[「GenAI Divide」とナレッジグラフ](/articles/genai-divide-knowledge-graph)で触れた「パイロットから本番への chasm」や、ワークフロー非統合・知識の分断とも整合的です。
+これらは、[「GenAI Divide」とナレッジグラフ](https://zenn.dev/articles/genai-divide-knowledge-graph)で触れた「パイロットから本番への chasm」や、ワークフロー非統合・知識の分断とも整合的です。
 
 ---
 
