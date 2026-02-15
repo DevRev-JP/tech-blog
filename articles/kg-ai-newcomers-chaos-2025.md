@@ -459,7 +459,7 @@ AI と人間はこれから共に進化していくのです。
 #### 🤝 MCP・エージェント・A2A
 
 - [「MCP の課題とナレッジグラフ」](https://zenn.dev/knowledge_graph/articles/mcp-knowledge-graph)
-- [「GenAI Divide とナレッジグラフ」](https://zenn.dev/knowledge_graph/articles/genai-divide-knowledge-graph) ── 組織内システム連携やエージェント連携の文脈整理。
+- [「GenAI Divide とナレッジグラフ」](https://zenn.dev/articles/genai-divide-knowledge-graph) ── 組織内システム連携やエージェント連携の文脈整理。
 - Anthropic Engineering Blog. _Code Execution with MCP._ https://www.anthropic.com/engineering/code-execution-with-mcp
 - Announcing the Agent2Agent Protocol (A2A). Google Developers Blog. https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/
 

@@ -37,7 +37,7 @@ published: true
 - RAG なしで始めるナレッジグラフ QA  
   https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter
 - GenAI Divide とナレッジグラフ  
-  https://zenn.dev/knowledge_graph/articles/genai-divide-knowledge-graph
+  https://zenn.dev/articles/genai-divide-knowledge-graph
 
 本記事ではそれらと重複しないように、LLM/RAG の「限界」と「設計思想」に絞って解説します。
 
@@ -457,7 +457,7 @@ LLM や RAG は強力なツールで、UX を大きく変革します。
 - Zenn: RAG なしで始めるナレッジグラフ QA  
   https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter
 - Zenn: GenAI Divide とナレッジグラフ  
-  https://zenn.dev/knowledge_graph/articles/genai-divide-knowledge-graph
+  https://zenn.dev/articles/genai-divide-knowledge-graph
 - Zenn: RAG を超える知識統合  
   https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph
 - Zenn: MCP の課題とナレッジグラフ
