@@ -59,18 +59,15 @@ Anthropic は、LLM が従来苦手とされていた**金融、政府機関、�
 **参考文献**
 
 1. **東京オフィス開設と日本市場への進出**
-
    - [Anthropic、アジア太平洋地域初の東京オフィスを開設 - マイナビニュース](https://news.mynavi.jp/techplus/article/20251030-3603597/)
    - [Anthropic、東京オフィス開設を発表 - PR TIMES](https://prtimes.jp/main/html/rd/p/000000001.000171496.html)
 
 2. **LLM が従来苦手とされていた分野への進出**
-
    - [Anthropic、金融機関向け生成 AI ソリューション「Claude for Financial Services」を発表 - AT Partners](https://www.atpartners.co.jp/ja/news/2025-07-16-anthropic-a-large-scale-language-modeler-announces-claude-for-financial-services-a-generative-ai-solution-for-financial-institutions)
    - [Anthropic、米国国家安全保障機関専用の AI モデルを発表 - AT Partners](https://www.atpartners.co.jp/ja/news/2025-06-06-anthropic-a-large-scale-language-modeler-launches-ai-model-dedicated-to-u-s-national-security-agencies)
    - [How Anthropic and CMS Break Data Silos - JobiRun](https://jobirun.com/how-anthropic-and-cms-break-data-silos/)
 
 3. **モデル福祉（Model Welfare）研究プログラム**
-
    - [Anthropic、AI モデル福祉の研究プログラムを新設 - AT Partners](https://www.atpartners.co.jp/ja/news/2025-04-25-anthropic-a-large-scale-language-modeler-establishes-a-new-research-program-on-ai-model-welfare)
 
 4. **AI 信頼性向上への取り組み**
@@ -120,15 +117,12 @@ PoC から本番運用への移行においては、業界ごとの規制や要�
 **参考文献**
 
 1. **AI Security 機能**
-
    - [Airia AI Security - Airia.com](https://airia.com/wp-content/uploads/sites/7/2025/12/Airia_Security__A4-December_2025.pdf)
 
 2. **Agent Orchestration 機能**
-
    - [Airia Agent Orchestration - Airia.com](https://airia.com/wp-content/uploads/sites/7/2025/12/Airia_Orchestration_A4-December_2025.pdf)
 
 3. **小売業界向けソリューション**
-
    - [Airia Blog - Airia.com](https://airia.com/blog/)
 
 ---
@@ -165,11 +159,9 @@ AI アプリケーションの利用が広がるにつれて、IT 部門が把�
 **参考文献**
 
 1. **AI アプリケーション発見機能**
-
    - [Aurascape AI Application Discovery - Aurascape.ai](https://aurascape.ai/aurascape-ai-application-discovery/)
 
 2. **AI アクティビティ制御セキュリティプラットフォーム**
-
    - [Aurascape、AI アクティビティ制御セキュリティプラットフォームを発表 - GenerativeD](https://www.generatived.com/news/aurascape-unveils-ai-activity-control-security-platform)
 
 3. **RSA Conference 2025 での発表**
@@ -214,7 +206,6 @@ AI エージェントが自律的に動作する際、安全性と信頼性は�
 **参考文献**
 
 1. **Dell Technologies との契約と高性能コンピューティングクラスター**
-
    - [Imbue to Develop Next-Generation AI Models with $150 Million Dell High Performance Computing System - PR Newswire](https://www.prnewswire.com/news-releases/imbue-to-develop-next-generation-ai-models-with-150-million-dell-high-performance-computing-system-301998808.html)
 
 2. **Imbue の AI エージェントに関する情報**
@@ -247,15 +238,12 @@ Mistral AI は、Mistral Large 3、Ministral 3、コーディング用の Codest
 **参考文献**
 
 1. **Mistral AI の企業概要と最新動向**
-
    - [Mistral AI - Wikipedia](https://en.wikipedia.org/wiki/Mistral_AI)
 
 2. **新 AI モデル「les Ministraux」リリース**
-
    - [Mistral AI、スマホでも使える新 AI モデル「les Ministraux」リリース - ITmedia](https://www.itmedia.co.jp/news/articles/2410/17/news128.html)
 
 3. **コーディング用生成 AI モデル「Codestral」リリース**
-
    - [Mistral AI、コーディング用生成 AI モデル「Codestral」リリース - ITmedia](https://www.itmedia.co.jp/news/articles/2405/30/news139.html)
 
 ---
@@ -293,11 +281,9 @@ Perplexity AI は、設立からわずか数年で急速に成長し、2025 年 
 **参考文献**
 
 1. **Perplexity AI の企業情報と製品概要**
-
    - [Perplexity AI - Wikipedia](https://en.wikipedia.org/wiki/Perplexity_AI)
 
 2. **AI ブラウザ「Comet」の詳細**
-
    - [Comet (browser) - Wikipedia](https://en.wikipedia.org/wiki/Comet_%28browser%29)
 
 ---
@@ -333,11 +319,9 @@ Jeff Bezos は宇宙開発企業 Blue Origin の創業者でもあり、Project 
 **参考文献**
 
 1. **Project Prometheus の企業概要**
-
    - [Project Prometheus (company) - Wikipedia](https://en.wikipedia.org/wiki/Project_Prometheus_%28company%29)
 
 2. **資金調達と事業領域**
-
    - [ベゾスの神秘的な AI 企業「Project Prometheus」が 62 億ドルのシードラウンドを調達 - AIbase](https://www.aibase.com/ja/news/22885)
 
 ---
@@ -378,15 +362,12 @@ WitnessAI は、2024 年 10 月に「Secure AI Enablement Platform」の商用�
 **参考文献**
 
 1. **Secure AI Enablement Platform の商用提供開始**
-
    - [WitnessAI Releases Secure Enablement Platform for AI - WitnessAI](https://witness.ai/resources/witnessai-releases-secure-enablement-platform-for-ai/)
 
 2. **Fortune Cyber 60 リストへの選出**
-
    - [WitnessAI Named to Fortune Cyber 60 List - WitnessAI](https://witness.ai/resources/witnessai-named-to-fortune-cyber-60-list-as-business-momentum-accelerates/)
 
 3. **新製品「Witness Attack」と「Witness Protect」**
-
    - [WitnessAI Launches Red-Teaming and AI Firewall Tools - Channel Insider](https://www.channelinsider.com/ai/witness-ai-security-enterprise-llm/)
 
 4. **Microsoft Copilot との統合**
@@ -433,15 +414,12 @@ Writer は、社内データ、企業ルール、ブランドトーンを前提�
 **参考文献**
 
 1. **Writer プラットフォームの概要**
-
    - [Writer - Enterprise AI Platform](https://writer.com/)
 
 2. **Writer の企業評価額と資金調達**
-
    - [AI Startup Writer Nabs A $1.9 Billion Valuation To Become A Super App For Enterprises - Forbes](https://www.forbes.com/sites/rashishrivastava/2024/11/12/ai-startup-writer-nabs-a-19-billion-valuation-to-become-a-super-app-for-enterprises/)
 
 3. **Writer の企業情報**
-
    - [Writer | Company Overview & News - Forbes](https://www.forbes.com/companies/writer/)
 
 ---
@@ -492,15 +470,12 @@ Nutanix の創業者であるディラージ・パンディ氏と元 Nutanix エ
 **参考文献**
 
 1. **Computer プラットフォームの発表**
-
    - [DevRev Launches Computer: The Conversational AI Teammate - Business Wire](https://www.businesswire.com/news/home/20250909035685/en/DevRev-Launches-Computer-The-Conversational-AI-Teammate-That-Redefines-How-Humans-and-Machines-Work-Together)
 
 2. **Effortless 2025 イベント**
-
    - [DevRev Ushers in the Era of Integrated Conversational Computing at Effortless 2025 - Business Wire](https://www.businesswire.com/news/home/20251030127007/en/DevRev-Ushers-in-the-Era-of-Integrated-Conversational-Computing-at-Effortless-2025)
 
 3. **日本法人の設立**
-
    - [DevRev、日本法人を設立 ～ AI エージェントの導入事例および国内パートナーとの AI における協業を発表～ - PR TIMES](https://prtimes.jp/main/html/rd/p/000000002.000171719.html)
 
 4. **資金調達と評価額**
