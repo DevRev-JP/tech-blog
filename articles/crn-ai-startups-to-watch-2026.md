@@ -457,9 +457,9 @@ Computer Agent Studio は、**統合的な会話型コンピューティング�
 
 #### 3. AWS re:Invent 2025 での事例発表
 
-AWS re:Invent 2025 において、Amazon OpenSearch の PM が実施したセッションで、DevRev が事例として発表されました。これは、DevRev のプラットフォームが**大規模なエンタープライズ環境での実運用**において、Amazon OpenSearch を活用した実績があることを示しています。
+AWS re:Invent 2025 において、Amazon OpenSearch の PM が実施したセッションで、DevRev が事例として発表されました（[セッション動画](https://www.youtube.com/watch?v=XCXUVkHDLwg&t=425s)）。同セッションでは、サポート・プロダクト・営業チーム間でサイロ化していたデータとツールを、AI エージェントによる統合・自動化・検索・インサイトで解消する「Agentic Application」として紹介されています。数億ベクトル規模で日次約 100 万件のベクトル更新を行う構成で、**大規模なエンタープライズ環境での実運用**において Amazon OpenSearch を活用した実績があることを示しています。
 
-ナレッジグラフを中核とした DevRev のプラットフォームは、構造化データと非構造化データを統合する際に、検索機能が重要な役割を果たしています。Amazon OpenSearch との連携により、**大規模なデータセットに対する高速な検索と分析**が可能になっていると考えられます。
+発表された効果の一例として、**チケットの 85% が人的介入なしで解決**、**カスタマーサポートコスト 50% 削減**、**従業員あたり週 10 時間の削減**が挙げられています。ナレッジグラフを中核とした DevRev のプラットフォームは、構造化データと非構造化データを統合する際に検索機能が重要な役割を果たしており、Amazon OpenSearch との連携により**大規模なデータセットに対する高速な検索と分析**が可能になっていると考えられます。
 
 #### 4. 資金調達と評価額の成長
 
@@ -480,6 +480,9 @@ Nutanix の創業者であるディラージ・パンディ氏と元 Nutanix エ
 
 4. **資金調達と評価額**
    - [DevRev Becomes AI Unicorn After Raising $100.8 Million in Series A - NextUnicorn Ventures](https://nextunicorn.ventures/devrev-becomes-ai-unicorn-after-raising-100-8-million-in-series-a/)
+
+5. **AWS re:Invent 2025 での事例発表（Agentic Application）**
+   - [YouTube: Amazon OpenSearch セッション（DevRev 事例は 7 分 5 秒頃～）](https://www.youtube.com/watch?v=XCXUVkHDLwg&t=425s)
 
 ---
 
