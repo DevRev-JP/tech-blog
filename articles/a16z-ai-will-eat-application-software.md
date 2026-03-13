@@ -3,7 +3,7 @@ title: "AIはアプリケーションソフトを「食べる」——a16zが説
 emoji: "📐"
 type: "idea"
 topics: ["生成AI", "SaaS", "エンタープライズ", "プロセス"]
-published: false
+published: true
 ---
 
 ## はじめに
