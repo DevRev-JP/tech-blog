@@ -91,9 +91,8 @@ AI はソフトウェアを「食い尽くす」のではなく、**業界を拡
 
 ## 参考・出典
 
-- Alex Immerman & Santiago Rodriguez, "Good news: AI Will Eat Application Software," Andreessen Horowitz, March 2, 2026.  
-  https://a16z.com/good-news-ai-will-eat-application-software/
-- Hamilton Helmer, _Seven Powers: The Foundations of Business Strategy_, 2016.（競争優位の7類型の典拠）
+- Alex Immerman & Santiago Rodriguez, "[Good news: AI Will Eat Application Software](https://a16z.com/good-news-ai-will-eat-application-software/)," Andreessen Horowitz, March 2, 2026.
+- Hamilton Helmer, [_Seven Powers: The Foundations of Business Strategy_](https://7powers.com/), 2016.（競争優位の7類型の典拠）
 
 ---
 
