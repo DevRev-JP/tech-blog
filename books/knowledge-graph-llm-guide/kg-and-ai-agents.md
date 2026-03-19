@@ -314,10 +314,10 @@ AgentにKGを使わせるには、「KGへのクエリ」をAgentが呼び出せ
 ### LangChainのTool定義でKGクエリをツール化する
 
 ```python
-from langchain.tools import tool
+from langchain_core.tools import tool
 # pip install langchain-ollama
-from langchain_ollama import OllamaLLM
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_ollama import ChatOllama
+from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from neo4j import GraphDatabase
 
@@ -376,7 +376,8 @@ def get_related_incidents(service_name: str) -> str:
         return str(records) if records else f"'{service_name}'の過去インシデントはありません"
 
 # AgentにツールをバインドしてAgentExecutorを構成
-llm = OllamaLLM(model="llama3.2", base_url="http://localhost:11434")
+# Tool CallingにはChatOllamaが必要（OllamaLLMはテキスト補完専用）
+llm = ChatOllama(model="llama3.2", base_url="http://localhost:11434")
 tools = [search_customer_info, get_related_incidents]
 
 # クラウドLLMを使う場合（オプション）
