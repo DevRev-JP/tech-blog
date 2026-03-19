@@ -4,6 +4,8 @@
 
 **記事**: https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter
 
+**本（関連chapter）**: [ch6 RAGを超える](https://zenn.dev/knowledge_graph/books/knowledge-graph-llm-guide#ch6)
+
 ---
 
 ## 🎯 実験の目的

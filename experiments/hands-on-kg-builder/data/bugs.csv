@@ -1,0 +1,3 @@
+id,title,severity,status,assignee_id
+BUG-001,ログイン画面がフリーズする,critical,open,ENG-001
+BUG-002,検索結果が0件になる,high,open,ENG-002

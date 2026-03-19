@@ -4,6 +4,8 @@
 
 **記事**: https://zenn.dev/knowledge_graph/articles/formal-layer-llm-rag-2025-11
 
+**本（関連chapter）**: [ch7 エンタープライズKGの設計](https://zenn.dev/knowledge_graph/books/knowledge-graph-llm-guide#ch7)
+
 ---
 
 ## 📖 記事との対応関係

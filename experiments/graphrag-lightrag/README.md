@@ -4,6 +4,8 @@
 
 **記事**: https://zenn.dev/knowledge_graph/articles/graphrag-light-rag-2025-10
 
+**本（関連chapter）**: [ch6 RAGを超える（GraphRAG/LightRAG）](https://zenn.dev/knowledge_graph/books/knowledge-graph-llm-guide#ch6)
+
 ---
 
 ## 🎯 実験の目的
