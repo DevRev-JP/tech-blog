@@ -9,6 +9,9 @@ CLAUDE.md
 .gitignore
 instructions.md
 
+# Secrets
+.env
+
 # Temporary test files
 tmp_codex_write_test
 

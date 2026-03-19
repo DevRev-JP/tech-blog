@@ -73,3 +73,13 @@ hands-on-kg-builder/
 | データ投入スクリプト（例1） | app/build_kg.py |
 | LangChainとNeo4jの連携（例2） | app/qa.py |
 | 前提：サンプルCSVの構造 | data/engineers.csv, data/bugs.csv |
+
+---
+
+## 注意事項
+
+**Cypherクエリの精度について**
+`qa.py` はローカルLLM（llama3.2）でCypherを自動生成します。3Bパラメータのモデルではクエリの精度に限界があり、フィールド名の誤認やリレーション方向の逆転が起きることがあります。より高精度な結果にはClaudeなどのクラウドLLMの利用を推奨します（`qa.py` 末尾のコメントを参照）。
+
+**メモリ要件**
+llama3.2（3Bモデル、2GB）を動かすには、Dockerホストに **4GB以上の空きメモリ** が必要です。

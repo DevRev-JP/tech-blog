@@ -12,7 +12,8 @@ assert NEO4J_PASSWORD, "NEO4J_PASSWORD環境変数を設定してください（
 graph = Neo4jGraph(
     url=NEO4J_URI,
     username=NEO4J_USER,
-    password=NEO4J_PASSWORD
+    password=NEO4J_PASSWORD,
+    enhanced_schema=False,  # APOCプラグイン不要
 )
 
 # スキーマを確認（LLMへのコンテキストとして使われる）
