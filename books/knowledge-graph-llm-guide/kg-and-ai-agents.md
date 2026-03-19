@@ -1492,3 +1492,13 @@ n8nのワークフロー構成（Difyと同等の効果）：
 → さらに深く：[AI Agent L1-L5分類 https://zenn.dev/knowledge_graph/articles/ai-agent-classification-for-engineers-2026](https://zenn.dev/knowledge_graph/articles/ai-agent-classification-for-engineers-2026)
 
 → さらに深く：[AIエンジニアのマインドセット https://zenn.dev/knowledge_graph/articles/ai-engineer-mindset-connecting-the-dots](https://zenn.dev/knowledge_graph/articles/ai-engineer-mindset-connecting-the-dots)
+
+---
+
+## サンプルコード
+
+本章のコード（Read/Reason/Write パターン・AgentExecutor実装）はGitHubで公開しています。
+
+→ [langchain-kg-agent](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/langchain-kg-agent)
+
+`docker compose up -d` でNeo4j + Ollamaをローカルに起動し、すぐに試せます。

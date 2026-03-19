@@ -885,3 +885,13 @@ LIMIT 20;
 → RDF vs Property Graph比較 https://zenn.dev/knowledge_graph/articles/rdf-vs-property-graph-2025
 
 → RAGなしで始めるKG QA https://zenn.dev/knowledge_graph/articles/kg-no-rag-starter
+
+---
+
+## サンプルコード
+
+本章のコード（KG構築スクリプト・LangChain QAチェーン）はGitHubで公開しています。
+
+→ [hands-on-kg-builder](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/hands-on-kg-builder)
+
+`docker compose up -d` でNeo4j + Ollamaをローカルに起動し、すぐに試せます。
