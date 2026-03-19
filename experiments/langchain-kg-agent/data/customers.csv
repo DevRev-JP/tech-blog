@@ -1,0 +1,11 @@
+customer_id,customer_name,plan_name,plan_tier,support_team,sla_hours
+cust-001,株式会社サンライズテック,Enterprise Plus,enterprise,エンタープライズサポートチーム,4
+cust-002,合同会社フューチャーラボ,Standard,standard,スタンダードサポートチーム,24
+cust-003,山田製作所,Enterprise,enterprise,エンタープライズサポートチーム,8
+cust-004,青葉デジタル株式会社,Starter,starter,スターターサポートチーム,72
+cust-005,株式会社グローバルシステムズ,Enterprise Plus,enterprise,エンタープライズサポートチーム,4
+cust-006,有限会社さくらソフト,Standard,standard,スタンダードサポートチーム,24
+cust-007,東京イノベーション株式会社,Enterprise,enterprise,エンタープライズサポートチーム,8
+cust-008,オーシャンテック合同会社,Starter,starter,スターターサポートチーム,72
+cust-009,株式会社スマートビジョン,Standard,standard,スタンダードサポートチーム,24
+cust-010,関西データサービス株式会社,Enterprise Plus,enterprise,エンタープライズサポートチーム,4
