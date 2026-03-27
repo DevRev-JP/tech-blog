@@ -1,0 +1,14 @@
+*.log
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+*.sqlite3
+
+# Examples ディレクトリの一時ファイル
+examples/**/node_modules/
+examples/**/dist/
+examples/**/billing.db
+
