@@ -193,34 +193,39 @@ flowchart TD
 
 ## KGとRAGを組み合わせたシステムの全体像
 
-本書全体を通して実装を目指すアーキテクチャを、ここで先に見ておきましょう。詳細は各章で解説しますが、全体像を掴んでおくと個々のコンポーネントの位置づけが理解しやすくなります。
+本書全体を通して実装を目指すアーキテクチャを、ここで先に見ておきましょう。詳細は各章で解説しますが、全体像を掴んでおくと個々のコンポーネントの位置づけが理解しやすくなります。オーケストレーション層は LangChain／LlamaIndex などで組み立てる想定です（図では短縮しています）。
 
 ```mermaid
 flowchart TB
     subgraph INPUT["入力レイヤ"]
+        direction TB
         U[ユーザー]
         Q[自然言語クエリ]
+        U --> Q
     end
 
-    subgraph ORCHESTRATION["オーケストレーションレイヤ（LangChain/LlamaIndex）"]
-        LLM_ROUTER[クエリ分類エージェント]
-        QUERY_GEN[Cypher/SPARQL生成]
-        ANSWER_GEN[回答生成LLM]
+    subgraph ORCH["オーケストレーション"]
+        direction TB
+        LLM_ROUTER["クエリ分類エージェント"]
+        QUERY_GEN["Cypher／SPARQL 生成"]
+        ANSWER_GEN["回答生成 LLM"]
     end
 
-    subgraph KNOWLEDGE["知識レイヤ"]
-        KG["ナレッジグラフ（Neo4j）<br/>ノード・エッジ・プロパティ"]
-        VECTOR["ベクトルストア<br/>（Pinecone/pgvector）"]
-        DOCS["ドキュメントストア<br/>（S3/GCS）"]
+    subgraph KNOW["知識レイヤ"]
+        direction LR
+        VECTOR["ベクトルストア<br/>(Pinecone / pgvector)"]
+        DOCS["ドキュメント<br/>(S3 / GCS)"]
+        KG["ナレッジグラフ<br/>Neo4j（ノード・エッジ）"]
     end
 
     subgraph GUARD["信頼性レイヤ"]
+        direction TB
         PERM[権限チェック]
         CITE[根拠引用]
         AUDIT[監査ログ]
+        PERM --> CITE
     end
 
-    U --> Q
     Q --> LLM_ROUTER
 
     LLM_ROUTER -->|構造的クエリ| QUERY_GEN
@@ -229,7 +234,7 @@ flowchart TB
 
     QUERY_GEN --> KG
     KG --> PERM
-    PERM --> CITE
+
     VECTOR --> ANSWER_GEN
     DOCS --> ANSWER_GEN
     CITE --> ANSWER_GEN

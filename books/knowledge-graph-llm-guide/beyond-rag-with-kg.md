@@ -452,13 +452,14 @@ flowchart TD
 KGとRAGを公平に比較するには、以下の指標を「ユースケースごとに」評価する必要があります。
 
 ```mermaid
-flowchart LR
-    subgraph 評価指標
-        F["Faithfulness<br/>事実への忠実性"]
-        A["Answer Relevancy<br/>質問との関連性"]
-        P["Precision@K<br/>上位K件の精度"]
-        R["Recall<br/>関連情報の網羅性"]
-        L["Latency<br/>応答速度"]
+flowchart TB
+    subgraph EVAL["評価指標（例）"]
+        direction TB
+        F["Faithfulness（事実への忠実性）"]
+        A["Answer Relevancy（質問との関連性）"]
+        P["Precision@K（上位K件の精度）"]
+        R["Recall（関連情報の網羅性）"]
+        L["Latency（応答速度）"]
     end
 ```
 
