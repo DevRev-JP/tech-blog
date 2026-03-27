@@ -5,13 +5,43 @@ node_modules/
 .cache/
 .cursor/
 
-# Claude Code guidance
+# Claude Code / ローカルメモ（リポジトリに載せない場合）
+.claude/
 CLAUDE.md
-.gitignore
 instructions.md
 
 # Secrets
 .env
+.env.*
+!.env.example
+
+# Python（experiments 配下の共通パターン）
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Node / パッケージマネージャログ
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+Thumbs.db
+*~
+*.swp
+*.swo
 
 # Temporary test files
 tmp_codex_write_test

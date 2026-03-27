@@ -1,0 +1,27 @@
+# Cursor のインデックス対象から外す（@codebase のノイズ削減・パフォーマンス）
+
+# 依存・VCS
+node_modules/
+.git/
+
+# Python（experiments 配下）
+**/__pycache__/
+**/.venv/
+**/venv/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+**/*.egg-info/
+
+# ツールキャッシュ
+.cache/
+.parcel-cache/
+.turbo/
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+
+# 任意: 実験用の大きいデータ（必要ならコメントを外す）
+# experiments/**/data/**/*.jsonl
+# experiments/**/graphrag/**/output/
