@@ -316,19 +316,22 @@ CREATE (e)-[:ASSIGNED_TO {allocation_rate: 0.8}]->(p)
 
 ```mermaid
 flowchart TD
-    subgraph L3["レベル3：ドメインオントロジー（業務固有）"]
+    subgraph L3["レベル3：ドメイン（業務固有）"]
+        direction LR
         D1[Employee]
         D2[Product]
         D3[SupportTicket]
         D4[Budget]
     end
-    subgraph L2["レベル2：上位オントロジー（汎用）"]
+    subgraph L2["レベル2：上位（汎用）"]
+        direction LR
         U1[Person]
         U2[Organization]
         U3[Event]
         U4[Location]
     end
-    subgraph L1["レベル1：基礎オントロジー（哲学的）"]
+    subgraph L1["レベル1：基礎（哲学的）"]
+        direction LR
         F1[Entity]
         F2[Relation]
         F3[Attribute]
