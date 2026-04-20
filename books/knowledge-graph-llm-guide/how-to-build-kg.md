@@ -34,6 +34,8 @@ KGを作り始める前に、多くのチームが見落とすことがありま
 
 以下の4つの問いに答えることで、最初のスコープを決めます。
 
+:::details 例（展開）
+
 ```
 1. 誰が使うか（ペルソナ）
    例：カスタマーサポート担当者、新入社員、プロダクトマネージャー
@@ -50,6 +52,8 @@ KGを作り始める前に、多くのチームが見落とすことがありま
    例：日次バッチ、リアルタイム、月次メンテナンス
 ```
 
+:::
+
 ポイント：最初のKGは「1ペルソナ、5〜10クエリ、1〜2データソース」から始めるのが成功率が高いです。
 
 実務メモ：あるSaaSスタートアップの事例では、KG導入の初期フェーズでは「サポートエンジニアがバグレポートから関連コンポーネントを特定する」という単一ユースケースに絞りました。全社的な知識グラフの構築はその後の段階です。
@@ -64,10 +68,14 @@ KGを構築するとき、まず選択が必要なのが「どのデータモデ
 
 W3Cが標準化したモデルで、知識を「主語・述語・目的語」の3要素（トリプル）で表現します。
 
+:::details 例（展開）
+
 ```
 （東京）—[首都である]→（日本）
 （富士山）—[高さは]→（3776m）
 ```
+
+:::
 
 クエリ言語はSPARQLで、セマンティックウェブや学術・政府系データとの互換性が高いのが特徴です。
 
@@ -134,6 +142,8 @@ flowchart TD
 
 まず、代表的なユーザーストーリーを3〜5つ書き出し、そこに登場する「名詞」をリストアップします。名詞がエンティティ候補です。
 
+:::details 例（展開）
+
 ```
 ユーザーストーリー例：
 - 「サポートエンジニアが、顧客から報告されたバグをJIRAチケットとして登録し、
@@ -147,6 +157,8 @@ flowchart TD
 - 製品コンポーネント
 - 担当エンジニア
 ```
+
+:::
 
 次に、これらの候補を「エンティティ（ノード）にする」か「プロパティ（属性）にする」かを判断します。
 
@@ -183,6 +195,8 @@ graph TD
 
 **悪い例：**
 
+:::details コード例（展開）
+
 ```cypher
 // Bug ノードにすべての情報を詰め込む（アンチパターン）
 CREATE (b:Bug {
@@ -197,9 +211,13 @@ CREATE (b:Bug {
 })
 ```
 
+:::
+
 このモデルでは「山田太郎が担当するバグ一覧」や「Auth Serviceに関連するドキュメント一覧」を取得するのに文字列マッチングが必要になります。更新も手間がかかります（山田さんのメールアドレスが変わったら全Bugノードを更新する必要がある）。
 
 **良い例：**
+
+:::details コード例（展開）
 
 ```cypher
 // 関係として表現する（推奨）
@@ -214,6 +232,8 @@ CREATE (b)-[:AFFECTS]->(c)
 CREATE (c)-[:DOCUMENTED_BY]->(d)
 ```
 
+:::
+
 ポイント：「あるノードAの情報を変更したときに、他のノードも変更が必要になる」場合、その情報は独立したエンティティにすべきです。
 
 ### 関係（エッジ）の命名規則
@@ -221,6 +241,8 @@ CREATE (c)-[:DOCUMENTED_BY]->(d)
 エッジの命名は、KGの可読性と拡張性を大きく左右します。以下のルールを守ると、チーム内での認識齟齬が減ります。
 
 **命名規則1：動詞の大文字スネークケース**
+
+:::details コード例（展開）
 
 ```cypher
 // 良い例（動詞形・方向が明確）
@@ -234,14 +256,20 @@ CREATE (c)-[:DOCUMENTED_BY]->(d)
 (Bug)-[:ENGINEER]->(Engineer)           // 担当？報告？承認？
 ```
 
+:::
+
 **命名規則2：方向性を意識する**
 
 エッジには向きがあります。「AがBに何をするか」という視点で方向を決めます。
+
+:::details 例（展開）
 
 ```
 (Bug)-[:AFFECTS]->(Component)    ✓ 「バグはコンポーネントに影響する」
 (Component)-[:AFFECTED_BY]->(Bug) △ 逆方向も表現可能だが、冗長になりやすい
 ```
+
+:::
 
 逆方向のクエリが頻繁に必要な場合を除き、片方向のエッジで統一し、クエリ側で方向を指定するほうが管理しやすいです。
 
@@ -249,11 +277,15 @@ CREATE (c)-[:DOCUMENTED_BY]->(d)
 
 スキーマ定義ドキュメントに「1:N」「N:M」を明示します。
 
+:::details 例（展開）
+
 ```
 Engineer -[WORKS_ON]-> Project   : N:M（1人が複数PJに参加可能、1PJに複数人）
 Bug -[ASSIGNED_TO]-> Engineer   : N:1（1バグに担当者は1人）
 Document -[DESCRIBES]-> Component : N:M
 ```
+
+:::
 
 実務メモ：命名規則はチームでドキュメント化しておくこと。命名がバラバラになると、後からCypherクエリを書くときに「このエッジ名は何だったっけ」という問題が頻発します。
 
@@ -265,11 +297,15 @@ CypherはNeo4jのクエリ言語です。SQLに似た構造で読みやすく、
 
 ### 基本構文の読み方
 
+:::details コード例（展開）
+
 ```cypher
 MATCH (n:ラベル {プロパティ: 値})-[:エッジ種別]->(m:ラベル)
 WHERE n.プロパティ条件
 RETURN n, m
 ```
+
+:::
 
 - `()` はノードを表す
 - `[]` はエッジ（関係）を表す
@@ -278,6 +314,8 @@ RETURN n, m
 
 ### クエリ1：基本的なノードの作成（CREATE）
 
+:::details コード例（展開）
+
 ```cypher
 // エンジニアと製品コンポーネントを作成
 CREATE (e:Engineer {id: "ENG-001", name: "山田太郎", team: "Backend"})
@@ -285,9 +323,13 @@ CREATE (c:Component {id: "COMP-001", name: "Auth Service", language: "Go"})
 RETURN e, c
 ```
 
+:::
+
 ### クエリ2：重複を避けた作成（MERGE）
 
 `CREATE` は毎回新しいノードを作りますが、`MERGE` は「なければ作る、あれば何もしない」という冪等な操作です。データ投入スクリプトでは `MERGE` を基本にします。
+
+:::details コード例（展開）
 
 ```cypher
 // 同じidのエンジニアが既存なら作成せず、なければ作成
@@ -297,7 +339,11 @@ ON MATCH SET e.updatedAt = datetime()
 RETURN e
 ```
 
+:::
+
 ### クエリ3：関係の作成
+
+:::details コード例（展開）
 
 ```cypher
 // 既存ノードを取得して関係を作成
@@ -306,7 +352,11 @@ MATCH (c:Component {id: "COMP-001"})
 MERGE (e)-[:OWNS {since: "2023-04"}]->(c)
 ```
 
+:::
+
 ### クエリ4：条件付き検索（WHERE句）
+
+:::details コード例（展開）
 
 ```cypher
 // severityが "critical" のバグと、その担当エンジニアを取得
@@ -317,7 +367,11 @@ ORDER BY b.createdAt DESC
 LIMIT 10
 ```
 
+:::
+
 ### クエリ5：多段リレーションシップの探索
+
+:::details コード例（展開）
 
 ```cypher
 // エンジニア → 担当プロジェクト → 関連ドキュメントを2ステップで取得
@@ -325,7 +379,11 @@ MATCH (e:Engineer {name: "山田太郎"})-[:WORKS_ON]->(p:Project)-[:HAS_DOCUMEN
 RETURN e.name, p.name, d.title
 ```
 
+:::
+
 ### クエリ6：集計クエリ（COUNT・GROUP BY相当）
+
+:::details コード例（展開）
 
 ```cypher
 // 各エンジニアのオープンバグ数をカウント（多い順）
@@ -335,7 +393,11 @@ RETURN e.name, COUNT(b) AS bug_count
 ORDER BY bug_count DESC
 ```
 
+:::
+
 ### クエリ7：最短経路探索
+
+:::details コード例（展開）
 
 ```cypher
 // コンポーネントAからコンポーネントBへの依存経路を探索
@@ -345,7 +407,11 @@ MATCH path = shortestPath(
 RETURN path, length(path) AS hops
 ```
 
+:::
+
 ### クエリ8：否定・除外クエリ（担当者のいないバグ）
+
+:::details コード例（展開）
 
 ```cypher
 // 担当者がアサインされていないオープンバグ一覧
@@ -356,7 +422,11 @@ RETURN b.id, b.title, b.severity, b.createdAt
 ORDER BY b.createdAt ASC
 ```
 
+:::
+
 ### クエリ9：プロパティの更新
+
+:::details コード例（展開）
 
 ```cypher
 // バグのステータスを更新し、解決者と解決日時を記録
@@ -367,13 +437,19 @@ SET b.status = "resolved",
 RETURN b
 ```
 
+:::
+
 ### クエリ10：サブグラフの削除
+
+:::details コード例（展開）
 
 ```cypher
 // 解決済みバグとその関係をすべて削除（注意：本番では慎重に）
 MATCH (b:Bug {status: "resolved"})
 DETACH DELETE b
 ```
+
+:::
 
 ポイント：`DELETE` はノードのみ削除し、関係が残るとエラーになります。`DETACH DELETE` はノードとその関係をまとめて削除します。
 
@@ -386,6 +462,8 @@ DETACH DELETE b
 ### docker-compose.yml
 
 プロジェクトルートに以下の `docker-compose.yml` を作成してください。
+
+:::details コード例（展開）
 
 ```yaml
 # docker-compose.yml
@@ -420,6 +498,8 @@ volumes:
   ollama_data:
 ```
 
+:::
+
 > ⚠️ **セキュリティ注意：** `NEO4J_PASSWORD` は必ず `.env` ファイルで設定してください。未設定のままコンテナを起動しようとするとエラーになります。本番環境では強力なパスワードを使用し、外部からのアクセスを制限してください。
 >
 > ```bash
@@ -428,6 +508,8 @@ volumes:
 > ```
 
 ### セットアップ手順
+
+:::details コード例（展開）
 
 ```bash
 # 1. コンテナ起動
@@ -442,6 +524,8 @@ curl http://localhost:11434/api/generate \
   -d '{"model":"llama3.2","prompt":"Hello","stream":false}'
 ```
 
+:::
+
 起動後、ブラウザで `http://localhost:7474` を開けば、Neo4jのグラフ可視化UIが使えます。
 
 ---
@@ -451,6 +535,8 @@ curl http://localhost:11434/api/generate \
 実際のプロジェクトでは、既存のCSVやスプレッドシートからKGを構築することが多いです。以下は `neo4j` Pythonドライバーを使った実装例です。
 
 ### 前提：サンプルCSVの構造
+
+:::details 例（展開）
 
 ```
 engineers.csv:
@@ -464,7 +550,11 @@ BUG-001,ログイン画面がフリーズする,critical,open,ENG-001
 BUG-002,検索結果が0件になる,high,open,ENG-002
 ```
 
+:::
+
 ### 例1：CSVからNeo4jへの一括投入スクリプト
+
+:::details コード例（展開）
 
 ```python
 import csv
@@ -574,6 +664,8 @@ if __name__ == "__main__":
     main()
 ```
 
+:::
+
 実務メモ：`UNWIND $list` を使ったバッチ処理は、1件ずつ `session.run()` を呼ぶよりも大幅に高速です。1万件のノード投入で、単発実行との差は10倍以上になることがあります（推測：環境依存）。
 
 ---
@@ -583,6 +675,8 @@ if __name__ == "__main__":
 KGにデータが入ったら、次は「自然言語でKGに質問する」仕組みを作ります。LangChainの `GraphCypherQAChain` と `Neo4jGraph` を組み合わせると、数十行で自然言語→Cypherクエリ生成→回答のパイプラインが動きます。
 
 ### 例2：LangChain + Neo4jGraph で自然言語QA
+
+:::details コード例（展開）
 
 ```python
 import os
@@ -646,9 +740,13 @@ for q in questions:
 # llm = ChatAnthropic(model="claude-sonnet-4-6")
 ```
 
+:::
+
 ### LLMが生成するCypherの例
 
 上のコードを実行すると、LLMがスキーマを読んで以下のようなCypherを自動生成します。
+
+:::details コード例（展開）
 
 ```cypher
 -- 「criticalなオープンバグは何件ありますか？」に対して生成されるクエリ例
@@ -660,6 +758,8 @@ RETURN COUNT(b) AS count
 MATCH (b:Bug)-[:ASSIGNED_TO]->(e:Engineer {name: '山田太郎'})
 RETURN b.title, b.severity, b.status
 ```
+
+:::
 
 ポイント：`Neo4jGraph` がスキーマを自動取得してLLMのシステムプロンプトに含めるため、LLMはノード名・プロパティ名・関係の種類を「知った上で」Cypherを生成します。スキーマの品質がCypher生成の精度を直接左右します。
 
@@ -701,6 +801,8 @@ Neo4jはデフォルトでは全ノードをスキャンします。数千ノー
 
 **対処：**
 
+:::details コード例（展開）
+
 ```cypher
 -- 検索頻度の高いプロパティにインデックスを作成
 CREATE INDEX engineer_name IF NOT EXISTS FOR (e:Engineer) ON (e.name);
@@ -712,6 +814,8 @@ EXPLAIN MATCH (b:Bug {status: "open"}) RETURN b;
 -- "NodeIndexSeek" が表示されればOK
 ```
 
+:::
+
 実務メモ：`PROFILE` キーワードを使うと、実際のクエリ実行計画と各ステップのコストが確認できます。パフォーマンス問題のデバッグに必須です。
 
 ### つまずき2：大量データ投入でのメモリ不足
@@ -721,6 +825,8 @@ EXPLAIN MATCH (b:Bug {status: "open"}) RETURN b;
 **症状：** `Java heap space` エラー、投入途中でクラッシュ
 
 **対処：CALL { } IN TRANSACTIONS を使ったバッチ分割**
+
+:::details コード例（展開）
 
 ```cypher
 -- APOC不要。Neo4j 4.4以降のネイティブ機能でバッチ処理
@@ -734,7 +840,11 @@ CALL {
 } IN TRANSACTIONS OF 1000 ROWS
 ```
 
+:::
+
 Pythonスクリプトでの対処：
+
+:::details コード例（展開）
 
 ```python
 def batch_insert(tx_function, data: list, batch_size: int = 500):
@@ -746,11 +856,15 @@ def batch_insert(tx_function, data: list, batch_size: int = 500):
         print(f"  {min(i + batch_size, len(data))}/{len(data)} 件完了")
 ```
 
+:::
+
 ### つまずき3：トランザクション設計のミス
 
 複数のノード・エッジを同時に作成する際、一部が成功して一部が失敗すると、データが不整合な状態になります。
 
 **対処：** 関連するCREATE/MERGEは一つのトランザクション内にまとめる
+
+:::details コード例（展開）
 
 ```python
 def create_bug_with_assignment(tx, bug_data: dict, engineer_id: str):
@@ -779,9 +893,13 @@ with driver.session() as session:
     )
 ```
 
+:::
+
 ### つまずき4：MERGEの誤用（部分マッチ問題）
 
 `MERGE` はすべてのプロパティが一致するノードを探します。一部のプロパティだけでMERGEすると、意図しない重複が発生します。
+
+:::details コード例（展開）
 
 ```cypher
 -- 危険：name が同じなら既存ノードを再利用するが、
@@ -794,6 +912,8 @@ MERGE (e:Engineer {id: "ENG-001"})
 SET e.name = "山田太郎", e.team = "Frontend"
 ```
 
+:::
+
 ポイント：`MERGE` は常に「一意識別子」のプロパティだけで行い、それ以外は `SET` で更新するパターンを徹底してください。
 
 ---
@@ -803,6 +923,8 @@ SET e.name = "山田太郎", e.team = "Frontend"
 ### 例3：サニティチェッククエリ集
 
 KGを本番で使う前に、以下のクエリでデータ品質を確認します。
+
+:::details コード例（展開）
 
 ```cypher
 -- ===================================
@@ -873,6 +995,8 @@ RETURN b.id, b.title, b.createdAt,
 ORDER BY days_open DESC
 LIMIT 20;
 ```
+
+:::
 
 実務メモ：サニティチェックは週次のCIジョブとして自動実行することを推奨します。問題を早期に検出するほど、修正コストが下がります。
 
