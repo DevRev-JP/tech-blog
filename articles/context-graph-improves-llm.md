@@ -1,12 +1,12 @@
 ---
-title: "Claude の外側にコンテキストグラフを — ハーネスとして載せると速く、正確に、トークンを抑える"
+title: "Claude の外側にコンテキストグラフを置くと、速く・正確に・トークンを抑えられる"
 emoji: "🧩"
 type: "tech"
 topics: ["ナレッジグラフ", "生成AI", "Claude", "コンテキストグラフ", "DevRev"]
 published: true
 ---
 
-# Claude の外側にコンテキストグラフを — ハーネスとして載せると速く、正確に、トークンを抑える
+# Claude の外側にコンテキストグラフを置くと、速く・正確に・トークンを抑えられる
 
 :::message
 **前提知識**: この記事はナレッジグラフの基礎と RAG の限界を前提にしています。初めての方は先に「[ナレッジグラフ入門](https://zenn.dev/knowledge_graph/articles/knowledge-graph-intro)」と「[RAG を超える知識統合](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)」を読むとスムーズです。
