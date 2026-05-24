@@ -3,7 +3,7 @@ title: "AIエージェントが毎回データを取りに行く設計の限界"
 emoji: "🔗"
 type: "tech"
 topics: ["ナレッジグラフ", "AIエージェント", "生成AI", "LLM", "アーキテクチャ"]
-published: false
+published: true
 ---
 
 # AIエージェントが毎回データを取りに行く設計の限界

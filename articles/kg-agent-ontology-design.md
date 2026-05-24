@@ -3,7 +3,7 @@ title: "ナレッジグラフをエージェントの「記憶」にする設計
 emoji: "🧩"
 type: "tech"
 topics: ["ナレッジグラフ", "AIエージェント", "オントロジー", "生成AI", "LLM"]
-published: false
+published: true
 ---
 
 # ナレッジグラフをエージェントの「記憶」にする設計
