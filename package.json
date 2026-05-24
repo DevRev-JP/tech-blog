@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/DevRev-JP/tech-blog/issues"
   },
-  "homepage": "https://github.com/DevRev-JP/tech-blog#readme"
+  "homepage": "https://github.com/DevRev-JP/tech-blog#readme",
+  "dependencies": {
+    "zenn-cli": "^0.4.8"
+  }
 }
