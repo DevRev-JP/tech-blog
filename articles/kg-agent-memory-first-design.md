@@ -114,6 +114,7 @@ scatter-gather問題の本質は「各システムのデータを集めること
 
 - **複数システムのエンティティ統合**: CRMの「A社」とサポートシステムの「A社」を同一ノードとして扱える。エージェントは「どのシステムのA社か」を意識せずにクエリできる
 - **関係性の永続化**: エンティティ間の関係がエッジとして保存されているため、毎回クエリで再構築しない。推論のたびにコンテキストを組み直すコストがゼロになる
+- **設計上の帰結**: 関係性込みのコンテキストが推論開始前に揃っているため、LLMがその場で関係を「推測」する無駄な推論が不要になる。推測のためのトークン消費が減り、応答が速くなり、かつ推測に起因するハルシネーションも減る
 - **アクセス権限のグラフ表現**: 「誰が何に触れるか」をグラフ構造で表現できる。見えないノードには辿り着けない設計にすることで、権限制御をクエリ層に埋め込める
 
 ### ナレッジグラフだけでは不十分な領域
@@ -188,7 +189,7 @@ graph LR
 |---|---|
 | **[AIエージェントが毎回データを取りに行く設計の限界](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design)** | **scatter-gather問題の設計回答（本記事）** |
 | [ナレッジグラフをエージェントの「記憶」にする設計](https://zenn.dev/knowledge_graph/articles/kg-agent-ontology-design) | スキーマ設計と名寄せ |
-| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skill層による設計 |
+| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skillの先にあるデータ基盤の問題 |
 | [AIエージェントを本番に出せない本当の理由](https://zenn.dev/knowledge_graph/articles/kg-agent-production-safety) | 権限・監査・ロールバック |
 
 ---

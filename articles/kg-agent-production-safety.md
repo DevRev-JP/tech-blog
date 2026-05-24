@@ -70,6 +70,8 @@ KGの変更をイベントとして記録することで、「何をしたか」
 
 KGのノードとエッジの変更を時系列で保持する設計にすると、特定の時点の状態への復元が可能になります。「ロールバックの問い」への設計的な答えがここにあります。
 
+**設計上の帰結**: 権限がグラフ構造で制御されていると、同じ権限を持つユーザーは同じパスを辿り、同じ回答を得ます。見る人によってアクセスできるノードが変わるため回答は異なり得ますが、その差は権限に基づく正当な差分であり、LLMの気まぐれではありません。同じ権限・同じ質問なら常に同じパスを辿る。この一貫性が「説明可能な回答」を可能にします。
+
 ### KGだけでは不十分な領域
 
 ここまで読んで「KGを入れれば解決する」と思った方に、正直に補足します。KGはこの問題の土台にはなりますが、KG単体では以下の領域を解決できません。
@@ -176,7 +178,7 @@ KGの実装は後からで構いません。まず「どこで権限チェック
 |---|---|
 | [AIエージェントが毎回データを取りに行く設計の限界](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design) | scatter-gather問題の設計回答 |
 | [ナレッジグラフをエージェントの「記憶」にする設計](https://zenn.dev/knowledge_graph/articles/kg-agent-ontology-design) | スキーマ設計と名寄せ |
-| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skill層による設計 |
+| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skillの先にあるデータ基盤の問題 |
 | **[AIエージェントを本番に出せない本当の理由](https://zenn.dev/knowledge_graph/articles/kg-agent-production-safety)** | **権限・監査・ロールバック（本記事）** |
 
 ---
