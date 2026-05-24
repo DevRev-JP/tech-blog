@@ -8,9 +8,11 @@ published: false
 
 # ナレッジグラフをエージェントの「記憶」にする設計
 
-> この記事はオントロジー設計の技術詳細です。意思決定者の方は第3回・第4回に先に進んでも理解できます。
+> この記事は独立して読めます（約10分）
+>
+> この記事はオントロジー設計の技術詳細です。意思決定者の方は「[ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer)」「[AIエージェントを本番に出せない本当の理由](https://zenn.dev/knowledge_graph/articles/kg-agent-production-safety)」に先に進んでも理解できます。
 
-[前回の記事](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design)では、scatter-gather問題の設計回答として「事前統合型（Memory-first）」アーキテクチャを示しました。ナレッジグラフを「推論が始まる前にデータが揃っている状態」の基盤として使う設計です。
+「[AIエージェントが毎回データを取りに行く設計の限界](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design)」では、scatter-gather問題の設計回答として「事前統合型（Memory-first）」アーキテクチャを示しました。ナレッジグラフを「推論が始まる前にデータが揃っている状態」の基盤として使う設計です。
 
 しかし「ナレッジグラフを使う」と決めた後に、多くのエンジニアが2つの壁にぶつかります。
 
@@ -222,7 +224,19 @@ KGの実行環境を手元で動かして確認したい方はこちらの記事
 
 ---
 
-次の記事では、**ツールを100個並べてもエージェントが賢くならない理由と、Skill層による解決**を扱います。
+ツールを100個並べてもエージェントが賢くならない理由と、Skill層による解決はこちらの記事で扱っています。  
+[ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer)
+
+---
+
+## このシリーズの記事
+
+| 記事 | テーマ |
+|---|---|
+| [AIエージェントが毎回データを取りに行く設計の限界](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design) | scatter-gather問題の設計回答 |
+| **[ナレッジグラフをエージェントの「記憶」にする設計](https://zenn.dev/knowledge_graph/articles/kg-agent-ontology-design)** | **スキーマ設計と名寄せ（本記事）** |
+| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skill層による設計 |
+| [AIエージェントを本番に出せない本当の理由](https://zenn.dev/knowledge_graph/articles/kg-agent-production-safety) | 権限・監査・ロールバック |
 
 ---
 

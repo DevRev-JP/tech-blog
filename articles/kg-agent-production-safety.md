@@ -8,6 +8,8 @@ published: false
 
 # AIエージェントを本番に出せない本当の理由
 
+> この記事は独立して読めます（約8分）
+
 ---
 
 ## 問題：「動く」と「出せる」の間にある壁
@@ -168,12 +170,14 @@ KGの実装は後からで構いません。まず「どこで権限チェック
 
 ---
 
-このシリーズでは、KGをエージェントの設計基盤として使う4つの問題を扱いました。
+## このシリーズの記事
 
-- [第1回：データを取りに行く設計の限界とMemory-firstアーキテクチャ](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design)
-- [第2回：KGのオントロジー設計と名寄せ](https://zenn.dev/knowledge_graph/articles/kg-agent-ontology-design)
-- [第3回：Skill層によるツール増殖とAgent Sprawlの解決](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer)
-- 第4回（本記事）：本番投入を阻む権限・監査・ロールバックの設計
+| 記事 | テーマ |
+|---|---|
+| [AIエージェントが毎回データを取りに行く設計の限界](https://zenn.dev/knowledge_graph/articles/kg-agent-memory-first-design) | scatter-gather問題の設計回答 |
+| [ナレッジグラフをエージェントの「記憶」にする設計](https://zenn.dev/knowledge_graph/articles/kg-agent-ontology-design) | スキーマ設計と名寄せ |
+| [ツールを100個並べてもAIエージェントは賢くならない](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer) | Skill層による設計 |
+| **[AIエージェントを本番に出せない本当の理由](https://zenn.dev/knowledge_graph/articles/kg-agent-production-safety)** | **権限・監査・ロールバック（本記事）** |
 
 ---
 
