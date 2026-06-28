@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
+import logging
 import os
 import sys
+import warnings
 from pathlib import Path
 
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from neo4j import GraphDatabase
+
+try:
+    from neo4j.api import NotificationMinimumSeverity
+except ImportError:  # pragma: no cover — 古い neo4j ドライバ
+    NotificationMinimumSeverity = None  # type: ignore[misc, assignment]
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -19,6 +28,95 @@ for env_name in (".env", "env.sample"):
     if env_path.exists():
         load_dotenv(env_path)
         break
+
+
+_BENIGN_STDERR_FRAGMENTS = (
+    "EquivalentSchemaRuleAlreadyExists",
+    "property key does not exist",
+    "entity_edges",
+    "name_embedding",
+    "fact_embedding",
+    "episodes",
+    "Received notification from DBMS server",
+    "Target entity not found in nodes",
+    "Invalid duplicate_candidate_id",
+    "LLM did not return resolutions",
+    "Skipping invalid LLM dedupe",
+    "Error executing Neo4j query",
+)
+
+
+def is_demo_verbose() -> bool:
+    """DEMO_VERBOSE=1 のときのみ Graphiti/Neo4j の詳細ログを出す（デフォルトは抑制）."""
+    if os.getenv("DEMO_VERBOSE", "").lower() in ("1", "true", "yes"):
+        return True
+    # 旧 .env 互換: DEMO_QUIET=0 は verbose 扱い
+    return os.getenv("DEMO_QUIET", "").lower() in ("0", "false", "no")
+
+
+def is_demo_quiet() -> bool:
+    return not is_demo_verbose()
+
+
+def is_demo_batch() -> bool:
+    """run_demo.sh の part1/part2/all からの連続実行（冗長ログを抑える）."""
+    return os.getenv("DEMO_BATCH", "").lower() in ("1", "true", "yes")
+
+
+def configure_demo_logging() -> None:
+    """デフォルトでデモ結果以外のログを抑える。DEMO_VERBOSE=1 で解除."""
+    if not is_demo_quiet():
+        return
+    warnings.filterwarnings("ignore")
+    for name in (
+        "neo4j",
+        "neo4j.notifications",
+        "graphiti_core",
+        "httpx",
+        "httpcore",
+        "openai",
+        "urllib3",
+    ):
+        logging.getLogger(name).setLevel(logging.CRITICAL)
+
+
+class _FilteredStderr(io.TextIOBase):
+    """Graphiti / Neo4j の既知の無害メッセージだけ stderr から除外."""
+
+    def __init__(self, underlying: io.TextIOBase, patterns: tuple[str, ...]) -> None:
+        self._underlying = underlying
+        self._patterns = patterns
+        self._buffer = ""
+
+    def write(self, s: str) -> int:  # type: ignore[override]
+        self._buffer += s
+        while "\n" in self._buffer:
+            line, self._buffer = self._buffer.split("\n", 1)
+            if line and not any(p in line for p in self._patterns):
+                self._underlying.write(line + "\n")
+        return len(s)
+
+    def flush(self) -> None:  # type: ignore[override]
+        if self._buffer and not any(p in self._buffer for p in self._patterns):
+            self._underlying.write(self._buffer)
+        self._buffer = ""
+        self._underlying.flush()
+
+
+@contextlib.contextmanager
+def demo_run_context():
+    """各デモ script の main 先頭で使う（quiet 時はノイズ抑制）."""
+    configure_demo_logging()
+    if not is_demo_quiet():
+        yield
+        return
+    old_stderr = sys.stderr
+    sys.stderr = _FilteredStderr(old_stderr, _BENIGN_STDERR_FRAGMENTS)
+    try:
+        yield
+    finally:
+        sys.stderr.flush()
+        sys.stderr = old_stderr
 
 
 def require_env(name: str) -> str:
@@ -33,7 +131,10 @@ def get_neo4j_driver():
     uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     user = os.getenv("NEO4J_USER", "neo4j")
     password = require_env("NEO4J_PASSWORD")
-    return GraphDatabase.driver(uri, auth=(user, password))
+    kwargs: dict = {}
+    if is_demo_quiet() and NotificationMinimumSeverity is not None:
+        kwargs["notifications_min_severity"] = NotificationMinimumSeverity.OFF
+    return GraphDatabase.driver(uri, auth=(user, password), **kwargs)
 
 
 def get_llm():
@@ -42,12 +143,57 @@ def get_llm():
     return ChatOllama(model=model, base_url=base_url, temperature=0)
 
 
+def phase(title: str, subtitle: str = "") -> None:
+    """Part0 / Part1 / Part2 など大きな区切り."""
+    print()
+    print("━" * 56)
+    print(f"  {title}")
+    if subtitle:
+        print(f"  {subtitle}")
+    print("━" * 56)
+
+
 def step_print(step: int, total: int, message: str) -> None:
-    print(f"\n[Step {step}/{total}] {message}")
+    if is_demo_verbose():
+        print(f"\n[Step {step}/{total}] {message}")
+    elif is_demo_batch():
+        return
+    else:
+        print(f"\n→ {message}")
 
 
 def section(title: str) -> None:
-    print(f"\n=== {title} ===")
+    print(f"\n── {title} ──")
+
+
+def checkpoint(title: str, bullets: list[str]) -> None:
+    """手作業確認用 — このステップで何を見ればよいか."""
+    if is_demo_batch() and not is_demo_verbose():
+        return
+    section(f"確認 — {title}")
+    for item in bullets:
+        print(f"  • {item}")
+
+
+def milestone(message: str) -> None:
+    """バッチ実行時の1行サマリ."""
+    print(f"  ✓ {message}")
+
+
+def demo_summary(title: str, lines: list[str]) -> None:
+    """all / full 終了時の総括."""
+    print()
+    print("━" * 56)
+    print(f"  {title}")
+    print("━" * 56)
+    for line in lines:
+        print(f"  {line}")
+    print()
+
+
+def result_line(label: str, value: str) -> None:
+    """結果サマリを揃えて表示."""
+    print(f"  {label}: {value}")
 
 
 def create_graphiti_client():

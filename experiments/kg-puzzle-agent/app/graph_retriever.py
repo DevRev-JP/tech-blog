@@ -26,6 +26,7 @@ class GraphRetriever:
                     MATCH (u:User {id: $user_id})-[:MEMBER_OF]->(:Team)-[:HAS_ACCESS_TO]->(p:Project {name: $name})
                     OPTIONAL MATCH (p)-[r]-(n)
                     WHERE n:Team OR n:Person OR n:TechStack
+                    OPTIONAL MATCH (p)-[:HAS_DEAL]->(deal:Deal)
                     RETURN p.name AS project,
                            p.deadline AS deadline,
                            collect(DISTINCT
@@ -37,7 +38,9 @@ class GraphRetriever:
                              END) AS nodes,
                            collect(DISTINCT
                              startNode(r).name + ' --[' + type(r) + ']--> ' + endNode(r).name
-                           ) AS edges
+                           ) AS edges,
+                           deal.customer AS deal_customer,
+                           deal.budget_confidential AS deal_budget
                     """,
                     user_id=user_id,
                     name=entity_name,
@@ -54,5 +57,9 @@ class GraphRetriever:
                 for edge in result.get("edges") or []:
                     if edge and "--" in edge:
                         lines.append(f"  {edge}")
+                if result.get("deal_customer"):
+                    lines.append(
+                        f"  (Deal:{result['deal_customer']} budget={result.get('deal_budget') or '—'})"
+                    )
 
         return "\n".join(lines) if lines else "（このユーザーがアクセス可能なプロジェクトはありません）"

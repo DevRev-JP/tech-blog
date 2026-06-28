@@ -207,3 +207,60 @@ def rule_for_fact(fact: str, cfg: dict) -> dict | None:
         if _matches_rule(fact, rule):
             return rule
     return None
+
+
+def provenance_label(edge: TemporalEdge, cfg: dict) -> str:
+    rule = rule_for_fact(edge.fact, cfg)
+    if not rule:
+        return edge.source_description or "（エピソード出所不明）"
+    episode = rule.get("episode", "")
+    source = rule.get("source_description", "")
+    if episode and source:
+        return f"{episode} / {source}"
+    return episode or source or "（エピソード出所不明）"
+
+
+def filter_by_persona(edges: list[TemporalEdge], cfg: dict, persona: str | None) -> list[TemporalEdge]:
+    if not persona or persona == "manager":
+        return edges
+
+    perspectives = cfg.get("perspectives") or {}
+    persona_cfg = perspectives.get(persona)
+    if not persona_cfg:
+        return edges
+
+    allowed_episodes = set(persona_cfg.get("episodes") or [])
+    keywords = persona_cfg.get("keywords") or []
+    filtered: list[TemporalEdge] = []
+    for edge in edges:
+        rule = rule_for_fact(edge.fact, cfg)
+        if rule:
+            if rule.get("episode") in allowed_episodes:
+                filtered.append(edge)
+            continue
+        if keywords and any(k in edge.fact for k in keywords):
+            filtered.append(edge)
+    return filtered
+
+
+def open_conflict_edges(edges: list[TemporalEdge], cfg: dict, as_of: datetime) -> list[TemporalEdge]:
+    conflicts: list[TemporalEdge] = []
+    for edge in edges:
+        rule = rule_for_fact(edge.fact, cfg)
+        if not rule or not rule.get("open_conflict"):
+            continue
+        if is_active_at(edge, as_of):
+            conflicts.append(edge)
+    return dedupe_edges(conflicts, cfg)
+
+
+def future_plan_edges(edges: list[TemporalEdge], cfg: dict, as_of: datetime) -> list[TemporalEdge]:
+    """将来マイルストーン（future_plan）として SSOT 登録された有効ファクト."""
+    plans: list[TemporalEdge] = []
+    for edge in edges:
+        rule = rule_for_fact(edge.fact, cfg)
+        if not rule or not rule.get("future_plan"):
+            continue
+        if is_active_at(edge, as_of):
+            plans.append(edge)
+    return dedupe_edges(plans, cfg)

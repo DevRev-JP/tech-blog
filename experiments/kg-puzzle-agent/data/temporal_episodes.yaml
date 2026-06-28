@@ -1,57 +1,113 @@
+story: |
+  Part0/1: Project Alpha の体制と権限。
+  Part2: 同一案件 — Project Alpha 拡張（顧客X）の予算・工期が 2026年6月第4週に更新され、
+  10月中旬リリースなど将来予定もグラフに残る（as-of で「まだ知らない過去」と切り替え可能）。
+
 episodes:
   - name: sales-meeting-monday
     body: >
-      顧客Xの予算は500万円。今期中に決裁したい意向。担当は山田部長。
+      Project Alpha 拡張（顧客X）の予算は500万円。今期中に決裁したい意向。担当は山田部長。
     source_description: "営業チームSlack #deal-customer-x"
-    reference_time: "2024-11-04T12:00:00+00:00"
+    reference_time: "2026-06-23T12:00:00+09:00"
+    perspective: sales
 
   - name: sales-update-wednesday
     body: >
-      山田部長と直接話した。予算は800万まで拡大可能。
+      Project Alpha / 顧客X案件。山田部長と直接話した。予算は800万まで拡大可能。
       ただし来期に跨ぐ場合は再稟議が必要とのこと。
     source_description: "営業チームSlack #deal-customer-x"
-    reference_time: "2024-11-06T12:00:00+00:00"
+    reference_time: "2026-06-25T12:00:00+09:00"
+    perspective: sales
 
   - name: eng-estimate-thursday
     body: >
-      顧客Xの要件を精査した。最小構成で3ヶ月、フル機能で6ヶ月。
+      Project Alpha 拡張（顧客X）の要件を精査。最小構成で3ヶ月、フル機能で6ヶ月。
       3ヶ月なら今期に収まる。フル機能は来期跨ぎ確定。
+      本番リリース目標は2026年10月中旬（10/15稼働想定）。
     source_description: "エンジニアSlack #eng-estimates"
-    reference_time: "2024-11-07T12:00:00+00:00"
+    reference_time: "2026-06-26T12:00:00+09:00"
+    perspective: eng
 
-as_of: "2024-11-08T12:00:00+00:00"
+  - name: eng-resource-friday
+    body: >
+      Project Alpha 拡張（顧客X）のリソース試算。800万予算枠では最小3人月を確保できず、
+      営業が提示した800万前提と整合しない見込み。10月中旬リリース目標は要再調整。
+    source_description: "エンジニアSlack #eng-estimates"
+    reference_time: "2026-06-27T09:00:00+09:00"
+    perspective: eng
+
+# デモの「今日」（2026-06-28 想定）
+as_of: "2026-06-28T12:00:00+09:00"
+
+as_of_presets:
+  monday: "2026-06-23T12:00:00+09:00"
+  wednesday: "2026-06-25T12:00:00+09:00"
+  friday: "2026-06-27T12:00:00+09:00"
+  today: "2026-06-28T12:00:00+09:00"
+
+perspectives:
+  sales:
+    label: "営業（山田部長チーム）"
+    episodes: [sales-meeting-monday, sales-update-wednesday]
+  eng:
+    label: "エンジニア（見積チーム）"
+    episodes: [eng-estimate-thursday, eng-resource-friday]
+  manager:
+    label: "マネージャー（今週末・全体確認）"
+    episodes: [sales-meeting-monday, sales-update-wednesday, eng-estimate-thursday, eng-resource-friday]
 
 search_queries:
-  manager_friday: "顧客Xの予算と今期で間に合うか？"
-  budget_history: "顧客Xの予算の変遷"
+  manager_friday: "Project Alpha 拡張（顧客X）の予算と今期で間に合うか？"
+  budget_history: "Project Alpha 拡張（顧客X）の予算の変遷"
 
-# Graphiti ingest 後に invalid_at を確定。match 0 件なら canonical_fact を MERGE（デモ最低限）
 temporal_rules:
   - id: budget_500
-    match_any: ["500万", "500"]
-    canonical_fact: "顧客Xの予算は500万円"
-    valid_at: "2024-11-04T12:00:00+00:00"
-    invalid_at: "2024-11-06T12:00:00+00:00"
+    match_any: ["500万円", "予算は500"]
+    canonical_fact: "Project Alpha 拡張（顧客X）の予算は500万円"
+    valid_at: "2026-06-23T12:00:00+09:00"
+    invalid_at: "2026-06-25T12:00:00+09:00"
     episode: sales-meeting-monday
     source_description: "営業チームSlack #deal-customer-x"
+    perspective: sales
   - id: budget_800
-    match_any: ["800万", "800"]
-    canonical_fact: "山田部長は予算を800万円まで拡大可能とのこと"
-    valid_at: "2024-11-06T12:00:00+00:00"
+    match_any: ["800万まで", "800万円まで", "拡大可能"]
+    canonical_fact: "山田部長は Project Alpha 拡張（顧客X）の予算を800万円まで拡大可能とのこと"
+    valid_at: "2026-06-25T12:00:00+09:00"
     invalid_at: null
     episode: sales-update-wednesday
     source_description: "営業チームSlack #deal-customer-x"
+    perspective: sales
   - id: reapproval
     match_any: ["再稟議"]
     canonical_fact: "ただし来期に跨ぐ場合は再稟議が必要とのこと"
-    valid_at: "2024-11-06T12:00:00+00:00"
+    valid_at: "2026-06-25T12:00:00+09:00"
     invalid_at: null
     episode: sales-update-wednesday
     source_description: "営業チームSlack #deal-customer-x"
+    perspective: sales
   - id: eng_3months
     match_any: ["3ヶ月", "3か月"]
-    canonical_fact: "3ヶ月なら今期に収まる"
-    valid_at: "2024-11-07T12:00:00+00:00"
+    canonical_fact: "最小構成3ヶ月なら今期に収まる（Project Alpha / 顧客X）"
+    valid_at: "2026-06-26T12:00:00+09:00"
     invalid_at: null
     episode: eng-estimate-thursday
     source_description: "エンジニアSlack #eng-estimates"
+    perspective: eng
+  - id: oct_release_target
+    match_any: ["10月中旬", "10/15", "2026年10月", "10月稼働"]
+    canonical_fact: "Project Alpha 拡張（顧客X）の本番リリース目標は2026年10月中旬"
+    valid_at: "2026-06-26T12:00:00+09:00"
+    invalid_at: null
+    episode: eng-estimate-thursday
+    source_description: "エンジニアSlack #eng-estimates"
+    perspective: eng
+    future_plan: true
+  - id: eng_budget_conflict
+    match_any: ["整合しない", "3人月を確保", "営業提示"]
+    canonical_fact: "800万予算枠では最小3人月を確保できず、営業提示の800万前提と整合しない"
+    valid_at: "2026-06-27T09:00:00+09:00"
+    invalid_at: null
+    episode: eng-resource-friday
+    source_description: "エンジニアSlack #eng-estimates"
+    perspective: eng
+    open_conflict: true

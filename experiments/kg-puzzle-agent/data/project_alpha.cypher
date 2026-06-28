@@ -1,6 +1,6 @@
 MATCH (n) DETACH DELETE n;
 
-CREATE (p:Project {name: 'Alpha', deadline: '2024Q4', visibility: 'internal'})
+CREATE (p:Project {name: 'Alpha', deadline: '2026Q3', visibility: 'internal'})
 CREATE (t:Team {name: 'Team A'})
 CREATE (p)-[:OWNED_BY]->(t)
 
@@ -13,6 +13,9 @@ CREATE (t)-[:HAS_MEMBER]->(m2)
 
 CREATE (tech:TechStack {name: 'Python + Neo4j'})
 CREATE (p)-[:USES]->(tech)
+
+CREATE (deal:Deal {customer: '顧客X', note: 'Project Alpha 拡張案件', budget_confidential: '800万（社外秘）'})
+CREATE (p)-[:HAS_DEAL]->(deal)
 
 CREATE (u_tanaka:User {id: 'user_tanaka', name: 'tanaka'})
 CREATE (u_guest:User {id: 'user_guest', name: 'guest'})

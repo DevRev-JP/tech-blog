@@ -14,7 +14,7 @@ from graph_retriever import GraphRetriever
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.graph import END, StateGraph
 
-from shared import get_llm, get_neo4j_driver, section, step_print
+from shared import checkpoint, demo_run_context, get_llm, get_neo4j_driver, section, step_print
 
 
 class AgentState(TypedDict):
@@ -72,20 +72,28 @@ def main() -> None:
     parser.add_argument("--user-id", default="user_tanaka")
     args = parser.parse_args()
 
-    step_print(1, 1, "LangGraph エージェントを実行しています…")
-    agent = build_agent()
-    result = agent.invoke(
-        {
-            "messages": [HumanMessage(content=args.question)],
-            "user_id": args.user_id,
-            "graph_context": "",
-        }
-    )
+    with demo_run_context():
+        step_print(1, 1, "LangGraph エージェントを実行しています…")
+        agent = build_agent()
+        result = agent.invoke(
+            {
+                "messages": [HumanMessage(content=args.question)],
+                "user_id": args.user_id,
+                "graph_context": "",
+            }
+        )
 
-    section("参照したグラフ")
-    print(result.get("graph_context", ""))
-    section("回答")
-    print(result["messages"][-1].content)
+        section("参照したグラフ")
+        print(result.get("graph_context", ""))
+        section("回答")
+        print(result["messages"][-1].content)
+        checkpoint(
+            "LangGraph",
+            [
+                "retrieve → generate の 2 段でグラフコンテキストを先に取得",
+                "回答に Team A / Python + Neo4j が含まれる",
+            ],
+        )
 
 
 if __name__ == "__main__":

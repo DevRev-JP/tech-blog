@@ -7,11 +7,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from shared import DATA_DIR, get_neo4j_driver, section, step_print
+from shared import DATA_DIR, demo_run_context, get_neo4j_driver, is_demo_batch, milestone, section, step_print
 
 
 def main() -> None:
-    step_print(1, 1, "Project Alpha グラフを Neo4j に投入しています…")
+    with demo_run_context():
+        _run_seed()
+
+
+def _run_seed() -> None:
+    if not is_demo_batch():
+        step_print(1, 1, "Project Alpha グラフを Neo4j に投入しています…")
     cypher_path = DATA_DIR / "project_alpha.cypher"
     statements = [
         s.strip()
@@ -24,6 +30,10 @@ def main() -> None:
         for stmt in statements:
             session.run(stmt)
     driver.close()
+
+    if is_demo_batch():
+        milestone("Project Alpha グラフ投入")
+        return
 
     section("完了")
     print("Project Alpha グラフの投入が完了しました。")
