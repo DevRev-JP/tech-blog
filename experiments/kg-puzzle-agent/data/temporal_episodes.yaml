@@ -1,0 +1,57 @@
+episodes:
+  - name: sales-meeting-monday
+    body: >
+      顧客Xの予算は500万円。今期中に決裁したい意向。担当は山田部長。
+    source_description: "営業チームSlack #deal-customer-x"
+    reference_time: "2024-11-04T12:00:00+00:00"
+
+  - name: sales-update-wednesday
+    body: >
+      山田部長と直接話した。予算は800万まで拡大可能。
+      ただし来期に跨ぐ場合は再稟議が必要とのこと。
+    source_description: "営業チームSlack #deal-customer-x"
+    reference_time: "2024-11-06T12:00:00+00:00"
+
+  - name: eng-estimate-thursday
+    body: >
+      顧客Xの要件を精査した。最小構成で3ヶ月、フル機能で6ヶ月。
+      3ヶ月なら今期に収まる。フル機能は来期跨ぎ確定。
+    source_description: "エンジニアSlack #eng-estimates"
+    reference_time: "2024-11-07T12:00:00+00:00"
+
+as_of: "2024-11-08T12:00:00+00:00"
+
+search_queries:
+  manager_friday: "顧客Xの予算と今期で間に合うか？"
+  budget_history: "顧客Xの予算の変遷"
+
+# Graphiti ingest 後に invalid_at を確定。match 0 件なら canonical_fact を MERGE（デモ最低限）
+temporal_rules:
+  - id: budget_500
+    match_any: ["500万", "500"]
+    canonical_fact: "顧客Xの予算は500万円"
+    valid_at: "2024-11-04T12:00:00+00:00"
+    invalid_at: "2024-11-06T12:00:00+00:00"
+    episode: sales-meeting-monday
+    source_description: "営業チームSlack #deal-customer-x"
+  - id: budget_800
+    match_any: ["800万", "800"]
+    canonical_fact: "山田部長は予算を800万円まで拡大可能とのこと"
+    valid_at: "2024-11-06T12:00:00+00:00"
+    invalid_at: null
+    episode: sales-update-wednesday
+    source_description: "営業チームSlack #deal-customer-x"
+  - id: reapproval
+    match_any: ["再稟議"]
+    canonical_fact: "ただし来期に跨ぐ場合は再稟議が必要とのこと"
+    valid_at: "2024-11-06T12:00:00+00:00"
+    invalid_at: null
+    episode: sales-update-wednesday
+    source_description: "営業チームSlack #deal-customer-x"
+  - id: eng_3months
+    match_any: ["3ヶ月", "3か月"]
+    canonical_fact: "3ヶ月なら今期に収まる"
+    valid_at: "2024-11-07T12:00:00+00:00"
+    invalid_at: null
+    episode: eng-estimate-thursday
+    source_description: "エンジニアSlack #eng-estimates"

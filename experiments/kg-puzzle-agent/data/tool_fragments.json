@@ -1,0 +1,20 @@
+{
+  "question": "プロジェクトAlphaの担当チームと技術スタックは？",
+  "fragments": [
+    {
+      "source": "jira",
+      "label": "Jira チケット ALPHA-101",
+      "text": "プロジェクトAlphaはチームAが担当。期限は2024Q4。"
+    },
+    {
+      "source": "slack",
+      "label": "Slack #team-a",
+      "text": "チームAのリーダーは田中。メンバーは佐藤、鈴木。"
+    },
+    {
+      "source": "confluence",
+      "label": "Confluence 設計メモ",
+      "text": "プロジェクトAlphaの技術スタックはPython + Neo4j。"
+    }
+  ]
+}
