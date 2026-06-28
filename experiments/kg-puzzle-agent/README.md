@@ -6,6 +6,8 @@
 
 **記事との役割分担**: 記事は **読者向け** に設計思想と比喩を説明します。再現手順・コマンド・期待出力・SSOT・実装の線引き・トラブルシュートは **本 README** に集約しています。experiment を実行する前に、下記 [PoC スコープと本番環境の差](#demo-vs-production) を先にご確認ください。
 
+**読み方**: 1. 初回実行 → [TL;DR](#tldr) · 2. 本番との差 → [PoC スコープ](#demo-vs-production) · 3. 詰まったら → [トラブルシュート](#troubleshooting)
+
 <a id="demo-vs-production"></a>
 
 ## PoC スコープと本番環境の差
@@ -38,14 +40,16 @@
 
 | 地図の基盤 | 本 experiment での確認方法 |
 |------------|------------------------------|
-| **権限**（人ごとに見える範囲） | Part1: `user_tanaka` / `user_guest`（`./run_demo.sh quick`） |
-| **as-of**（いつ時点の「正」か） | Part2: `./run_demo.sh part2-search monday` / `today` |
-| **視点**（営業 vs エンジニア） | Part2: `./run_demo.sh part2-search sales` / `eng` |
+| **権限**（人ごとに見える範囲） | Part1: 社内ユーザー vs ゲスト（`user_tanaka` / `user_guest` · `./run_demo.sh quick`） |
+| **as-of**（いつ時点の「正」か） | Part2: 月曜時点 vs 今日（`./run_demo.sh part2-search monday` / `today`） |
+| **視点**（営業 vs エンジニア） | Part2: 営業視点 / エンジニア視点（`part2-search sales` / `eng`） |
 | **未解決矛盾** | Part2: `./run_demo.sh part2` または `part2-search today`（出力の ⚠ セクション） |
 | **根拠チェーン** | Part2: `./run_demo.sh part2` 末尾の `history` |
 | **矛盾→確認** | Part0 Q3: `compare` 末尾 / `python app/conflict_clarify.py` |
 
 <a id="map-foundation"></a>
+
+<a id="tldr"></a>
 
 ## TL;DR
 
@@ -202,13 +206,15 @@ Ollama をコンテナで動かすと Mac 上では CPU 推論になり、Graphi
 ./run_demo.sh quick     # Part0 + Part1 権限（初回おすすめ、約1〜2分）
 ```
 
-Q2 の断片は **現場の混在**（Jira 古ドラフト・Slack の文脈依存発言・Confluence の未確定表記）を再現しており、「Team A/B が両方ある」のはデモの不自然さではなく、きれいに揃わないデータの例です。
+Part0 では **3つの質問**（**Q1 / Q2 / Q3**）で Skill 断片とグラフを比較します。
 
 | 質問 | A: 断片直渡し（Skill 相当） | B: グラフ |
 |------|------------|--------|
 | **Q1（同一事実）** | 断片3つを推測で統合（正答しやすい） | `Alpha -[:OWNED_BY]-> Team A` で固定 + 根拠表示 |
 | **Q2（現場混在）** | 古い Jira「Team B 主担当」+ Slack「Team A はサポートのみ」等 → **Team B になりやすい** | `OWNED_BY` で **Team A** に固定 |
-| **Q3（矛盾→確認）** | Q2 と同型：黙って Team B 側に寄りがち | グラフ vs 新規断片を **正規表現で突合**（[PoC スコープと本番環境の差](#demo-vs-production)）→ 確認テンプレ + LLM 聞き返し |
+| **Q3（矛盾→確認）** | Q2 と同型：黙って Team B 側に寄りがち | グラフ vs 新規断片を **正規表現で突合** → 確認テンプレ + LLM 聞き返し |
+
+**Q2（現場混在）** の断片は Jira 古ドラフト・Slack の文脈依存発言・Confluence の未確定表記を再現しており、「Team A/B が両方ある」のはデモの不自然さではなく、きれいに揃わないデータの例です。
 
 **Q2 断片の中身**（`data/tool_fragments.json` の `trap_question`）:
 
@@ -237,9 +243,9 @@ python app/conflict_clarify.py   # Q3 のみ（要 seed / compare 前後）
 | 4 | **LLM 聞き返し**（Ollama 要）: Team A/B を断定せず確認質問のみ |
 | 5 | Q2 Skill との対比コメント（黙って確定 vs 聞き返し） |
 
-矛盾検出は **決定論** だが **正規表現ヒューリスティック**（本番の ingest/スキーマ検証ではない — [PoC スコープと本番環境の差](#demo-vs-production)）。聞き返し文はテンプレート + LLM の2段（LangGraph 分岐・Slack UI は未実装）。
+矛盾検出は **決定論** だが **正規表現ヒューリスティック**（PoC 表の Q3 行参照 — 本番の ingest/スキーマ検証ではない）。聞き返し文はテンプレート + LLM の2段（LangGraph 分岐・Slack UI は未実装）。
 
-Part2 の ⚠ 未解決矛盾は、推測で潰さず **チーム議論用の確認例** も search 出力に含みます。文言は **`[デモ固定]` テンプレ**（本番の LLM 聞き返しそのものではない — [PoC スコープと本番環境の差](#demo-vs-production)）。
+Part2 の ⚠ 未解決矛盾は、推測で潰さず **チーム議論用の確認例** も search 出力に含みます。文言は **`[デモ固定]` テンプレ**（PoC 表の Part2 議論用行参照 — 本番の LLM 聞き返しそのものではない）。
 
 各 script 末尾の **`=== 確認 — … ===`** で期待結果をチェックできます。手作業で1ステップずつ確認する場合は [手作業ガイド](#手作業で一つずつ確認) のステップ 2 を参照してください。
 
@@ -254,10 +260,10 @@ Part2 の ⚠ 未解決矛盾は、推測で潰さず **チーム議論用の確
 ./run_demo.sh part1     # + LangGraph エージェント
 ```
 
-**権限デモ**（`demo_permissions.py`）:
+**権限デモ**（`demo_permissions.py`）。`user_tanaka`（社内ユーザー）と `user_guest`（ゲスト）で到達範囲が変わります。
 
 1. **断片直渡し + 「社外秘を答えるな」**（Skill 相当・MCP 非接続）: 断片に秘匿予算（800万）が含まれていれば LLM が漏らしうる
-2. **グラフ + user_guest**: パストラバーサル時点で到達不能 → コンテキスト自体が空
+2. **グラフ + ゲストユーザー**（`user_guest`）: パストラバーサル時点で到達不能 → コンテキスト自体が空
 
 `user_tanaka` は Alpha（と Deal）に到達します。`user_guest` は **最初から見えません**。権限はプロンプトではなく **取得段階** で効かせます。
 
@@ -437,7 +443,7 @@ LIMIT 25;
 
 **実測例**: `Project Alpha`・`営業`・`顧客X` の 3 ノードが `RELATES_TO` でつながる部分グラフ（全体 16 Entity の一部）。
 
-**CLI の search に出る 10 月予定・再稲議・3 ヶ月なども見る**（フィルタを広げる）:
+**CLI の search に出る 10 月予定・再稟議・3 ヶ月なども見る**（フィルタを広げる）:
 
 ```cypher
 MATCH ()-[e:RELATES_TO]->()
@@ -455,6 +461,8 @@ ORDER BY e.valid_at;
 | `data/tool_fragments.json` | Part0 断片（Q1 正答・**Q2 矛盾**・秘匿漏洩デモ） |
 | `data/project_alpha.cypher` | Part0/1 グラフ（Deal ノード含む） |
 | `data/temporal_episodes.yaml` | Part2 4エピソード + **as-of preset / 視点 / SSOT** |
+
+<a id="troubleshooting"></a>
 
 ## うまくいかないとき
 
