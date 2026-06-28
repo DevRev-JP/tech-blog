@@ -212,12 +212,16 @@ def rule_for_fact(fact: str, cfg: dict) -> dict | None:
 def provenance_label(edge: TemporalEdge, cfg: dict) -> str:
     rule = rule_for_fact(edge.fact, cfg)
     if not rule:
+        if edge.name == "DEMO_SSOT":
+            return "（SSOT補完）"
         return edge.source_description or "（エピソード出所不明）"
     episode = rule.get("episode", "")
     source = rule.get("source_description", "")
+    if edge.name == "DEMO_SSOT" and not episode:
+        return "（SSOT補完）"
     if episode and source:
         return f"{episode} / {source}"
-    return episode or source or "（エピソード出所不明）"
+    return episode or source or "（SSOT補完）"
 
 
 def filter_by_persona(edges: list[TemporalEdge], cfg: dict, persona: str | None) -> list[TemporalEdge]:

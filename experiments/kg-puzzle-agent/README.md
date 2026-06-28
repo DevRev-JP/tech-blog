@@ -12,23 +12,26 @@ ollama serve          # 別ターミナル
 ollama pull gemma2:2b             # LLM（Ollama 公式、約1.6GB）
 ollama pull nomic-embed-text    # 埋め込み（Part2 のみ必須）
 
-# 2. Neo4j + デモ
+# 2. Python 依存インストール（venv は任意 — 自分の環境に合わせて）
 cd experiments/kg-puzzle-agent
 cp env.sample .env
-pip install -r requirements.txt
+pip install -r requirements.txt   # または: python3 -m venv .venv && source .venv/bin/activate && pip install ...
+# ※ .venv を作った場合、run_demo.sh は activate 不要で自動検出します
+
+# 3. Neo4j + デモ
 ./run_demo.sh setup
 ./run_demo.sh quick    # 約1〜2分（Part0 + 権限。初回おすすめ）
-# ./run_demo.sh all      # フル体験（十数分）
+# ./run_demo.sh full     # フル体験（十数分）
 ```
 
 ## 構成
 
 | コンポーネント | 実行場所 | 理由 |
 |----------------|----------|------|
-| **Neo4j** | Podman (`compose.yaml`) | 再現性・セットアップ簡略化 |
-
-`run_demo.sh` は `podman compose` を使います（ホストの docker-compose プラグインに委譲される場合があります）。`PODMAN_COMPOSE_WARNING_LOGS=0` で警告を抑えます。**`PODMAN_COMPOSE_PROVIDER=podman` は Mac 5.5 系で `up -d` が失敗するため設定しないでください。**
+| **Neo4j** | Docker または Podman (`compose.yaml`) | 再現性・セットアップ簡略化 |
 | **Ollama** | **ホスト** | Mac で GPU（Metal）が使える |
+
+`run_demo.sh` は `docker compose`（優先）または `podman compose` を自動選択します。環境変数 `COMPOSE` で上書き可能（例: `COMPOSE="podman compose" ./run_demo.sh setup`）。
 
 **メモリ**: LLM は **`gemma2:2b` 1 本だけ** 使う（約 1.6GB + Part2 時の embed 約 0.3GB）。不要モデルは `ollama stop <name>`。
 
@@ -42,7 +45,7 @@ pip install -r requirements.txt
 2. **Part0〜2 が Mac + ホスト Ollama で十数分以内に完走** すること
 3. **Part2 の invalid_at 体験**（500万失効 → 800万有効 → 除外リスト → history）が通ること
 
-実測環境: Mac 24GB RAM、Ollama 0.30.x、Neo4j は Podman、LLM はホスト Metal 推論（2026-06）。
+実測環境: Mac 24GB RAM、Ollama 0.30.x、Neo4j は Docker/Podman、LLM はホスト Metal 推論（2026-06）。
 
 ### 通しテスト結果（Part0 → Part1 → Part2）
 
@@ -132,11 +135,11 @@ ingest 直後に `./run_demo.sh part2` 内で `temporal_episodes.yaml` の `temp
 
 Ollama をコンテナで動かすと Mac 上では CPU 推論になり、Graphiti ingest などが遅くなります。**11434 はホスト `ollama serve` 専用**です（`compose.yaml` に Ollama サービスはありません）。
 
-他 experiment（`kg-ollama` / `hands-on-kg-builder` 等）の Ollama コンテナが 11434 を占有していると `./run_demo.sh` は起動時にエラーになります。先に `podman stop kg-ollama` 等で止めてください。
+他 experiment（`kg-ollama` / `hands-on-kg-builder` 等）の Ollama コンテナが 11434 を占有していると `./run_demo.sh` は起動時にエラーになります。先にそのコンテナを停止してから `ollama serve` を起動してください。
 
 ## 前提
 
-- Podman 5.x（Neo4j のみ）
+- Docker（`docker compose` v2+）または Podman 5.x（Neo4j のみ）
 - ホスト Ollama（`ollama serve`）
 - Python 3.11+
 - ポート `7474` / `7687` — 他 experiment の Neo4j と同時起動不可
@@ -158,12 +161,12 @@ Ollama をコンテナで動かすと Mac 上では CPU 推論になり、Graphi
 | 初回おすすめ | `./run_demo.sh quick` | 1〜2 分 |
 | 詳細ログ | `./run_demo.sh --verbose part2` または `.env` で `DEMO_VERBOSE=1` | デバッグ時のみ |
 | 手作業ガイド | `./run_demo.sh guide` | — |
-| フル体験 | `./run_demo.sh all`（`full` も同義） | 十数分 |
+| フル体験 | `./run_demo.sh full` | 十数分 |
 | Part2 だけ再検索 | `./run_demo.sh part2-search monday` 等 | 数秒 |
 
 ## 手作業で一つずつ確認
 
-`./run_demo.sh all` は Part0〜2 を一括実行します（Part0 の重複なし・Part2 はコンパクト表示）。デフォルトでは Graphiti / Podman の警告ログは抑えられます。詳細は `--verbose`、**ステップを分けて**確認したい場合は `./run_demo.sh guide` を参照してください。
+`./run_demo.sh full` は Part0〜2 を一括実行します（Part0 の重複なし・Part2 はコンパクト表示）。デフォルトでは Graphiti の警告ログは抑えられます。詳細は `DEMO_VERBOSE=1`、**ステップを分けて**確認したい場合は `./run_demo.sh guide` を参照してください。
 
 ```bash
 ./run_demo.sh guide    # 全手順をターミナルに表示
@@ -191,20 +194,25 @@ Ollama をコンテナで動かすと Mac 上では CPU 推論になり、Graphi
 Graphiti 内部の stderr まで見たいとき（デバッグ）:
 
 ```bash
-# 方法1: フラグ
-./run_demo.sh --verbose part2
+# 方法1: 環境変数
+DEMO_VERBOSE=1 ./run_demo.sh part2
 
-# 方法2: .env
-DEMO_VERBOSE=1
+# 方法2: .env に追記
+# DEMO_VERBOSE=1
 ```
 
 Python を直接実行する場合も `.env` の `DEMO_VERBOSE=1` が効きます。
 
 Part2 は **ingest → SSOT → as-of クエリ（+ 視点フィルタ）** です。成功の目安:
 
-- `part2-search monday` → 500万が有効（**10月予定は未登場**）
-- `part2-search today` → 800万有効、500万除外、**10月中旬リリース予定**、**営業 vs エンジニア矛盾**
-- `part2-search sales` / `eng` → 視点でファクトが変わる
+| preset | as-of | 見えるもの |
+|--------|-------|-----------|
+| `monday` | 2026-06-23 | 500万のみ有効（**10月予定は未登場**） |
+| `friday` | 2026-06-27 | 800万 + 3ヶ月見積もり + 矛盾（10月予定あり） |
+| `today` | 2026-06-28 | `friday` と同じ（本日時点の最新） |
+| `sales` | today / 営業視点 | 800万・再稟議（エンジニア見積もりは除外） |
+| `eng` | today / エンジニア視点 | 3ヶ月・矛盾（営業Slackは除外） |
+| `manager` | today / 全視点 | `today` と同じ（全ファクトが見える管理者視点） |
 
 ## Neo4j Browser（30秒ツア）
 
@@ -238,11 +246,11 @@ ORDER BY e.valid_at;
 ## うまくいかないとき
 
 1. **Neo4j 未起動** — `./run_demo.sh setup` 後 45 秒待つ
-2. **Ollama 未起動 / コンテナ競合** — `curl http://localhost:11434/api/tags` / ホストで `ollama serve`。11434 を使う Podman Ollama は停止
+2. **Ollama 未起動 / コンテナ競合** — `curl http://localhost:11434/api/tags` でホスト Ollama を確認。11434 を使うコンテナがあれば停止してから `ollama serve` を起動
 3. **モデル未 pull / 古い `.env`** — `grep OLLAMA_LLM_MODEL .env` が **`gemma2:2b`** か確認。`qwen2.5:3b` のままだと setup が 1.9GB の Qwen を pull し、Part2 で `budget_800: 0件` になりやすい。`cp env.sample .env` 後 `./run_demo.sh setup`
 4. **Graphiti 構造化出力失敗** — `.env` で `GRAPHITI_STRUCTURED_OUTPUT_MODE=json_object`。Qwen3.5 系は `OLLAMA_DISABLE_THINKING=true`（デフォルト）
 5. **Part2 のファクト文言** — Graphiti 抽出はモデル依存。ingest 後 SSOT で `invalid_at` 確定（match 0 件時は `canonical_fact` を MERGE）。search/history は **as-of（today = 2026-06-28）** で Neo4j 直接参照
-6. **ログの警告** — `--verbose` 未指定なら Graphiti の無害 WARN は通常表示されません。`./run_demo.sh --verbose part2` で詳細を確認できます。Part2 末尾で search に 800 万・10 月予定・history に変遷が出れば OK
+6. **ログの警告** — デフォルトでは Graphiti の無害 WARN は表示されません。`DEMO_VERBOSE=1 ./run_demo.sh part2` で詳細を確認できます。Part2 末尾で search に 800 万・10 月予定・history に変遷が出れば OK
 
 ## 関連記事
 

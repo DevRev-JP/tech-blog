@@ -8,7 +8,7 @@ published: false
 
 > **この記事の読み方**
 > - 約10分: 問題提起〜Skill vs コンテキストグラフ（BFF）
-> - 約15分: [experiment](../experiments/kg-puzzle-agent/) で Part0〜Part2 を体験（Neo4j: Podman、Ollama: ホスト）
+> - 約15分: [experiment](../experiments/kg-puzzle-agent/) で Part0〜Part2 を体験（Neo4j: Docker/Podman、Ollama: ホスト）
 > - 理論の詳細: [ツールを100個並べても…](https://zenn.dev/knowledge_graph/articles/kg-agent-skill-layer)、[コンテキストグラフ](https://zenn.dev/knowledge_graph/articles/context-graph-improves-llm) へリンクで統合
 
 あなたのAIエージェントは、目隠しをしたまま1万ピースのジグソーパズルを解かされている。
@@ -122,7 +122,7 @@ cd experiments/kg-puzzle-agent
 
 ## Part1: 完成図を先に渡す LangGraph エージェント
 
-スタック: **Neo4j（Podman）+ LangGraph + ホスト Ollama**（OpenAI API 不要。Mac では GPU/Metal 利用）。
+スタック: **Neo4j（Docker/Podman）+ LangGraph + ホスト Ollama**（OpenAI API 不要。Mac では GPU/Metal 利用）。
 
 ```mermaid
 flowchart LR
@@ -224,11 +224,11 @@ Memory-first 設計との関係は [AIエージェントが毎回データを取
 ```bash
 cd experiments/kg-puzzle-agent
 cp env.sample .env
-pip install -r requirements.txt
+pip install -r requirements.txt   # venv は任意（自分の環境に合わせて）
 ollama serve   # ホスト（別ターミナル）
 ./run_demo.sh setup
 ./run_demo.sh quick          # 初回: Part0 + 権限（1〜2分）
-./run_demo.sh full           # LangGraph + Part2 まで
+./run_demo.sh full           # LangGraph + Part2 まで（十数分）
 # または段階的に:
 # ./run_demo.sh compare && ./run_demo.sh part1 && ./run_demo.sh part2
 ```

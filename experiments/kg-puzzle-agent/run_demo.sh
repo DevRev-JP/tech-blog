@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# kg-puzzle-agent デモ入口 — Neo4j: Podman / Ollama: ホストのみ（compose に Ollama なし）
+# kg-puzzle-agent デモ入口 — Neo4j: Docker/Podman / Ollama: ホストのみ（compose に Ollama なし）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -7,8 +7,20 @@ cd "$ROOT"
 
 # Podman compose: 警告のみ抑制（PROVIDER=podman は Mac で up -d が壊れるため使わない）
 export PODMAN_COMPOSE_WARNING_LOGS="${PODMAN_COMPOSE_WARNING_LOGS:-0}"
-COMPOSE="podman compose"
-PYTHON="${PYTHON:-python3}"
+
+# Docker か Podman か自動選択（COMPOSE 環境変数で上書き可）
+if [[ -z "${COMPOSE:-}" ]]; then
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+  elif command -v podman >/dev/null 2>&1 && podman compose version >/dev/null 2>&1; then
+    COMPOSE="podman compose"
+  else
+    echo "エラー: docker compose または podman compose が必要です。" >&2
+    exit 1
+  fi
+fi
+
+PYTHON="${PYTHON:-$([ -f .venv/bin/python ] && echo '.venv/bin/python' || echo 'python3')}"
 DEMO_VERBOSE="${DEMO_VERBOSE:-0}"
 _DEMO_PREFLIGHT_DONE=0
 
@@ -56,7 +68,7 @@ demo_done() {
   echo "  Part2  500万→800万 · as-of · 視点 · 未解決矛盾"
   echo ""
   echo "  Neo4j Browser: http://localhost:7474"
-  echo "  詳細ログ: ./run_demo.sh --verbose part2"
+  echo "  詳細ログ: DEMO_VERBOSE=1 ./run_demo.sh part2"
   echo "  手順:     ./run_demo.sh guide"
   echo ""
 }
@@ -76,8 +88,7 @@ Commands:
   part1          シード + compare + 権限漏洩 + LangGraph
   part2          DB リセット + Graphiti ingest + as-of / 視点 search + history
   part2-search   取込済み DB で search のみ（preset: monday|friday|today|sales|eng|manager）
-  full           setup + part1 + part2（all と同じ）
-  all            setup + part1 + part2
+  full           setup + part1 + part2（フル体験、十数分）
   guide          手作業で一つずつ確認する手順を表示
 
 例:
@@ -88,7 +99,7 @@ Commands:
 
 前提:
   cp env.sample .env
-  pip install -r requirements.txt
+  pip install -r requirements.txt  # venv は任意（.venv を作れば activate 不要で自動検出）
   ollama serve  （ホスト、Metal/GPU 利用）
 EOF
 }
@@ -124,7 +135,7 @@ cmd_guide() {
 
 5. Neo4j リセット + Graphiti 初期化
    ./run_demo.sh part2   # 先頭で Neo4j リセット
-   # または手動: podman compose down -v && podman compose up -d
+   # または手動: ./run_demo.sh setup  （初回以降は不要）
 
 6. as-of 切り替え（数秒ずつ）
    ./run_demo.sh part2-search monday    # 500万のみ
@@ -179,7 +190,7 @@ wait_neo4j() {
     sleep 5
   done
   echo ""
-  echo "Neo4j が起動しません。podman compose ps で確認してください。" >&2
+  echo "Neo4j が起動しません。${COMPOSE} ps で確認してください。" >&2
   exit 1
 }
 
@@ -189,15 +200,6 @@ ensure_host_ollama() {
   if [[ "${base}" =~ ^https?://(ollama|kg-ollama|kg-puzzle-ollama)(:|/|$) ]]; then
     echo "エラー: OLLAMA_BASE_URL はホスト向け (http://localhost:11434) にしてください。" >&2
     exit 1
-  fi
-
-  if command -v podman >/dev/null 2>&1; then
-    local ollama_containers
-    ollama_containers="$(podman ps --format '{{.Names}} {{.Ports}}' 2>/dev/null | grep '11434' || true)"
-    if [[ -n "${ollama_containers}" ]]; then
-      echo "エラー: 11434 を Podman コンテナが使用中です。ホスト ollama serve のみ利用してください。" >&2
-      exit 1
-    fi
   fi
 
   if ! curl -sf "${base}/api/tags" >/dev/null 2>&1; then
@@ -256,7 +258,7 @@ cmd_setup() {
   pull_ollama_models
   echo "[4/4] Python 依存 — pip install -r requirements.txt"
   echo ""
-  echo "セットアップ完了 → ./run_demo.sh quick  または  ./run_demo.sh all"
+  echo "セットアップ完了 → ./run_demo.sh quick  または  ./run_demo.sh full"
 }
 
 cmd_compare() {
@@ -279,7 +281,7 @@ cmd_quick() {
   run_python app/demo_permissions.py
   unset DEMO_BATCH
   echo ""
-  echo "→ 深掘り: ./run_demo.sh part2"
+  echo "→ 深掘り: ./run_demo.sh part2  または  ./run_demo.sh full"
 }
 
 cmd_part1() {
