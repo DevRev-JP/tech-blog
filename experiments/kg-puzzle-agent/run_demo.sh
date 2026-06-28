@@ -67,7 +67,7 @@ demo_done() {
   echo "  Part1  権限は取得段階で遮断（断片は漏れうる）"
   echo "  Part2  500万→800万 · as-of · 視点 · 未解決矛盾"
   echo ""
-  echo "  Neo4j Browser: http://localhost:7474"
+  echo "  Neo4j Browser: http://localhost:7474  （手順・実測出力: README #neo4j-browser30秒ツア）"
   echo "  詳細ログ: DEMO_VERBOSE=1 ./run_demo.sh part2"
   echo "  手順:     ./run_demo.sh guide"
   echo ""
@@ -116,7 +116,7 @@ cmd_guide() {
 
 1. グラフ投入
    ./run_demo.sh seed
-   → Neo4j Browser で README の Part0 Cypher を実行
+   → Neo4j Browser: README「Neo4j Browser」Part0/1 用 Cypher（Part2 未実行時）
 
 2. Q1 + Q2 + Q3 比較
    ./run_demo.sh compare
@@ -149,7 +149,7 @@ cmd_guide() {
    ./run_demo.sh part2-search eng
    python app/demo_temporal.py history
 
-7. Neo4j で目視 — README の Part2 Cypher（valid_at / invalid_at）
+7. Neo4j Browser で目視 — README「Neo4j Browser」Part2 節（実測: Entity 16 / Episodic 4、予算 3 行）
 
 詳細ログ（デバッグ時）:
   ./run_demo.sh --verbose part2
@@ -359,7 +359,7 @@ cmd_part2() {
   run_python app/demo_temporal.py history
   unset DEMO_BATCH
   echo ""
-  echo "→ Part2 完了 · Neo4j Browser: http://localhost:7474"
+  echo "→ Part2 完了 · Neo4j Browser: http://localhost:7474  （README Neo4j Browser 節 · Part2 用 Cypher）"
 }
 
 cmd_all() {

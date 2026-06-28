@@ -332,6 +332,8 @@ Memory-first 設計との関係は [AIエージェントが毎回データを取
 
 再現手順・コマンド一覧・モデル選定・SSOT・トラブルシュートは [experiments/kg-puzzle-agent/README.md](../experiments/kg-puzzle-agent/README.md) に集約しています。
 
+Neo4j Browser でグラフを目視する手順と、**`all` 実行後の実測出力例**（Entity 16 件・予算ファクト 3 行など）は [README の Neo4j Browser 節](../experiments/kg-puzzle-agent/README.md#neo4j-browser30秒ツア) を参照してください。
+
 ---
 
 ## 関連記事
@@ -372,6 +374,7 @@ Memory-first 設計との関係は [AIエージェントが毎回データを取
 - 2026-06-28: KG は矛盾時に推測で決めず確認・未解決として残せる点を Part0/2 に追記
 - 2026-06-28: experiment Q3・Part2 議論用行と記事の地図基盤表を同期
 - 2026-06-28: README「デモと現実の差」を追加。MCP 非接続・検索簡略・Q3 ヒューリスティック等を明記
+- 2026-06-28: README Neo4j Browser 節にログイン手順・`all` 後の実測出力・Part0/Part2 の使い分けを追記
 
 ---
 

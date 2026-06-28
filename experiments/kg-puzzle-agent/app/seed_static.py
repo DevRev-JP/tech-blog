@@ -38,6 +38,7 @@ def _run_seed() -> None:
     section("完了")
     print("Project Alpha グラフの投入が完了しました。")
     print("Neo4j Browser: http://localhost:7474 （neo4j / .env のパスワード）")
+    print("  → README「Neo4j Browser」Part0/1 用 Cypher（Part2 実行後は 0 件になるので注意）")
 
 
 if __name__ == "__main__":
