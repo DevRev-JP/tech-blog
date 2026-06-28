@@ -1,8 +1,22 @@
 # kg-puzzle-agent
 
-記事 [LLMに巨大パズルを解かせるな — ナレッジグラフで「正解の絵」を渡すエージェント設計](../../articles/kg-puzzle-agent-langgraph.md) の再現用 experiment です。
+記事 [LLMに巨大パズルを解かせるな：ナレッジグラフで「正解の絵」を渡すエージェント設計](../../articles/kg-puzzle-agent-langgraph.md) の再現用 experiment です。
 
 **SaaS 連携の PoC ではありません。** Jira / Slack / Confluence / MCP は接続せず、同一事実のダミーデータで Skill だけ vs コンテキストグラフ（BFF 層）の差を体験できます。
+
+**記事との役割分担**: 記事は設計思想と比喩を説明します。再現手順・コマンド・期待出力・SSOT・トラブルシュートは **本 README** に集約しています。
+
+**マルチプレイヤー（記事後半）との関係**: 記事では [Claude Tag](https://www.anthropic.com/news/introducing-claude-tag) 等を例に、Slack チャンネル内の **共有 @Claude**（複数人で1エージェント）にも触れています。**本 experiment では Slack 連携・チャンネル会話の追跡・複数人の同時操作は再現しません**（CLI の単一セッション）。代わりに、マルチプレイヤーに必要な **地図の基盤** を Part1/2 で最小限体験できます。Skill だけでは、権限・時系列・視点・未解決矛盾をチーム全員と共有 AI が同じ座標系で参照するのが難しい、という論点の **素材** です（記事の「1人1AIから、チーム会議の中のAIへ」を参照）。
+
+| 地図の基盤 | 本 experiment での確認方法 |
+|------------|------------------------------|
+| **権限**（人ごとに見える範囲） | Part1: `user_tanaka` / `user_guest`（`./run_demo.sh quick`） |
+| **as-of**（いつ時点の「正」か） | Part2: `./run_demo.sh part2-search monday` / `today` |
+| **視点**（営業 vs エンジニア） | Part2: `./run_demo.sh part2-search sales` / `eng` |
+| **未解決矛盾** | Part2: `./run_demo.sh part2` または `part2-search today`（出力の ⚠ セクション） |
+| **根拠チェーン** | Part2: `./run_demo.sh part2` 末尾の `history` |
+
+<a id="map-foundation"></a>
 
 ## TL;DR
 
@@ -148,7 +162,79 @@ Ollama をコンテナで動かすと Mac 上では CPU 推論になり、Graphi
 
 **Project Alpha** を軸に、Part0/1 は体制・権限、Part2 は同一案件の **Project Alpha 拡張（顧客X）** の予算・工期が週次で更新される、という一続きのシナリオです。
 
-## Part 対応
+<a id="part0"></a>
+
+## Part0：Skill 断片 vs グラフ
+
+**目的**: 同一事実を断片（Skill 相当）とグラフの両方で表現し、推測依存の差を体感します。
+
+```bash
+./run_demo.sh compare   # Part0 のみ
+./run_demo.sh quick     # Part0 + Part1 権限（初回おすすめ、約1〜2分）
+```
+
+| 質問 | Skill 断片 | グラフ |
+|------|------------|--------|
+| **Q1（同一事実）** | 断片3つを推測で統合 | `Alpha -[:OWNED_BY]-> Team A` で固定 |
+| **Q2（矛盾断片）** | Team B / Team A が共存する断片 → **Team B になりやすい** | `OWNED_BY` で **Team A** に固定 |
+
+> Q1 だけだと両方正答しやすいです。Q2 で「推測依存」の差が体感しやすくなります。
+
+各 script 末尾の **`=== 確認 — … ===`** で期待結果をチェックできます。手作業で1ステップずつ確認する場合は [手作業ガイド](#手作業で一つずつ確認) のステップ 2 を参照してください。
+
+<a id="part1"></a>
+
+## Part1：LangGraph と権限
+
+**目的**: グラフコンテキストを LLM の **前** に渡す LangGraph エージェントと、権限をパストラバーサルで効かせる設計を体験します。記事後半の **マルチプレイヤー向け地図** では、同じ共有 @Claude でも **人ごとに見える範囲が違う** 前提の最小形です（[地図の基盤](#map-foundation)）。
+
+```bash
+./run_demo.sh quick     # Part0 + 権限デモ
+./run_demo.sh part1     # + LangGraph エージェント
+```
+
+**権限デモ**（`demo_permissions.py`）:
+
+1. **Skill + 「社外秘を答えるな」**: 断片に秘匿予算（800万）が含まれていれば LLM が漏らしうる
+2. **グラフ + user_guest**: パストラバーサル時点で到達不能 → コンテキスト自体が空
+
+`user_tanaka` は Alpha（と Deal）に到達します。`user_guest` は **最初から見えません**。権限はプロンプトではなく **取得段階** で効かせます。
+
+実装の全文: [app/](./app/)（エントリ `retrieve_context` → `generate`）。手作業は [手作業ガイド](#手作業で一つずつ確認) のステップ 3〜4。
+
+<a id="part2"></a>
+
+## Part2：時系列と as-of
+
+**目的**: 2026年6月第4週の予算・工期更新（500万 → 800万 → 10月予定 → エンジニア矛盾）を Graphiti + SSOT + as-of クエリで扱い、**なぜ800万か** を根拠チェーンで説明します。`sales` / `eng` 視点と未解決矛盾は、記事後半の **チーム会議内 AI** に必要な地図素材です（Slack 共有操作そのものは再現しません。[地図の基盤](#map-foundation)）。
+
+```bash
+./run_demo.sh part2
+# 取込済みなら as-of / 視点だけ再実行:
+./run_demo.sh part2-search monday
+./run_demo.sh part2-search today
+./run_demo.sh part2-search sales
+./run_demo.sh part2-search eng
+./run_demo.sh full      # Part0〜2 通し（十数分）
+```
+
+Part2 は **ingest → SSOT → as-of クエリ**（+ **視点フィルタ**）の3段構成です。詳細ログは `DEMO_VERBOSE=1 ./run_demo.sh part2` または `./run_demo.sh --verbose part2`。
+
+**search 出力イメージ**（`./run_demo.sh full` 実行時のコンパクト表示の例）:
+
+```
+▸ search  2026-06-28 · 全体
+  ・山田部長は Project Alpha 拡張（顧客X）の予算を800万円まで拡大可能とのこと
+    2026-06-25〜現在有効 · sales-update-wednesday
+  ・Project Alpha 拡張（顧客X）の本番リリース目標は2026年10月中旬
+    2026-06-26〜現在有効 · eng-estimate-thursday
+  …
+  ⚠ 未解決: 800万予算枠では最小3人月を確保できず、営業提示の800万前提と整合しない
+```
+
+**history** では `500万（06/23〜06/25） → 800万（06/25〜現在）` の変遷と置換理由を表示します。Neo4j Browser 用 Cypher は [Neo4j Browser（30秒ツアー）](#neo4j-browser30秒ツアー) を参照してください。
+
+## Part 対応（一覧）
 
 | Part | コマンド | 見るポイント |
 |------|----------|--------------|
