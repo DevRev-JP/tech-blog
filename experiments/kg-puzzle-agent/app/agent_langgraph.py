@@ -1,4 +1,7 @@
-"""Part1: LangGraph — retrieve_graph_context → generate."""
+"""Part1: LangGraph — retrieve_graph_context → generate.
+
+最小 2 ノード PoC。矛盾時の clarify 分岐・HITL は未実装（README #demo-vs-production）。
+"""
 
 from __future__ import annotations
 
@@ -90,7 +93,7 @@ def main() -> None:
         checkpoint(
             "LangGraph",
             [
-                "retrieve → generate の 2 段でグラフコンテキストを先に取得",
+                "retrieve → generate の 2 段のみ（分岐・HITL 未実装 — README #demo-vs-production）",
                 "回答に Team A / Python + Neo4j が含まれる",
             ],
         )

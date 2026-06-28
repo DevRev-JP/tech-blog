@@ -1,4 +1,8 @@
-"""Part2: Graphiti ingest 後の時系列 SSOT 適用と as-of クエリ."""
+"""Part2: Graphiti ingest 後の時系列 SSOT 適用と as-of クエリ.
+
+ingest 後の temporal_rules 書き戻しは本番向きのパターン。
+DEMO_SSOT による MERGE 補完はデモ完走用（README #demo-vs-production）。
+"""
 
 from __future__ import annotations
 

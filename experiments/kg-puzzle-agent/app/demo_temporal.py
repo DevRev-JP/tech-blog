@@ -64,6 +64,12 @@ SEARCH_KEYWORDS = (
 )
 BUDGET_KEYWORDS = ("予算", "500", "800", "万", "Project", "Alpha", "顧客")
 
+# 未解決矛盾の議論用文言（固定テンプレ — 本番 LLM 聞き返しではない。README #demo-vs-production）
+DEMO_DISCUSSION_SHORT = "800万前提と3人月試算、どちらを優先しますか？"
+DEMO_DISCUSSION_LONG = (
+    "800万前提と3人月試算が両方グラフ上にあります。どちらを優先して決めますか？"
+)
+
 
 def load_config() -> dict:
     return yaml.safe_load((DATA_DIR / "temporal_episodes.yaml").read_text(encoding="utf-8"))
@@ -179,6 +185,7 @@ def format_search_compact(
         conflicts = open_conflict_edges(source_edges, cfg, as_of)
         if conflicts and persona in (None, "eng"):
             print(f"  ⚠ 未解決: {display_fact(conflicts[0], cfg)}")
+            print(f"  → [デモ固定] 議論用: {DEMO_DISCUSSION_SHORT}")
 
 
 def format_search_with_provenance(
@@ -271,6 +278,10 @@ def format_search_with_provenance(
             print(
                 "→ 営業の800万前提とエンジニア試算が両方グラフに残る。"
                 "最新値だけ Skill に書くとこの緊張が消える。"
+            )
+            print(
+                "→ [デモ固定] チーム議論用（確認の例）: "
+                f"「{DEMO_DISCUSSION_LONG}」"
             )
 
     if excluded:

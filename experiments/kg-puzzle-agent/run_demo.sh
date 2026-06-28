@@ -63,7 +63,7 @@ demo_done() {
   echo "  デモ完了"
   printf '━%.0s' {1..56}
   echo ""
-  echo "  Part0  グラフは根拠付き / Skill は矛盾に弱い"
+  echo "  Part0  グラフは根拠付き / 断片直渡しは矛盾に弱い / Q3 は確認質問へ"
   echo "  Part1  権限は取得段階で遮断（断片は漏れうる）"
   echo "  Part2  500万→800万 · as-of · 視点 · 未解決矛盾"
   echo ""
@@ -83,7 +83,8 @@ Options:
 Commands:
   setup          Neo4j 起動 + ホスト Ollama 確認 + モデル pull
   seed           Part0/1 用 Project Alpha グラフだけ投入
-  compare        Part0: Skill 断片 vs グラフ（Q1 正答 + Q2 矛盾断片）
+  compare        Part0: 断片直渡し vs グラフ（Q1 + Q2 現場混在 + Q3 矛盾→確認）
+  clarify        Part0 Q3 のみ（グラフ vs 新規断片 → 確認質問）
   quick          Part0 + Part1 権限（約1〜2分、Part2 なし）
   part1          シード + compare + 権限漏洩 + LangGraph
   part2          DB リセット + Graphiti ingest + as-of / 視点 search + history
@@ -111,21 +112,25 @@ cmd_guide() {
 0. 準備（初回のみ）
    ./run_demo.sh setup
 
---- Part0: Skill vs グラフ ---
+--- Part0: 断片直渡し（Skill 相当） vs グラフ ---
 
 1. グラフ投入
    ./run_demo.sh seed
    → Neo4j Browser で README の Part0 Cypher を実行
 
-2. Q1 + Q2 比較
+2. Q1 + Q2 + Q3 比較
    ./run_demo.sh compare
    → B に ## 参照したグラフ、Q2 で A=Team B / B=Team A
+   → Q3: グラフ Team A vs Jira Team B → 確認質問テンプレート
+
+   # Q3 のみ
+   python app/conflict_clarify.py
 
 --- Part1: 権限 + LangGraph ---
 
 3. 権限・秘匿漏洩
    python app/demo_permissions.py
-   → guest に Deal なし / Skill が 800万 / グラフ guest は遮断
+   → guest に Deal なし / 断片直渡しで 800万 / グラフ guest は遮断
 
 4. LangGraph
    python app/agent_langgraph.py
@@ -139,7 +144,7 @@ cmd_guide() {
 
 6. as-of 切り替え（数秒ずつ）
    ./run_demo.sh part2-search monday    # 500万のみ
-   ./run_demo.sh part2-search today     # 800万 + 10月予定 + 矛盾
+   ./run_demo.sh part2-search today     # 800万 + 10月予定 + 矛盾 + 議論用確認例
    ./run_demo.sh part2-search sales
    ./run_demo.sh part2-search eng
    python app/demo_temporal.py history
@@ -273,6 +278,12 @@ cmd_compare() {
   run_python app/demo_skills_only.py
 }
 
+cmd_clarify() {
+  preflight
+  run_python app/seed_static.py
+  run_python app/conflict_clarify.py
+}
+
 cmd_seed() {
   preflight
   run_python app/seed_static.py
@@ -293,7 +304,7 @@ cmd_quick() {
 cmd_part1() {
   preflight
   export DEMO_BATCH=1
-  demo_phase "Part0" "Skill 断片 vs グラフ"
+  demo_phase "Part0" "断片直渡し vs グラフ"
   run_python app/seed_static.py
   run_python app/demo_skills_only.py
   demo_phase "Part1" "権限 + LangGraph"
@@ -363,6 +374,7 @@ case "${1:-}" in
   setup) cmd_setup ;;
   seed) cmd_seed ;;
   compare) cmd_compare ;;
+  clarify) cmd_clarify ;;
   quick) cmd_quick ;;
   part1) cmd_part1 ;;
   part2) cmd_part2 ;;

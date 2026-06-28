@@ -1,4 +1,8 @@
-"""権限付きグラフコンテキスト取得."""
+"""権限付きグラフコンテキスト取得.
+
+本番では質問からエンティティ解決・GraphRAG 等が要る。本 experiment では Project Alpha 固定の
+簡略 Cypher のみ（README #demo-vs-production）。権限付きパストラバーサルの形は本物。
+"""
 
 from __future__ import annotations
 
@@ -10,6 +14,7 @@ class GraphRetriever:
         self.driver = driver
 
     def _extract_key_entities(self, query: str) -> list[str]:
+        # デモ簡略: 質問内容に関わらず Alpha のみ（本番はエンティティリンク等）
         if re.search(r"Alpha|アルファ|alpha", query, re.I):
             return ["Alpha"]
         return ["Alpha"]

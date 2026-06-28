@@ -1,4 +1,8 @@
-"""Part0: Skill 断片のみ vs コンテキストグラフの A/B 比較."""
+"""Part0: 断片直渡し（Skill 相当・MCP 非接続） vs コンテキストグラフの A/B 比較.
+
+A モードは tool_fragments.json をプロンプトに貼るだけ。MCP ツール選定・並列取得は行わない。
+README「デモと現実の差」(#demo-vs-production) を参照。
+"""
 
 from __future__ import annotations
 
@@ -8,8 +12,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from conflict_clarify import run_conflict_clarify_demo
 from graph_retriever import GraphRetriever
 from shared import DATA_DIR, checkpoint, demo_run_context, get_llm, get_neo4j_driver, is_demo_batch, section
+
+# 出力ラベル（MCP 接続を示唆しない）
+MODE_A_LABEL = "A: 断片直渡し（Skill 相当 · MCP 非接続）"
+MODE_A_PREAMBLE = (
+    "あなたは複数ソースから取得した断片だけを頼りに回答するエージェントです（本 experiment では JSON を"
+    "プロンプトに貼っているだけで、MCP は使っていません）。\n"
+    "断片間の関係は明示されていません。断片の内容だけから推測して回答してください。"
+)
 
 
 def load_fragments() -> dict:
@@ -29,13 +42,10 @@ def run_mode_a(
     system_preamble: str = "",
 ) -> str:
     llm = get_llm()
-    preamble = system_preamble or (
-        "あなたは Skill/MCP で複数ソースから取得した断片だけを頼りに回答するエージェントです。\n"
-        "断片間の関係は明示されていません。断片の内容だけから推測して回答してください。"
-    )
+    preamble = system_preamble or MODE_A_PREAMBLE
     prompt = f"""{preamble}
 
-## Skill で取得した断片
+## 取得した断片（プロンプト直渡し）
 {_fragment_block(fragments)}
 
 ## 質問
@@ -72,11 +82,11 @@ def _run_baseline_compare(data: dict) -> None:
     question = data["question"]
     fragments = data["fragments"]
 
-    section("Q1: 同一事実 — Skill 断片 vs グラフ")
+    section("Q1: 同一事実 — 断片直渡し vs グラフ")
     print("質問:", question)
     print()
 
-    section("A: Skill/MCP 断片のみ（接続情報なし）")
+    section(MODE_A_LABEL)
     answer_a = run_mode_a(question, fragments)
     print(answer_a)
 
@@ -93,7 +103,7 @@ def _run_trap_compare(data: dict) -> None:
     trap = data["trap_question"]
     question = trap["question"]
 
-    section("Q2: 矛盾断片 — Skill だと推測が外れやすい")
+    section("Q2: 矛盾断片 — 断片直渡しだと推測が外れやすい")
     print("質問:", question)
     print("グラフの正:", trap["graph_truth"])
     print()
@@ -124,18 +134,21 @@ def main() -> None:
 
         _run_baseline_compare(data)
         _run_trap_compare(data)
+        run_conflict_clarify_demo(data)
 
         if not is_demo_batch():
             section("サマリ")
             print(
                 "Q1: 同じ正答でも、B だけが関係付きの根拠（## 参照したグラフ）を示せる。\n"
-                "Q2: 断片が矛盾すると Skill は推測依存。グラフは OWNED_BY で Team A に固定される。"
+                "Q2: 断片が矛盾すると断片直渡しは推測依存。グラフは OWNED_BY で Team A に固定される。\n"
+                "Q3: グラフ現行 fact と新規断片が矛盾すると、確認質問へ回せる（断片直渡しは Q2 で黙って確定）。"
             )
         checkpoint(
             "Part0",
             [
                 "Q1: B に `## 参照したグラフ` と OWNED_BY / USES が出ている",
-                "Q2: A が Team B、B が Team A（グラフ固定 vs 断片推測）",
+                "Q2: A が Team B、B が Team A（現場混在断片 vs グラフ固定）",
+                "Q3: Team A（グラフ）vs Team B（Jira 古ドラフト）→ 確認質問テンプレート",
             ],
         )
 

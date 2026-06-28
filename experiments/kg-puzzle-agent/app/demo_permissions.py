@@ -36,8 +36,8 @@ def _run_permissions_demo() -> None:
     print(guest_ctx)
 
     leak = data["leak_demo"]
-    step_print(2, 3, "秘匿予算 — Skill はプロンプト禁止でも漏れうる…")
-    section(f"Skill 断片 + 禁止指示 → 質問: {leak['question']}")
+    step_print(2, 3, "秘匿予算 — 断片直渡しはプロンプト禁止でも漏れうる…")
+    section(f"断片直渡し（Skill 相当）+ 禁止指示 → 質問: {leak['question']}")
     leaked = run_mode_a(
         leak["question"],
         leak["fragments"],
@@ -61,14 +61,14 @@ def _run_permissions_demo() -> None:
     section("ポイント")
     print(
         "権限はプロンプトではなく取得段階で効かせる。"
-        "Skill は断片を LLM に渡した時点で秘匿の境界が崩れうる。"
+        "断片直渡し（Skill 相当）は断片を LLM に渡した時点で秘匿の境界が崩れうる。"
         "グラフのパストラバーサルでは到達不能なノードはコンテキストに含まれない。"
     )
     checkpoint(
         "Part1 権限",
         [
             "user_guest のグラフに Deal / 800万 が含まれない",
-            "Skill + 禁止指示でも 800万 が返る（漏洩デモ）",
+            "断片直渡し + 禁止指示でも 800万 が返る（漏洩デモ）",
             "グラフ guest は「情報が見つかりませんでした」",
         ],
     )
