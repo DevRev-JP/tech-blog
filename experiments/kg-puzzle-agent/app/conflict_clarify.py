@@ -133,7 +133,7 @@ def run_conflict_clarify_demo(data: dict) -> None:
 
     section("Q3: 矛盾検出 — 推測で決めず人に確認する（KG）")
     print(
-        "（検出: 正規表現ヒューリスティック — 本番の ingest/スキーマ検証ではない。"
+        "（検出: 正規表現による PoC 簡略実装 — 本番は ingest/スキーマ検証。"
         " README #demo-vs-production）"
     )
     print(f"グラフ（現行）: Project Alpha -[:OWNED_BY]-> {conflict['canonical']}")
