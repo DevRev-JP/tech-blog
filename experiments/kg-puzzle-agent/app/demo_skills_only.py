@@ -1,7 +1,7 @@
 """Part0: 断片直渡し（Skill 相当・MCP 非接続） vs コンテキストグラフの A/B 比較.
 
 A モードは tool_fragments.json をプロンプトに貼るだけ。MCP ツール選定・並列取得は行わない。
-README「デモと現実の差」(#demo-vs-production) を参照。
+README「PoC スコープと本番環境の差」(#demo-vs-production) を参照。
 """
 
 from __future__ import annotations
