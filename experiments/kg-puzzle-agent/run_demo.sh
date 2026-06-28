@@ -227,7 +227,7 @@ print_llm_model() {
 
 ollama_has_model() {
   local name="$1"
-  ollama list 2>/dev/null | tail -n +2 | awk '{print $1}' | grep -Fqx "$name"
+  ollama show "$name" >/dev/null 2>&1
 }
 
 pull_ollama_models() {
@@ -237,15 +237,21 @@ pull_ollama_models() {
   fi
   local llm="${OLLAMA_LLM_MODEL:-gemma2:2b}"
   local embed="${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}"
-  if [[ "$DEMO_VERBOSE" != "1" ]]; then
-    if ollama_has_model "$llm" && ollama_has_model "$embed"; then
+  if ollama_has_model "$llm" && ollama_has_model "$embed"; then
+    if [[ "$DEMO_VERBOSE" == "1" ]]; then
+      echo "  ✓ Ollama モデル済み: ${llm}, ${embed}"
+    else
       echo "  ✓ Ollama モデル済み（${llm}, ${embed}）"
-      return 0
     fi
+    return 0
   fi
   print_llm_model
-  ollama pull "$llm"
-  ollama pull "$embed"
+  if ! ollama_has_model "$llm"; then
+    ollama pull "$llm"
+  fi
+  if ! ollama_has_model "$embed"; then
+    ollama pull "$embed"
+  fi
 }
 
 cmd_setup() {
