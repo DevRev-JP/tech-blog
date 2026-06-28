@@ -3,7 +3,7 @@ title: "LLMに巨大パズルを解かせるな：ナレッジグラフで「正
 emoji: "🧩"
 type: "tech"
 topics: ["LLM", "ナレッジグラフ", "Neo4j", "LangGraph", "AIAgent"]
-published: false
+published: true
 ---
 
 # LLMに巨大パズルを解かせるな：ナレッジグラフで「正解の絵」を渡すエージェント設計
