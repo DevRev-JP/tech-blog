@@ -1,0 +1,22 @@
+services:
+  # Ollama はホスト (ollama serve) のみ。11434 をコンテナで起動しないこと。
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: kg-puzzle-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  neo4j_data:
