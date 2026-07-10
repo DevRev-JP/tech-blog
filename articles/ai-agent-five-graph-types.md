@@ -243,7 +243,7 @@ graph TB
 
 ただし、**実際の AI プラットフォームは 5 種類だけでは動きません**。権限・依存関係・時間軸など、用途ごとに切り出されたグラフがさらに登場します。それらは新しい種類ではなく、本記事で示したグラフの特殊化です。
 
-本シリーズは全 3 部構成です。第 2 部「5種類の地図の先。AIプラットフォームのグラフ特殊化と連携」（`ai-agent-graph-specialization`、執筆予定）では、権限・依存・時間軸など、5 種類から派生する特殊化グラフのカタログを整理します。本記事の分類だけでは足りない理由を、そこで具体的に見ていきます。第 3 部（執筆予定）では、レイヤー間の連携と本番の組み方を扱う予定です。
+本シリーズは全 3 部構成です。第 2 部「AIプラットフォームのグラフ特殊化」（`ai-agent-graph-specialization`、執筆予定）では、権限・依存・時間軸など、5 種類から派生する特殊化グラフのカタログを整理します。本記事の分類だけでは足りない理由を、そこで具体的に見ていきます。第 3 部（執筆予定）では、レイヤー間の連携と本番の組み方を扱う予定です。
 
 ---
 
@@ -268,7 +268,7 @@ graph TB
 | RDF / Property Graph の比較 | [RDF vs Property Graph](https://zenn.dev/knowledge_graph/articles/rdf-vs-property-graph-2025) |
 | 形式レイヤ・Workflow Engine | [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) |
 | LangGraph エージェント設計 | [LLM に巨大パズルを解かせるな](https://zenn.dev/knowledge_graph/articles/kg-puzzle-agent-langgraph) |
-| 本シリーズ 第2部（特殊化・執筆予定） | 5種類の地図の先。AIプラットフォームのグラフ特殊化と連携（`ai-agent-graph-specialization`） |
+| 本シリーズ 第2部（特殊化・執筆予定） | AIプラットフォームのグラフ特殊化（`ai-agent-graph-specialization`） |
 
 ---
 
