@@ -1,0 +1,10 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.env
+audit.db
+*.db-journal
+
+# OS
+.DS_Store

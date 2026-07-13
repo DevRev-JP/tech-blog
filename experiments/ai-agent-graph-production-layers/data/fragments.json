@@ -1,0 +1,27 @@
+[
+  {
+    "id": "frag-jira",
+    "source": "jira",
+    "text": "INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。"
+  },
+  {
+    "id": "frag-slack",
+    "source": "slack",
+    "text": "globex-support: 検索が遅い。別チケット INC-099 も同じ症状？"
+  },
+  {
+    "id": "frag-email",
+    "source": "email",
+    "text": "From: ops@globex.example — 障害報告。製品 Acme Search。"
+  },
+  {
+    "id": "frag-runbook",
+    "source": "runbook",
+    "text": "ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。"
+  },
+  {
+    "id": "frag-audit-note",
+    "source": "note",
+    "text": "先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。"
+  }
+]
