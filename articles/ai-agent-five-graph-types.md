@@ -7,7 +7,7 @@ published: true
 ---
 
 :::message
-**本シリーズ 第1部**（全3部）: AI エージェント文脈のグラフを Node / Edge の意味で 5 種類に分類します。特殊化は [第2部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization)、レイヤー連携と本番構成は第3部（執筆予定）で扱います。
+**本シリーズ 第1部**（全3部）: AI エージェント文脈のグラフを Node / Edge の意味で 5 種類に分類します。特殊化は [第2部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization)、レイヤー連携と本番構成は [第3部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers) で扱います。
 
 **前提**: ナレッジグラフの基礎（エンティティ・関係・GraphRAG との区別）は「[ナレッジグラフ入門](https://zenn.dev/knowledge_graph/articles/knowledge-graph-intro)」「[RAG を超える知識統合](https://zenn.dev/knowledge_graph/articles/beyond-rag-knowledge-graph)」で扱っています。
 :::
@@ -271,7 +271,7 @@ graph TB
 
 ただし、**実際の AI プラットフォームは 5 種類だけでは動きません**。権限・同一性・依存関係・時間軸など、用途ごとに切り出されたグラフがさらに登場します。それらは新しい種類ではなく、本記事で示したグラフの特殊化です。
 
-本シリーズは全 3 部構成です。第 2 部「[AIプラットフォームのグラフ特殊化](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization)」では、権限・同一性・依存・時間軸など、5 種類から派生する **6 つの特殊化**グラフのカタログを整理します。本記事の分類だけでは足りない理由を、そこで具体的に見ていきます。第 3 部（執筆予定）では、レイヤー間の連携と本番の組み方を扱う予定です。
+本シリーズは全 3 部構成です。第 2 部「[AIプラットフォームのグラフ特殊化](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization)」では、権限・同一性・依存・時間軸など、5 種類から派生する **6 つの特殊化**グラフのカタログを整理します。本記事の分類だけでは足りない理由を、そこで具体的に見ていきます。第 3 部「[5種類のグラフは1つのDBに入らない。本番のレイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers)」では、レイヤー間の連携と本番の組み方を扱います。
 
 ---
 
@@ -298,6 +298,7 @@ graph TB
 | 形式レイヤ・Workflow Engine | [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) |
 | LangGraph エージェント設計 | [LLM に巨大パズルを解かせるな](https://zenn.dev/knowledge_graph/articles/kg-puzzle-agent-langgraph) |
 | 本シリーズ 第2部 | [AIプラットフォームのグラフ特殊化](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization) |
+| 本シリーズ 第3部 | [5種類のグラフは1つのDBに入らない。本番のレイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers) |
 
 ---
 

@@ -7,7 +7,7 @@ published: true
 ---
 
 :::message
-**本シリーズ 第2部**（全3部）: 第1部「[ナレッジグラフだけじゃない。AIエージェントが使う5種類のグラフ](https://zenn.dev/knowledge_graph/articles/ai-agent-five-graph-types)」で整理した5種類**から派生する特殊化**を扱います。レイヤー間の連携と本番の組み方は第3部（執筆予定）のテーマです。
+**本シリーズ 第2部**（全3部）: 第1部「[ナレッジグラフだけじゃない。AIエージェントが使う5種類のグラフ](https://zenn.dev/knowledge_graph/articles/ai-agent-five-graph-types)」で整理した5種類**から派生する特殊化**を扱います。レイヤー間の連携と本番の組み方は [第3部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers) のテーマです。
 :::
 
 第1部では、AI エージェント文脈のグラフを 5 種類の役割に分類しました。ナレッジグラフ、タスクグラフ、実行順序グラフ（DAG＝Directed Acyclic Graph、有向非巡回グラフ）、ワークフローグラフ、ステートグラフです。
@@ -162,7 +162,7 @@ flowchart LR
 
 エージェントにツールアクセスを渡すだけだと、権限外のデータまで LLM のコンテキストに入りやすくなります。たとえば障害対応エージェントが、他部門の未公開インシデントを検索結果に含めてしまう、といった事態です。RAG の検索結果を後からフィルタするより、クエリ前に権限条件を注入する設計の方が、情報漏洩のリスクを構造的に下げられます。
 
-経営・コンプライアンスの観点でも、「検索後に除外」より「最初から見せない」方が説明しやすいです。監査で「なぜ LLM がそのデータを見たのか」と問われたとき、権限グラフが先に評価されていれば、根拠を辿れます。実装の具体例は [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) が手がかりになります。レイヤー配置は第3部（執筆予定）で扱います。
+経営・コンプライアンスの観点でも、「検索後に除外」より「最初から見せない」方が説明しやすいです。監査で「なぜ LLM がそのデータを見たのか」と問われたとき、権限グラフが先に評価されていれば、根拠を辿れます。実装の具体例は [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) が手がかりになります。レイヤー配置は [第3部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers) で扱います。
 
 **切り出す目安:** 部門・ロール・テナント（組織・契約単位）を跨いだエージェント運用が始まったとき。ナレッジグラフをたどるたびに、毎回「この人にはこの範囲だけ」という検索条件を足しているなら、権限グラフとして独立させる候補です。
 
@@ -326,7 +326,7 @@ flowchart LR
 
 特殊化を切り出しても、グラフは単体では動きません。本記事はカタログと切り出し基準までです。
 
-レイヤー間をどう接続し、LangGraph・Dify / n8n・Neo4j・権限エンジンを本番でどう配置するかは、シリーズ第3部（執筆予定）のテーマです。形式レイヤ全体の構成は [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) に、DevRev の実装深度は [DevRev Knowledge Graph アーキテクチャ解剖](https://zenn.dev/knowledge_graph/articles/devrev-kg-architecture-deep-dive) に詳述しています。
+レイヤー間をどう接続し、LangGraph・Dify / n8n・Neo4j・権限エンジンを本番でどう配置するかは、シリーズ第3部「[5種類のグラフは1つのDBに入らない。本番のレイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers)」のテーマです。形式レイヤ全体の構成は [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) に、DevRev の実装深度は [DevRev Knowledge Graph アーキテクチャ解剖](https://zenn.dev/knowledge_graph/articles/devrev-kg-architecture-deep-dive) に詳述しています。
 
 ---
 
@@ -337,7 +337,7 @@ flowchart LR
 - Node に 2 つの問いが載り始めたら、詰まっている用途から 1 つ切り出す
 - 論理上は分け、実装は既存コンポーネント（権限エンジン、ワークフローエンジン等）に載せてよい
 - 一覧は「特殊化カタログ」、境界は「5 種類と特殊化の対応」表を見る
-- レイヤー連携と本番配置は第3部（執筆予定）
+- レイヤー連携と本番配置は [第3部](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers)
 
 ---
 
@@ -350,7 +350,7 @@ flowchart LR
 | コンテキストグラフ | [Claude の外側にコンテキストグラフを置くと、速く・正確に・トークンを抑えられる](https://zenn.dev/knowledge_graph/articles/context-graph-improves-llm) |
 | 形式レイヤ・Workflow Engine | [LLM 依存度を下げる業務 AI アーキテクチャ設計](https://zenn.dev/knowledge_graph/articles/llm-formal-layer-architecture) |
 | DevRev KG 実装の深度 | [DevRev Knowledge Graph アーキテクチャ解剖](https://zenn.dev/knowledge_graph/articles/devrev-kg-architecture-deep-dive) |
-| 本シリーズ 第3部（執筆予定） | レイヤー連携と本番の組み方 |
+| 本シリーズ 第3部 | [5種類のグラフは1つのDBに入らない。本番のレイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers) |
 
 ---
 
