@@ -164,7 +164,7 @@ cd experiments/ai-agent-graph-production-layers
 cp env.sample .env && pip install -r requirements.txt
 ./run_demo.sh setup
 ./run_demo.sh scenario   # 第1部5種を1本の障害物語で辿る（Ollama 不要）
-./run_demo.sh agent      # 本丸: MD を読む AI vs グラフを読む AI
+./run_demo.sh agent      # G1: MD vs グラフ + G3: Q5 で段階1 vs 分離（看板）
 ./run_demo.sh compare    # 8 問の精度ラベルを一覧（Ollama 不要）
 ./run_demo.sh full       # scenario + agent + compare
 ```
@@ -198,9 +198,9 @@ MD 断片には `globex-support` と `ops@globex.example` が別々の文字列�
 
 時間軸（Q7）でも同じことが起きます。「P0 昇格の 30 分前に何があったか？」を MD 断片で聞くと「断定できません」と返りますが、`(Event)-[:BEFORE]->(escalation)` を辿るグラフでは「リリース v2.3.1 のデプロイ → レイテンシ悪化の検知」と時系列で答えます。権限（Q4）に至っては、MD を読む AI は閲覧権限のないエージェントにチケット内容を答えてしまう一方、`CAN_READ` Edge を辿るグラフ側は取得段階で遮断します。**アクションを取らせるほど、この差は事故か安全かの分かれ目になります。**
 
-### グラフ 1 つ vs 5 種類の使い分け（`compare`）
+### グラフ 1 つ vs 層分離（看板：`agent` の Q5 と `compare`）
 
-次の問いは「グラフは 1 つで足りるのか」です。全部 Neo4j に載せた段階 1 と、問いごとに層を分けた段階 2 を比べます。
+タイトルの核心はここです。「グラフに進めば十分か」ではなく、**全部 1 つの Graph DB に押し込むと fact が弱くなる** ので、問いの型ごとに物理層を分ける（Polyglot Persistence）必要があります。`agent` の既定問いに含まれる Q5 では、MD 断片（A）・Neo4j 単体（C）・層分離（B）の 3 段を LLM 回答で比べられます。
 
 ```text
 Q2: 類似の過去障害は？
@@ -208,22 +208,34 @@ Q2: 類似の過去障害は？
               → ['INC-001']
   分離        ◎ 確定   Qdrant 意味的類似（Embeddings 層）
               → ['INC-00042', 'INC-00017']
+
+Q5: 過去30日の P0 件数トップ製品は？
+  Neo4j単体   ▲ 推測   Issue.severity 固定値だけ。audit_log と乖離
+              → {'Acme Search': 1}
+  分離        ◎ 確定   SQLite audit_log 集計
+              → {'Acme Search': 3, 'Globex Portal': 2}
 ```
 
-「類似の過去障害は？」（Q2）は、Neo4j のキーワード一致だと現在のチケットしか拾えず、過去障害を取りこぼします。Qdrant に意味ベクトルを分けて置くと、症状に意味的に近い過去障害（INC-00042 / INC-00017）が挙がります。**関係の traversal は Neo4j、意味的類似は Qdrant。使い分けるほど、同じ問いへの精度が上がります。**
+「類似の過去障害は？」（Q2）は、Neo4j のキーワード一致だと現在のチケットしか拾えず、過去障害を取りこぼします。Qdrant に意味ベクトルを分けて置くと、症状に意味的に近い過去障害（INC-00042 / INC-00017）が挙がります。
 
-`compare` は 8 問すべてを ◎（確定）/ ▲（推測）/ ✗（不可）で一覧します。ファイル断片では集計（Q5）・権限（Q4）・時系列（Q7）が ✗ に、同一性（Q6）が ▲ に並び、層分離ではそれらが ◎ に変わる様子を目視できます。
+「過去 30 日の P0 件数トップ製品は？」（Q5）は、監査集計を Cypher に押し込むと `Issue.severity` の固定値だけが数えられ、実際の `audit_log` と件数がずれます。SQLite に監査ログを分ければ、集計 fact が正確になります。**関係の traversal は Neo4j、意味的類似は Qdrant、集計は SQLite——これが「5 種類のグラフは 1 つの DB に入らない」の体感です。**
+
+一方、時間軸（Q7）は Neo4j の `:Event` + `BEFORE` で足ります。全部を分離する必要はなく、**分けるべき問い（Q2/Q5）と分けなくてよい問い（Q7）の見極め**も本番設計の一部です。
+
+`compare` は 8 問すべてを ◎（確定）/ ▲（推測）/ ✗（不可）で一覧します。ファイル断片では権限（Q4）・集計（Q5）・時系列（Q7）が ✗ に、同一性（Q6）が ▲ に並びます。層分離では Q4/Q5/Q6/Q7 が ◎ に変わりますが、**Neo4j 単体 vs 分離の差が出るのは主に Q2 と Q5** です。
 
 | コマンド | 確認すること |
 | --- | --- |
 | `scenario` | 第1部 5 種が 1 本の障害物語で別役割に効く |
-| `agent` | MD vs グラフで LLM の回答が変わる（本丸） |
+| `agent` | MD vs グラフ（G1）＋ Q5 でグラフ1つ vs 層分離（看板） |
 | `compare` | 8 問の精度ラベル ◎/▲/✗ を一覧 |
 | `graphs` | 第1部 5 種の Edge 型が表示される（開発用） |
 | `stage0` / `stage2` | ファイル断片の限界と層分離の解決を個別に確認 |
 | `full` | scenario + agent + compare が連続で通る |
 
 各 script 末尾の `=== 確認 ===` ブロックがチェックリストです。詳細手順・成功の目安・トラブルシューティングは [experiment README](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/ai-agent-graph-production-layers) を参照してください。
+
+記事 §8 の実行例（Q6 の before/after 等）は、実機検証ログ [`verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/`](https://github.com/DevRev-JP/tech-blog/tree/main/experiments/ai-agent-graph-production-layers/verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z) に保存しています。再現は `./run_demo.sh verify`（既存 run は上書きせず `runs/<run_id>/` を追記。README 参照）。
 
 ---
 
@@ -234,7 +246,7 @@ Q2: 類似の過去障害は？
 - 宣言的 Graph はアクションの安全性、推論的 Graph は立ち上げ速度。用途で使い分ける
 - 事前計算（write-time enrichment）がトークンとレイテンシを下げる鍵
 - 第1部の地図 → 第2部のカタログ → 第3部の配置図で、設計が一連で完結する
-- そしてこれらは机上の分類ではありません。`./run_demo.sh agent` で「MD を読む AI」と「グラフを読む AI」の答えの差を、小規模チームでも手元で丸ごと再現できます
+- そしてこれらは机上の分類ではありません。`./run_demo.sh agent` で「MD を読む AI」と「グラフを読む AI」の差に加え、Q5 で「グラフ 1 つ vs 層分離」の差を、小規模チームでも手元で丸ごと再現できます
 
 ---
 
@@ -250,6 +262,7 @@ Q2: 類似の過去障害は？
 
 ## 更新履歴
 
+- 2026-07-13: G3（看板）体験を追加。§8 compare 節を Q2/Q5 主役に改訂
 - 2026-07-12: ドラフト作成
 
 ---

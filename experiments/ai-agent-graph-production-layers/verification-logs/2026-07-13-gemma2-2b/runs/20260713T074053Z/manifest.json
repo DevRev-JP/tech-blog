@@ -1,0 +1,41 @@
+{
+  "tag": "2026-07-13-gemma2-2b",
+  "run_id": "20260713T074053Z",
+  "recorded_at_utc": "2026-07-13T07:41:32.226424+00:00",
+  "experiment": "ai-agent-graph-production-layers",
+  "issue_id": "INC-001",
+  "agent_default_qids": [
+    "Q6",
+    "Q7",
+    "Q5",
+    "Q4"
+  ],
+  "ollama_llm_model": "gemma2:2b",
+  "ollama_embed_model": "nomic-embed-text",
+  "ollama_available": true,
+  "ollama_models_installed": [
+    "nomic-embed-text:latest",
+    "gemma2:2b",
+    "qwen2.5:3b",
+    "hf.co/bartowski/gemma-2-2b-jpn-it-GGUF:Q4_K_M",
+    "gemma2-2b-jpn:latest",
+    "hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf:Q5_K_M",
+    "MHKetbi/sbintuitions-sarashina2.2-3b-instruct-v0.1:q4_K_S",
+    "hf.co/mmnga/sarashina2.2-1b-instruct-v0.1-gguf:Q4_K_M",
+    "qwen3.5:4b",
+    "qwen3:4b"
+  ],
+  "python": "3.14.6",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "git_head": "a06b63097690cab76acc438dddfe886647ea3ac8",
+  "commands": [
+    "./run_demo.sh scenario",
+    "./run_demo.sh compare",
+    "./run_demo.sh agent"
+  ],
+  "goals": {
+    "G1": "agent Q4/Q6/Q7 — MD vs グラフの LLM 回答差",
+    "G2": "scenario S1-S5 — 第1部5種の別役割",
+    "G3": "agent Q5 — Neo4j単体 vs 層分離（看板）"
+  }
+}

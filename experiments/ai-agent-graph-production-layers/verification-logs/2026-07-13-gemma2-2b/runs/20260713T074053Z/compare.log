@@ -1,0 +1,105 @@
+# command: /Users/takanorisuzuki/work/code/projects/tech-blog/experiments/ai-agent-graph-production-layers/.venv/bin/python app/compare_layers.py
+# recorded: 2026-07-13T07:41:32.976495+00:00
+
+============================================================
+  前提: AI エージェントに何を読ませるか
+  MD断片（叙述） vs グラフ（型付き Edge の fact）
+  → ./run_demo.sh agent で LangGraph + Ollama の差を見る
+============================================================
+
+============================================================
+  A. MD断片 vs グラフ（AI に渡す情報の精度）
+============================================================
+
+Q1: このチケット（INC-001）の顧客は？
+  ファイル           ▲ 推測     断片ごとに粒度が違う。Customer ノード / OWNED_BY Edge がない
+                 → {'jira': 'Globex Corp（明示）', 'slack': '顧客名なし + INC-099 言及', 'email': '製品のみ'}
+  グラフ(分離)        ◎ 確定     Neo4j KG
+                 → {'issue': 'INC-001', 'product': 'Acme Search', 'customer': 'Globex Corp'}
+
+Q2: 類似の過去障害は？
+  ファイル           ▲ 推測     キーワード一致のみ。意味的類似・ランキングなし
+                 → ['INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。', 'globex-support: 検索が遅い。別チケット INC-099 も同じ症状？', 'From: ops@globex.example — 障害報告。製品 Acme Search。', '先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。']
+  グラフ(分離)        ◎ 確定     Qdrant 意味的類似（Embeddings 層）
+                 → ['INC-00042', 'INC-00017']
+
+Q3: ログ基盤障害の影響範囲は？
+  ファイル           △ 一部可    叙述はあるが BLOCKS Edge として機械は辿れない
+                 → ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。
+  グラフ(分離)        ◎ 確定     Neo4j BLOCKS
+                 → ['Search API']
+
+Q4: agent_guest は INC-001 を見てよいか？
+  ファイル           ✗ 不可     CAN_READ 型がない。断片に混ざれば漏れる
+                 → プロンプトで「秘匿を答えるな」と書く想定
+  グラフ(分離)        ◎ 確定     Neo4j CAN_READ
+                 → False
+
+Q5: 過去30日の P0 件数トップ製品は？
+  ファイル           ✗ 不可     GROUP BY 不可。根拠ない叙述のみ
+                 → 先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。
+  グラフ(分離)        ◎ 確定     SQLite audit_log 集計
+                 → [{'product': 'Acme Search', 'p0_count': 2}, {'product': 'Platform Logging', 'p0_count': 1}]
+
+Q6: Slack とメールは同一顧客か？
+  ファイル           ▲ 推測     SAME_AS がない。別チャネル＝別顧客と誤認しやすい
+                 → {'slack': 'globex-support', 'email': 'ops@globex.example'}
+  グラフ(分離)        ◎ 確定     Neo4j SAME_AS
+                 → {'channels': {'slack-globex-support': 'Globex Corp', 'email-globex-ops': 'Globex Corp'}, 'same_customer': True, 'customer': 'Globex Corp'}
+
+Q7: P0 昇格の30分前に何があったか？
+  ファイル           ✗ 不可     昇格時刻・30分前のイベント鎖を型として持てない
+                 → 断片に時系列 Edge なし
+  グラフ(分離)        ◎ 確定     Neo4j Event + BEFORE（時間軸は宣言的 seed）
+                 → {'escalated_at': '2026-07-10T14:30:00Z', 'within_30min_before': [{'id': 'evt-release', 'name': 'Release v2.3.1 deployed', 'at': '2026-07-10T14:00:00Z'}, {'id': 'evt-latency', 'name': 'Latency spike detected', 'at': '2026-07-10T14:25:00Z'}]}
+
+Q8: このターンで LLM に渡すノードは？
+  ファイル           ▲ 推測     毎回渡す断片セットがブレる。スコープ固定なし
+                 → ['jira', 'slack', 'email', 'runbook', 'note']
+  グラフ(分離)        ◎ 確定     コンテキストスコープで node_ids 固定
+                 → ['INC-001', 'acme-search', 'globex']
+
+============================================================
+  B. グラフ1つ(Neo4j) vs 分離（段階1 vs 段階2）
+     全部 Graph DB に入れたときの精度落ち
+============================================================
+
+Q2: 類似の過去障害は？
+  Neo4j単体        ▲ 推測     Neo4j にベクトル層なし。タイトルキーワード一致のみ（過去障害を取りこぼす）
+                 → ['INC-001']
+  分離             ◎ 確定     Qdrant 意味的類似（Embeddings 層）
+                 → ['INC-00042', 'INC-00017']
+
+Q5: 過去30日の P0 件数トップ製品は？
+  Neo4j単体        ▲ 推測     監査集計を Cypher に押し込むと Issue.severity 固定値だけになり audit_log と乖離
+                 → {'neo4j_issue_severity': [{'product': 'Acme Search', 'p0_count': 1}], 'sqlite_audit_log': [{'product': 'Acme Search', 'p0_count': 2}, {'product': 'Platform Logging', 'p0_count': 1}]}
+  分離             ◎ 確定     SQLite audit_log 集計
+                 → [{'product': 'Acme Search', 'p0_count': 2}, {'product': 'Platform Logging', 'p0_count': 1}]
+  ※ Q5: Issue.severity 集計(1件) vs audit_log 集計(複数件) の差が典型
+
+Q7: P0 昇格の30分前に何があったか？
+  Neo4j単体        ◎ 確定     Event 鎖は Neo4j で足りる（専用 TS DB は PoC では省略）
+                 → {'escalated_at': '2026-07-10T14:30:00Z', 'events': [{'id': 'evt-release', 'name': 'Release v2.3.1 deployed', 'at': '2026-07-10T14:00:00Z'}, {'id': 'evt-latency', 'name': 'Latency spike detected', 'at': '2026-07-10T14:25:00Z'}]}
+  分離             ◎ 確定     Neo4j Event + BEFORE（時間軸は宣言的 seed）
+                 → {'escalated_at': '2026-07-10T14:30:00Z', 'within_30min_before': [{'id': 'evt-release', 'name': 'Release v2.3.1 deployed', 'at': '2026-07-10T14:00:00Z'}, {'id': 'evt-latency', 'name': 'Latency spike detected', 'at': '2026-07-10T14:25:00Z'}]}
+
+Q8: このターンで LLM に渡すノードは？
+  Neo4j単体        △ 一部可    SCOPE_INCLUDES はあるが、類似検索・監査が同じ DB クエリに混ざりやすい
+                 → [{'label': 'Customer', 'node_id': 'globex', 'name': 'Globex Corp'}, {'label': 'Issue', 'node_id': 'INC-001', 'name': 'Search latency spike'}, {'label': 'Product', 'node_id': 'acme-search', 'name': 'Acme Search'}]
+  分離             ◎ 確定     コンテキストスコープで node_ids 固定
+                 → ['INC-001', 'acme-search', 'globex']
+
+============================================================
+  C. まとめ（言えること）
+============================================================
+  1. ファイルは叙述は書けるが Edge の型がない → 推測・漏れ・集計不可
+  2. グラフ(Neo4j)は関係 traversal は高精度（Q1/Q3/Q4/Q6）
+  3. 全部 Neo4j だけだと類似検索(Q2)と監査集計(Q5)が弱い/ずれる
+  4. 分離すると問いごとに最適層を叩き、同じ Q で精度が上がる
+
+=== 確認 — compare ===
+MD断片 vs グラフ: Q4/Q6/Q7 で精度差を目視できる
+Neo4j単体 vs 分離: Q2/Q5 で AI に渡す fact が変わる
+LangGraph 本体験: ./run_demo.sh agent
+記事の核心「AIが読むもの」の差を自分で説明できる
+

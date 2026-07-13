@@ -14,7 +14,7 @@ from app.agent_router import run_agent  # noqa: E402
 from app.answer_paths import QUESTIONS  # noqa: E402
 from app.shared import confirm_block, ollama_available  # noqa: E402
 
-DEFAULT_QIDS = ["Q6", "Q7", "Q4", "Q1"]
+DEFAULT_QIDS = ["Q6", "Q7", "Q5", "Q4"]
 
 
 def _print_run(label: str, state: dict) -> None:
@@ -61,8 +61,10 @@ def main() -> None:
             "Q4: MD では権限の型がなく秘匿が漏れうる / グラフは CAN_READ で遮断",
             "Q6: MD では別チャネル＝別顧客と誤認 / グラフは SAME_AS で同顧客",
             "Q7: MD では時系列を持てない / グラフは Event + BEFORE で30分前が辿れる",
+            "Q5: Neo4j 単体では集計 fact がずれる / SQLite 分離で audit_log が正確",
             "MD: 叙述断片を丸ごと渡す → Edge 型なし → 推測しやすい",
             "グラフ: 型付き fact だけ渡す → 根拠が辿れる",
+            "看板: Q5 でグラフ1つ vs 層分離の差も LLM 回答で見える",
         ],
     )
 

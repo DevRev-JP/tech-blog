@@ -10,12 +10,13 @@
 
 ## 体験の全体像
 
-この experiment は 2 つの体験を柱にしています。
+この experiment は 3 つの体験を柱にしています。
 
 | ゴール | 体験 | コマンド | 成功の目安 |
 |--------|------|---------|-----------|
 | **G2** | 障害 INC-001 を第1部5種のグラフで1本の物語として辿る | **`scenario`**（LLM 不要） | S1〜S5 で 5 種が別役割だと説明できる |
-| **G1** | 同じ問いを「MD を読む AI」と「グラフを読む AI」に聞き、回答差を見る | **`agent`**（Ollama） | Q6/Q7 でグラフ側だけが根拠つきで答える |
+| **G1** | 同じ問いを「MD を読む AI」と「グラフを読む AI」に聞き、回答差を見る | **`agent`**（Ollama） | Q4/Q6/Q7 でグラフ側だけが根拠つきで答える |
+| **G3** | グラフ 1 つ(Neo4j) vs 層分離で fact が変わる（看板） | **`agent`** Q5（Ollama） | C. Neo4j単体と B. 分離で LLM 回答がずれる |
 
 補助として、段階ごとの精度差を LLM なしで一覧する `compare`、Edge 型を確認する `graphs` があります。
 
@@ -42,7 +43,7 @@
 | 体験 | コマンド | 何が変わるか |
 |------|---------|-------------|
 | 第1部5種を1シナリオで辿る | **`scenario`** | 同じ障害で問いごとに効く種が変わる |
-| AI が MD vs グラフを読む | **`agent`** | 渡すコンテキストと LLM 回答 |
+| AI が MD vs グラフを読む | **`agent`** | 渡すコンテキストと LLM 回答（既定: Q6/Q7/Q5/Q4） |
 | 精度ラベル比較（LLM不要） | `compare` | ◎/▲/✗ の一覧 |
 | 5種類の Edge 型（開発用） | `graphs` | グラフの正本 |
 
@@ -52,11 +53,32 @@ ollama pull gemma2:2b          # agent の LLM 回答用
 ollama pull nomic-embed-text   # Q2 の意味的類似（Qdrant 埋め込み）用
 ./run_demo.sh setup
 ./run_demo.sh scenario # G2: 第1部5種を1本の障害物語で（LLM 不要）
-./run_demo.sh agent    # ← ここが本丸（G1: MD vs グラフ）
+./run_demo.sh agent    # G1 + G3（既定: Q6/Q7/Q5/Q4）
+./run_demo.sh compare  # 8問の精度ラベル（LLM 不要）
 ./run_demo.sh full     # scenario + agent + compare
+./run_demo.sh verify   # 記事用ログを verification-logs/<日付>/ に保存
 ```
 
 > Q2（類似障害）は Ollama の `nomic-embed-text` で埋め込みを作り、Qdrant で意味的類似を引きます。Ollama がない場合は疑似ベクトルにフォールバックしますが、その場合 Q2 は「意味的類似」になりません（`setup` が警告します）。
+
+## 記事掲載用の実機検証ログ
+
+§8 に載せる実行結果は **`verification-logs/`** に追記保存します。`verify` は既存ログを**上書きせず**、実行ごとに `runs/<run_id>/` を追加します。
+
+```bash
+./run_demo.sh setup    # 未実施なら
+./run_demo.sh verify 2026-07-13-gemma2-2b
+```
+
+| 出力 | 内容 |
+|------|------|
+| `<tag>/runs/<run_id>/manifest.json` | 記録日時・`run_id`・`gemma2:2b`・既定 QID・git HEAD |
+| `*.log` / `summary.md` | 当該 run の全文（不変） |
+| `verification-logs/index.jsonl` | 全 run の索引（1行追記） |
+
+詳細: [verification-logs/README.md](./verification-logs/README.md)。記事 §8 基準 run: [`2026-07-13-gemma2-2b/runs/20260713T074053Z/`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/)。
+
+**再現の前提**: クイックスタートと同じ（`gemma2:2b`・`nomic-embed-text`・seed 済み Neo4j/Qdrant/SQLite）。LLM の自然文はモデルで多少変わるが、**fact の数値・compare ラベル・回答の傾向**は seed 固定で再現性が高い。
 
 ## クイックスタート
 
@@ -72,9 +94,10 @@ pip install -r requirements.txt   # .venv 可
 
 ./run_demo.sh setup
 ./run_demo.sh scenario # G2: 第1部5種を1本の障害物語で（Ollama 不要）
-./run_demo.sh agent    # G1: LangGraph が MDを読む AI vs グラフを読む AI
+./run_demo.sh agent    # G1 + G3（MD vs グラフ + Q5 で段階1 vs 分離）
 ./run_demo.sh compare  # 精度ラベル比較（Ollama 不要）
 ./run_demo.sh full     # scenario + agent + compare
+./run_demo.sh verify   # 記事用ログ（verification-logs/）
 ```
 
 | コンポーネント | どこで動くか |
@@ -94,8 +117,9 @@ pip install -r requirements.txt   # .venv 可
 ```bash
 ./run_demo.sh setup     # コンテナ起動 + seed
 ./run_demo.sh scenario  # G2: 第1部5種を1本の障害物語で（LLM 不要）
-./run_demo.sh agent     # G1: LangGraph + Ollama（MD vs グラフ）
+./run_demo.sh agent     # G1 + G3: LangGraph + Ollama
 ./run_demo.sh compare   # 精度比較（LLM 不要）
+./run_demo.sh verify    # 記事掲載用ログを verification-logs/ に保存
 ./run_demo.sh graphs    # 第1部5種類 + Edge 型一覧（開発用）
 ./run_demo.sh stage0    # 段階0のみ
 ./run_demo.sh stage1    # 段階1のみ
@@ -143,6 +167,7 @@ pip install -r requirements.txt   # .venv 可
 ```
 ai-agent-graph-production-layers/
 ├── README.md
+├── verification-logs/      # 記事掲載用の実機検証ログ
 ├── compose.yaml
 ├── run_demo.sh
 ├── data/
@@ -156,7 +181,9 @@ ai-agent-graph-production-layers/
     ├── answer_paths.py       # 段階0/1/2 の回答ロジック
     ├── demo_scenario.py      # scenario コマンド（G2: 第1部5種の物語）
     ├── compare_layers.py     # compare コマンド
-    ├── demo_agent.py         # agent コマンド（G1）
+    ├── demo_agent.py         # agent コマンド（G1 + G3）
+    ├── record_verification.py   # verify コマンド（記事用ログ）
+    ├── verification_manifest.py
     ├── setup_seed.py
     ├── demo_graphs.py
     ├── stage0_fragments.py
@@ -172,7 +199,7 @@ ai-agent-graph-production-layers/
 ## 完了条件
 
 - [ ] `./run_demo.sh scenario` → S1〜S5 で第1部5種の役割差を説明できる（G2）
-- [ ] `./run_demo.sh agent` → Q6/Q7 で MD とグラフの LLM 回答差が目視できる（G1）
+- [ ] `./run_demo.sh agent` → Q4/Q6/Q7 で MD とグラフの LLM 回答差、Q5 で Neo4j単体 vs 分離の差が目視できる（G1/G3）
 - [ ] `./run_demo.sh compare` → 精度差が目視できる（Ollama 不要）
 - [ ] `./run_demo.sh stage2` → Q1〜Q8 がルーティング付きで答えられる
 - [ ] `./run_demo.sh full` → scenario + agent + compare が連続で通る

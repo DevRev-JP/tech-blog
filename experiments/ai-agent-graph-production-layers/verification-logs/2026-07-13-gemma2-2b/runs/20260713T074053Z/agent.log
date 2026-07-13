@@ -1,0 +1,218 @@
+# command: /Users/takanorisuzuki/work/code/projects/tech-blog/experiments/ai-agent-graph-production-layers/.venv/bin/python app/demo_agent.py
+# recorded: 2026-07-13T07:41:33.764740+00:00
+
+LangGraph: retrieve_context → route_layer → generate（Ollama）
+============================================================
+Q6: Slack とメールは同一顧客か？
+
+--- A. MD断片を読む AI（段階0） ---
+読み方: markdown_fragments / 効くグラフ: 同一性グラフ（[1]KG の特殊化）
+取得経路: 層ルーティングなし（段階0: 全断片をそのまま渡す）
+【AI に渡したコンテキスト（先頭400字）】
+# 障害対応メモ（Markdown / JSON 断片）
+
+## [jira]
+INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。
+
+## [slack]
+globex-support: 検索が遅い。別チケット INC-099 も同じ症状？
+
+## [email]
+From: ops@globex.example — 障害報告。製品 Acme Search。
+
+## [runbook]
+ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。
+
+## [note]
+先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。
+
+---
+## 質問
+Q6 に関連しそうな記述を上から探して答えてください。
+（注意: 断片には Edge 型がありません）
+
+【AI の回答】
+断定できない。 
+
+
+--- B. グラフ（層分離）を読む AI（段階2） ---
+読み方: graph_routed / 効くグラフ: 同一性グラフ（[1]KG の特殊化）
+取得経路: Neo4j SAME_AS
+【AI に渡したコンテキスト（先頭400字）】
+# グラフコンテキスト（層分離）
+
+以下だけを根拠に答えてください。Edge の型を尊重してください。
+
+(ChannelAccount {id:slack-globex-support})-[:SAME_AS]->(Customer {name:Globex Corp})
+(ChannelAccount {id:email-globex-ops})-[:SAME_AS]->(Customer {name:Globex Corp})
+→ Slack とメールは SAME_AS で同一顧客（Globex Corp）に繋がる
+【AI の回答】
+はい。 
+
+============================================================
+Q7: P0 昇格の30分前に何があったか？
+
+--- A. MD断片を読む AI（段階0） ---
+読み方: markdown_fragments / 効くグラフ: 時間軸グラフ
+取得経路: 層ルーティングなし（段階0: 全断片をそのまま渡す）
+【AI に渡したコンテキスト（先頭400字）】
+# 障害対応メモ（Markdown / JSON 断片）
+
+## [jira]
+INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。
+
+## [slack]
+globex-support: 検索が遅い。別チケット INC-099 も同じ症状？
+
+## [email]
+From: ops@globex.example — 障害報告。製品 Acme Search。
+
+## [runbook]
+ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。
+
+## [note]
+先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。
+
+---
+## 質問
+Q7 に関連しそうな記述を上から探して答えてください。
+（注意: 断片には Edge 型がありません）
+
+【AI の回答】
+断定できません。 
+
+
+--- B. グラフ（層分離）を読む AI（段階2） ---
+読み方: graph_routed / 効くグラフ: 時間軸グラフ
+取得経路: Neo4j Event + BEFORE
+【AI に渡したコンテキスト（先頭400字）】
+# グラフコンテキスト（層分離）
+
+以下だけを根拠に答えてください。Edge の型を尊重してください。
+
+(Issue)-[:ESCALATED_AT]->(Event) at=2026-07-10T14:30:00Z
+(Event)-[:BEFORE]->(escalation)  2026-07-10T14:00:00Z  Release v2.3.1 deployed
+(Event)-[:BEFORE]->(escalation)  2026-07-10T14:25:00Z  Latency spike detected
+→ P0 昇格（2026-07-10T14:30:00Z）の30分前に起きたのは: Release v2.3.1 deployed、Latency spike detected
+【AI の回答】
+Release v2.3.1 がデプロイされた。 
+Latency spike が検出された。 
+
+============================================================
+Q5: 過去30日の P0 件数トップ製品は？
+
+--- A. MD断片を読む AI（段階0） ---
+読み方: markdown_fragments / 効くグラフ: 監査グラフ（集計）
+取得経路: 層ルーティングなし（段階0: 全断片をそのまま渡す）
+【AI に渡したコンテキスト（先頭400字）】
+# 障害対応メモ（Markdown / JSON 断片）
+
+## [jira]
+INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。
+
+## [slack]
+globex-support: 検索が遅い。別チケット INC-099 も同じ症状？
+
+## [email]
+From: ops@globex.example — 障害報告。製品 Acme Search。
+
+## [runbook]
+ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。
+
+## [note]
+先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。
+
+---
+## 質問
+Q5 に関連しそうな記述を上から探して答えてください。
+（注意: 断片には Edge 型がありません）
+
+【AI の回答】
+断定できない。 
+
+
+--- B. グラフ（層分離）を読む AI（段階2） ---
+読み方: graph_routed / 効くグラフ: 監査グラフ（集計）
+取得経路: SQLite GROUP BY
+【AI に渡したコンテキスト（先頭400字）】
+# グラフコンテキスト（層分離）
+
+以下だけを根拠に答えてください。Edge の型を尊重してください。
+
+※ SQLite audit_log 集計（昇格イベント）
+product=Acme Search P0_escalations=2
+product=Platform Logging P0_escalations=1
+【AI の回答】
+Acme Search と Platform Logging です。 
+
+
+--- C. グラフ1つ(Neo4j)を読む AI（段階1） ---
+読み方: graph_neo4j / 効くグラフ: 監査グラフ（集計）
+取得経路: Neo4j Cypher 集計（audit と乖離しうる）
+【AI に渡したコンテキスト（先頭400字）】
+# グラフコンテキスト（Neo4j 単体）
+
+以下だけを根拠に答えてください。Edge の型を尊重してください。
+
+※ Issue.severity で集計（監査ログではない）
+(Product {name:Acme Search}) P0 count=1
+【AI の回答】
+断定できない 
+
+============================================================
+Q4: agent_guest は INC-001 を見てよいか？
+
+--- A. MD断片を読む AI（段階0） ---
+読み方: markdown_fragments / 効くグラフ: 権限グラフ（[1]KG の特殊化）
+取得経路: 層ルーティングなし（段階0: 全断片をそのまま渡す）
+【AI に渡したコンテキスト（先頭400字）】
+# 障害対応メモ（Markdown / JSON 断片）
+
+## [jira]
+INC-001: Acme Search の検索レイテンシ悪化。顧客は Globex Corp。
+
+## [slack]
+globex-support: 検索が遅い。別チケット INC-099 も同じ症状？
+
+## [email]
+From: ops@globex.example — 障害報告。製品 Acme Search。
+
+## [runbook]
+ログ基盤障害時は先に logging pipeline を復旧してから INC を調査する。
+
+## [note]
+先週 P0 が 3 件。Acme Search が多い気がする（根拠なし）。
+
+（補足: 質問者は agent_guest。断片には CAN_READ の型がないため、秘匿かどうかはこの叙述からは判定できません）
+
+---
+## 質問
+Q4 に関連...
+【AI の回答】
+はい、INC-001 が関連する記述です。 
+
+
+--- B. グラフ（層分離）を読む AI（段階2） ---
+読み方: graph_routed / 効くグラフ: 権限グラフ（[1]KG の特殊化）
+取得経路: Neo4j CAN_READ traversal
+【AI に渡したコンテキスト（先頭400字）】
+# グラフコンテキスト（層分離）
+
+以下だけを根拠に答えてください。Edge の型を尊重してください。
+
+agent_guest から INC-001 への CAN_READ Edge は存在しない
+→ agent_guest には INC-001 を閲覧する権限がない（本文は渡さない）
+【AI の回答】
+断定できない。 
+
+
+=== 確認 — agent ===
+LangGraph が retrieve_context → route_layer → generate の順で動いている
+Q4: MD では権限の型がなく秘匿が漏れうる / グラフは CAN_READ で遮断
+Q6: MD では別チャネル＝別顧客と誤認 / グラフは SAME_AS で同顧客
+Q7: MD では時系列を持てない / グラフは Event + BEFORE で30分前が辿れる
+Q5: Neo4j 単体では集計 fact がずれる / SQLite 分離で audit_log が正確
+MD: 叙述断片を丸ごと渡す → Edge 型なし → 推測しやすい
+グラフ: 型付き fact だけ渡す → 根拠が辿れる
+看板: Q5 でグラフ1つ vs 層分離の差も LLM 回答で見える
+
