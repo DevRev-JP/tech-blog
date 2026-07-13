@@ -1,0 +1,6 @@
+neo4j>=5.26
+python-dotenv>=1.0
+qdrant-client>=1.9
+langchain-ollama>=0.1
+langchain-core>=0.3
+langgraph>=0.2

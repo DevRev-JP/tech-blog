@@ -1,13 +1,25 @@
+
+
+
+
+
+
+
+
+
+
+
+
 # 第3部 構成案
 
 ## タイトル候補
 
 | # | タイトル | 狙い |
 |---|---------|------|
-| 1 | 5種類のグラフは1つのDBに入らない——本番のレイヤー設計 | 「入らない」が直感に引っかかる。技術者が気になる |
-| 2 | AIエージェント基盤のレイヤー設計——5種類のグラフをどこに置くか | シリーズ読者に親切。検索にも強い |
+| 1 | 5種類のグラフは1つのDBに入らない。本番のレイヤー設計 | 「入らない」が直感に引っかかる。技術者が気になる |
+| 2 | AIエージェント基盤のレイヤー設計：5種類のグラフをどこに置くか | シリーズ読者に親切。検索にも強い |
 | 3 | ファイルからグラフへ、グラフからプラットフォームへ | 成熟段階の話が伝わる。AI-DLC対比が活きる |
-| 4 | AIエージェントのグラフを本番で動かす——Polyglot Persistenceという選択 | 技術キーワード直球。アーキテクト層に刺さる |
+| 4 | AIエージェントのグラフを本番で動かす：Polyglot Persistenceという選択 | 技術キーワード直球。アーキテクト層に刺さる |
 
 ## Slug候補
 
@@ -20,7 +32,7 @@
 
 | 項目 | 推奨 | 理由 |
 |------|------|------|
-| タイトル | **#1** 5種類のグラフは1つのDBに入らない——本番のレイヤー設計 | シリーズ読者の「で、どう置くの？」に直球。第1部タイトルとの対比が効く |
+| タイトル | **#1** 5種類のグラフは1つのDBに入らない。本番のレイヤー設計 | シリーズ読者の「で、どう置くの？」に直球。第1部タイトルとの対比が効く |
 | slug | `ai-agent-graph-production-layers` | 本番配置が主題であることが slug から伝わる |
 
 **命名規則**: experiment ディレクトリは **記事 slug と同じ**（`experiments/ai-agent-graph-production-layers/`）。既存の `kg-no-rag` / `kg-puzzle-agent` / `formal-layer` と同じ慣習。題材の「障害対応」は README・seed データで示す。
@@ -38,6 +50,32 @@
 
 **本記事の主役**: LangGraph・Dify/n8n・Neo4j で**組み合わせ**を組む読者。
 **DevRev**: 統合プラットフォームの参考実装（1〜2箇所 + 関連記事リンク）。宣伝ではなく「段階2の完成形の一例」。
+
+---
+
+## 読者体験ゴール（最優先・2026-07-13 見直し）
+
+記事と experiment は **理論の説明** より先に、次の2つを CLI で体感させる。
+
+| # | 読者が言えるようになること | 成功の判定 |
+|---|---------------------------|-----------|
+| **G1** | 「エージェントに MD を読ませると推測・漏れ・集計不可になる。グラフ（型付き fact）を渡すと根拠つきで答えられる」 | `agent` で **同じ問い** の A/B 回答差が目視できる（Ollama 推奨） |
+| **G2** | 「第1部の5種類はカタログではなく、障害対応の **別の問い・別の制御** に効いている」 | 1本のシナリオで **[1]〜[5] がそれぞれ役に立つ** と説明できる |
+
+**第3部の主役は G1**。G2 は第1部の約束（「MD では Edge 型が持てないからグラフへ」）の着地。
+Polyglot Persistence・6層・OSS 対応表は **G1/G2 を支える理論枠** であり、ハンズオンの主役ではない。
+
+### 体験の一本線（プラン上の正）
+
+```
+setup
+  → scenario   # 障害 INC-001 を [1]〜[5] の順に辿る（5種の威力）
+  → agent      # 刺さる問いで MD vs グラフ（G1 の本丸）
+  → compare    # 8問の精度表（Ollama 不要・補助）
+  → full       # scenario + agent + compare（graphs は scenario に統合）
+```
+
+`graphs` 単体の Edge 一覧は **開発者向けデバッグ** に降格。読者向け推奨フローからは外す。
 
 ---
 
@@ -350,61 +388,107 @@ DevRevの6層Polyglot Persistenceをモデルにした一般論として書く�
 
 | 問い | 最小構成 | 触るコマンド |
 |------|---------|-------------|
-| 関係たどり（KG） | Neo4j | `stage2` Q1 |
-| 類似障害 | Qdrant | `stage2` Q2 |
-| 依存関係 | Neo4j `BLOCKS` | `stage2` Q3 |
-| 権限 | Neo4j `CAN_READ` | `stage2` Q4 |
-| 監査（集計・実行記録） | SQLite + Neo4j `PERFORMED` | `stage2` Q5 + `graphs` |
-| 同一性 | Neo4j `SAME_AS` | `stage2` Q6 |
-| 時間軸 | Neo4j `:Event` | `stage2` Q7 |
-| コンテキスト | 近傍サブグラフ切り出し | `stage2` Q8 |
-| エージェント制御 | LangGraph + Ollama | `stage2` / `full` |
-| 人の承認・差し戻し | Neo4j `WF_TRANSITION` + LangGraph | `graphs` / `full` |
+| 関係たどり（KG） | Neo4j | `scenario` S1 / `agent` Q1 |
+| 類似障害 | Qdrant | `compare` Q2 |
+| 依存関係 | Neo4j `BLOCKS` | `compare` Q3 |
+| 権限 | Neo4j `CAN_READ` | **`agent` Q4** |
+| 監査（集計） | SQLite | `compare` Q5 / `agent` Q5 |
+| 同一性 | Neo4j `SAME_AS` | **`agent` Q6** |
+| 時間軸 | Neo4j `:Event` | **`agent` Q7** |
+| コンテキスト | 部分グラフ | `compare` Q8 |
+| 5種類の制御 | KG/タスク/DAG/WF/ステート | **`scenario`** |
+| エージェント制御 | LangGraph + Ollama | **`agent`** |
 
 ---
 
-### 8. 手を動かす：段階0→2を CLI で辿る
+### 8. 手を動かす：MD とグラフで AI の答えがどう変わるか
 
-**新規セクション**（本記事の差別化ポイント）。理論のあとに「自分の Mac で 30 分」パスを置く。
+**新規セクション**（本記事の差別化ポイント）。§8 は **G1（MD vs グラフ）** が主、§7 配置図は理論の着地。
 
-記事内の流れ:
-1. 障害対応の **Q1〜Q8** を段階0→1→2で実行
-2. 各段階で「何が足りなくなったか」を `=== 確認 ===` ブロックで示す
-3. Dify/n8n は **同等のワークフロー図** を記事に載せ、CLI 実験の「人の承認」ステップの代替説明とする
+記事内の流れ（読者 20〜30 分）:
+
+1. **`scenario`** — 障害 INC-001 を [1]KG → [2]タスク → [3]DAG → [4]WF → [5]ステート の順に辿り、5種が **別役割** だと体感（G2）
+2. **`agent`** — Q4 / Q6 / Q7（+ Q1）で MD 断片 AI vs グラフ AI の回答差（G1）。記事には Q6 の before/after を必ず載せる
+3. **`compare`** — 8問の ◎/▲/✗ 一覧（LLM 不要。agent の予習にも使える）
+4. 各 script 末尾の `=== 確認 ===` がチェックリスト
 
 **読者の前提環境**（執筆・検証時）:
-- Podman（または Docker）— Neo4j / Qdrant のみコンテナ。SQLite はホスト上の `audit.db`（追加コンテナ不要）
-- ホスト Ollama CLI — LLM はコンテナ内に入れない
+- Podman（または Docker）— Neo4j / Qdrant のみコンテナ。SQLite はホスト上の `audit.db`
+- ホスト Ollama CLI — **`agent` で G1 を体感するなら必須**（未起動時はコンテキスト差のみ表示）
 - Python 3.11+
+
+Dify/n8n は **同等のワークフロー図** を記事 Mermaid のみ。CLI の [4]WF は Neo4j `WF_TRANSITION` + LangGraph で代替説明。
 
 ---
 
 ### 9. まとめ
 
-- 5種類のグラフは1つのDBに入らない。クエリパターンで物理層を分ける
+- **エージェントに渡すのは MD 全文ではなく、型付きグラフの fact** — `agent` で自分の目で確認できる
+- **第1部の5種類は1つの障害シナリオの中で別の制御に効く** — `scenario` で一本の物語として体感できる
+- 5種類のグラフは1つのDBに入らない。クエリパターンで物理層を分ける（Polyglot Persistence）
 - 成熟度は ファイル → 単一DB → Polyglot Persistence の3段階
 - 宣言的Graphはアクションの安全性を、推論的Graphは立ち上げ速度を提供する
 - 事前計算（write-time enrichment）がトークンコスト95%削減の鍵
 - 第1部の地図 → 第2部のカタログ → 第3部の配置図、で設計が完結する
-- **第1部の5種類は experiment で全部動く**（`./run_demo.sh graphs` で自己確認）
-- **小規模チームでも** `ai-agent-graph-production-layers` 単体で第1部5種・第2部6特殊・段階2縮小版が完走する
 
 ---
 
 ## ハンズオン設計（experiments）
 
-**単体完結の原則**: 第3部のハンズオンは `experiments/ai-agent-graph-production-layers/` **のみ**。第1部5種類・第2部6特殊化・段階0→2の物理層分離を、**この README のコマンドだけで**完走できること。他 experiment への「続きはこちら」は **README に書かない**（記事の関連記事リンクは可）。
+**単体完結の原則**: 第3部のハンズオンは `experiments/ai-agent-graph-production-layers/` **のみ**。他 experiment への実行依存は禁止。
 
-### 方針
+### 現状 GAP（2026-07-13 見直し）
+
+MVP 実装はあるが、**読者体験ゴール G1/G2 には未達**。
+
+| ゴール | 期待 | 現状 | GAP |
+|--------|------|------|-----|
+| **G1** | 同じ問いで MD vs グラフの AI 回答差 | `agent` は Q1/Q5/Q6 のみ | Q4/Q7 がない |
+| **G2** | 5種を障害シナリオで体感 | `graphs` は Edge 一覧のみ | **最大の GAP** |
+| 整合 | DAG に `route_layer` | `retrieve→generate` のみ | プランと実装のズレ |
+
+**対応**: 新コマンド **`scenario`** を Must have に格上げ。`full` = scenario + agent + compare。
+
+### 方針（見直し後）
 
 | 原則 | 内容 |
 |------|------|
-| 完結性 | `./run_demo.sh full` で第1部5種 + 第2部6特殊 + 段階0/1/2 を一通り確認 |
-| 題材 | 障害対応（INC-001、Acme Search、顧客 Globex） |
-| LLM | ホスト Ollama（コンテナ内 Ollama は使わない） |
-| コンテナ | Neo4j + Qdrant のみ。SQLite はホスト上 `audit.db` |
-| グラフ | タスク・WF・KG・権限・依存・同一性・時間軸は **Neo4j 型付き Edge**。DAG・ステート・WF実行は **LangGraph** |
-| ファイル | `fragments.json` は **段階0の対照のみ** |
+| **体験優先** | CLI は **G1（agent）+ G2（scenario）** に集中。6層・OSS表は記事本文 |
+| 完結性 | `./run_demo.sh full` = **scenario + agent + compare** |
+| 題材 | 障害 INC-001（Acme Search / Globex Corp） |
+| LLM | ホスト Ollama。**`agent` 推奨**（scenario/compare は不要） |
+| 5種の見せ方 | **シナリオの各ステップに1種ずつ**（一覧だけにしない） |
+| ファイル | `fragments.json` は MD を読ませる対照のみ |
+
+### `scenario` — 5種類を1本の物語で体感（G2・新規 Must have）
+
+| ステップ | 第1部 | 障害シーンでの問い | 実装 | この種がないと |
+|---------|-------|-------------------|------|--------------|
+| S1 顧客特定 | **[1] KG** | Q1: 顧客は？ | `layers/graph.py` | 断片のどれを信じるか曖昧 |
+| S2 次にやること | **[2] タスク** | 調査前の前提は？ | `task_graph.py` | MD 箇条書きの推測 |
+| S3 診断順序 | **[3] DAG** | 取得パイプラインの順は？ | `dag_graph.py` | if/else で順序が見えない |
+| S4 エスカレーション | **[4] WF** | P0 承認フローは？ | `workflow_graph.py` | 承認・差し戻しが型なし |
+| S5 フェーズ | **[5] ステート** | 今どの段階？ | `agent_langgraph.py` | 状態がプロンプト依存 |
+
+**追加予定**: `app/demo_scenario.py` + `run_demo.sh scenario`
+
+### `agent` — MD vs グラフ（G1・本丸）
+
+**デフォルト問い（見直し後）**: `Q4, Q6, Q7, Q1`（Q5 は任意）
+
+LangGraph パイプライン（正）:
+
+```
+START → retrieve_context → route_layer → generate → END
+```
+
+- `route_layer`: 問い→物理層 + **第1部のどの種が効いているか** を stdout 表示
+- **追加予定**: `agent_router.py` に `route_layer`、`context_builders` に Q4
+
+### `compare` / `stage*` — 補助
+
+- `compare`: 8問 ◎/▲/✗（agent の予習）
+- `stage0/1/2`, `graphs`: 開発者向けデバッグ
 
 ### 必須：第1部の5種類を OSS で実装する
 
@@ -425,9 +509,9 @@ DevRevの6層Polyglot Persistenceをモデルにした一般論として書く�
 |-------------|------|-------------------|-----------|
 | **1. ナレッジグラフ** | 何を知っているか | Neo4j: `Issue`,`Product`,`Customer` + `AFFECTS`,`OWNED_BY`,`BLOCKS` | `data/incident.cypher` → Cypher traversal |
 | **2. タスクグラフ** | 何をやるか | Neo4j: `:IncidentTask` + **`:TASK_PREREQUISITE`**（計画前提。実行順序ではない） | `layers/task_graph.py` が Cypher で辿る |
-| **3. 実行順序（DAG）** | 処理をどの順で | **LangGraph** 固定有向エッジ: `fetch_context→route_layer→generate`（非巡回） | `graphs/dag_graph.py` + `agent_langgraph.py` |
-| **4. ワークフロー** | 業務をどう進めるか | Neo4j: `:WfStep` + **`:WF_TRANSITION {action}`**（`approve`/`reject`）で循環定義。LangGraph が解釈して実行 | `layers/workflow_graph.py` + LangGraph サブグラフ |
-| **5. ステートグラフ** | 今どんな状態か | **LangGraph** `AgentState` + 状態遷移エッジ（`investigating→waiting_approval→done`） | `agent_langgraph.py`, 任意 `SqliteSaver` |
+| **3. 実行順序（DAG）** | 処理をどの順で | LangGraph 固定有向エッジ（`scenario` S3） | `graphs/dag_graph.py` |
+| **4. ワークフロー** | 業務をどう進めるか | Neo4j `WF_TRANSITION` + LangGraph（`scenario` S4） | `layers/workflow_graph.py` |
+| **5. ステートグラフ** | 今どんな状態か | LangGraph `AgentState`（`scenario` S5） | `agent_langgraph.py` |
 
 **第1部との対応**（同じ Neo4j DB に載せても **ラベルと Edge 型で論理分離**）:
 
@@ -451,30 +535,17 @@ DevRevの6層Polyglot Persistenceをモデルにした一般論として書く�
 (:Actor)-[:PERFORMED]->(:AuditAction)
 ```
 
-**Dify/n8n**: GUI で同じワークフローを書く例（記事 Mermaid のみ）。**実行の正本は Neo4j 定義 + LangGraph**。
+**`agent` 用 DAG**（Q&A）: `retrieve_context → route_layer → generate`。[2]タスク＝計画前提、[3]DAG＝実行順序。
 
-**`./run_demo.sh graphs`**: Neo4j + LangGraph の **実グラフ**を表示（LLM 不要可）。
+**Dify/n8n**: 記事 Mermaid のみ。CLI の [4]WF は Neo4j + LangGraph で代替。
 
-```
-=== 確認 — 第1部 5種類 ===
-[1] KG       : AFFECTS / OWNED_BY
-[2] タスク   : TASK_PREREQUISITE
-[3] DAG      : LangGraph 固定エッジ（非巡回）
-[4] WF       : WF_TRANSITION (approve/reject)
-[5] ステート : state.phase
-
-=== 確認 — 第2部 6特殊化（stage2） ===
-[権限]     Q4  CAN_READ
-[同一性]   Q6  SAME_AS
-[依存]     Q3  BLOCKS
-[時間軸]   Q7  Event BEFORE
-[監査]     Q5  audit_log + PERFORMED
-[コンテキスト] Q8 部分グラフ node_ids
-```
-
-**`quick` の対照**: `stage0`（JSON断片）vs `graphs`（型付きグラフ）で第1部の主張を再現。
-
-**stage2 との関係**: `graphs`＝第1部5種。`stage2`＝第2部6特殊の **Q1〜Q8**。`full`＝推奨通し。
+| コマンド | ゴール | 確認の要点 |
+|---------|--------|-----------|
+| `scenario` | **G2** | S1〜S5 で [1]〜[5] が別役割 |
+| `agent` | **G1** | Q4/Q6/Q7: MD vs グラフの回答差 |
+| `compare` | G1補助 | Q1〜Q8 の ◎/▲/✗ |
+| `graphs` | 開発用 | Edge 型デバッグ |
+| `full` | 通し | scenario + agent + compare |
 
 ### 必須：第2部の6特殊化を本 experiment だけでカバー
 
@@ -489,37 +560,26 @@ DevRevの6層Polyglot Persistenceをモデルにした一般論として書く�
 
 ---
 
-**目的**: 同じ5問を段階0→1→2で実行し、「1つのDBに入れない」理由を体感させる。**あわせて第1部5種類をすべて OSS で動かす。**
+**目的（見直し後）**:
+
+- **G2**: `scenario` で第1部5種を1本の障害物語として体感
+- **G1**: `agent` で MD 断片 AI vs グラフ AI の回答差を体感
+- **理論の裏付け**: `compare` で第2部6特殊（Q1〜Q8）の精度表。Polyglot は記事 §3/§7
 
 ```
 ai-agent-graph-production-layers/
-├── README.md                 # 単体完結手順（他 experiment 不要と明記）
-├── compose.yaml              # neo4j + qdrant（SQLite は audit.db としてホスト）
-├── env.sample
-├── requirements.txt
-├── run_demo.sh               # setup | graphs | stage0 | stage1 | stage2 | quick | full | guide
-├── data/
-│   ├── fragments.json        # 段階0のみ
-│   ├── incident.cypher       # KG+Task+Wf+権限+依存+同一性+Event+AuditAction（Edge型で分離）
-│   ├── incident_docs.jsonl   # Qdrant
-│   └── audit_seed.sql        # SQLite audit_log
+├── README.md
+├── compose.yaml
+├── run_demo.sh               # setup | scenario | agent | compare | full | graphs | stage* | guide
+├── data/ ...
 └── app/
-    ├── graphs/
-    │   └── dag_graph.py      # [3] LangGraph DAG
-    ├── layers/
-    │   ├── graph.py          # [1] KG + Q3 依存 + Q4 権限
-    │   ├── identity_graph.py # [2部] Q6 SAME_AS
-    │   ├── temporal_graph.py # [2部] Q7 Event 鎖
-    │   ├── context_graph.py  # [2部] Q8 部分グラフ
-    │   ├── audit_graph.py    # [2部] PERFORMED / Q5 集計
-    │   ├── task_graph.py     # [1部] TASK_PREREQUISITE
-    │   ├── workflow_graph.py # [1部] WF_TRANSITION
-    │   └── vector.py         # Q2 Qdrant
-    ├── demo_graphs.py        # graphs コマンド: Neo4j + LangGraph の Edge 型を表示
-    ├── stage0_fragments.py   # 段階0: 断片直渡し（ファイルの限界）
-    ├── stage1_neo4j_only.py  # 段階1: 全部 Neo4j に押し込むつらさ
-    ├── stage2_router.py      # 段階2: 5問ルーティング
-    └── agent_langgraph.py    # [3][4][5] LangGraph 本体（DAG + workflow 実行 + state）
+    ├── demo_scenario.py      # 【新規】G2: 5種シナリオ
+    ├── demo_agent.py         # G1: MD vs グラフ
+    ├── agent_router.py       # retrieve → route_layer → generate
+    ├── context_builders.py
+    ├── compare_layers.py
+    ├── demo_graphs.py        # 開発用
+    └── layers/ ...
 ```
 
 **8問（第1部KG + 第2部6特殊化）**:
@@ -535,43 +595,53 @@ ai-agent-graph-production-layers/
 | Q7 | P0 昇格の30分前に何が？ | 時系列不可 | Neo4j **時間軸** |
 | Q8 | このターンで渡したノードは？ | 毎回違う断片 | **コンテキスト** 部分グラフ |
 
-**run_demo.sh の体験フロー**:
+**agent で刺さる問い（G1）** — `compare` の8問とは役割分担:
+
+| 優先 | ID | agent で見せる理由 |
+|------|-----|-------------------|
+| 必須 | Q6 | 記事の代表例（SAME_AS） |
+| 必須 | Q4 | MD では漏洩、グラフでは CAN_READ |
+| 必須 | Q7 | MD では時系列不可 |
+| 推奨 | Q1 | 断片の粒度差 vs KG traversal |
+
+**run_demo.sh の体験フロー**（見直し後・読者推奨）:
 
 ```bash
-ollama serve   # 別ターミナル
-ollama pull gemma2:2b
+ollama serve && ollama pull gemma2:2b   # agent 用（必須推奨）
 
 cd experiments/ai-agent-graph-production-layers
 cp env.sample .env && pip install -r requirements.txt
 ./run_demo.sh setup
-./run_demo.sh graphs     # 第1部5種類の表示確認（数十秒・LLM不要でも可）
-./run_demo.sh quick      # stage0 vs stage1
-./run_demo.sh stage2     # Q1〜Q8 + ルーティング
-./run_demo.sh full       # graphs + stage0 + stage2（推奨通し）
+./run_demo.sh scenario   # G2: 5種を1シナリオで（LLM 不要）
+./run_demo.sh agent      # G1: MD vs グラフ（本丸）
+./run_demo.sh compare    # 8問の精度表（予習・補助）
+./run_demo.sh full       # scenario + agent + compare
 ```
 
-**完了条件（すべて本ディレクトリ内）**:
+**完了条件（G1/G2 達成が正）**:
 
 ```
-[ ] ./run_demo.sh graphs   → 第1部5種の Edge 型が表示される
-[ ] ./run_demo.sh stage0   → ファイル断片の限界が出る
-[ ] ./run_demo.sh stage2   → 第2部6特殊化が Q1〜Q8 で答えられる
-[ ] ./run_demo.sh full     → 上記が連続で通る
+[ ] ./run_demo.sh scenario → S1〜S5 で [1]〜[5] の役割差を説明できる
+[ ] ./run_demo.sh agent    → Q4/Q6/Q7 で MD と グラフの LLM 回答差が目視できる
+[ ] ./run_demo.sh compare  → 8問の精度差が表で見える（補助）
+[ ] ./run_demo.sh full     → 上記3つが連続で通る
 [ ] README に他 experiment への実行依存がない
 ```
 
-**MVP（Must have）**:
-- [ ] 第1部5種：Neo4j 型付き Edge + LangGraph StateGraph
-- [ ] 第2部6特殊：Q1〜Q8 と `incident.cypher` の seed（`SAME_AS`,`BLOCKS`,`CAN_READ`,`:Event`,`PERFORMED` 等）
-- [ ] `layers/{identity,temporal,context,audit}_graph.py`
-- [ ] 段階0 / stage1 / stage2 / graphs / quick / full
-- [ ] 各 script 末尾 `=== 確認 ===`
-- [ ] README 単体完結（他 experiment 不要と明記）
+**MVP（Must have）— 見直し後**:
+
+| 項目 | 状態 |
+|------|------|
+| seed + layers（Q1〜Q8） | [x] 実装済み |
+| `compare` / `stage*` / `graphs` | [x] 実装済み（補助・デバッグ） |
+| **`scenario`（G2）** | [x] 実装済み（`demo_scenario.py` + `run_demo.sh scenario`） |
+| **`agent` Q6/Q7/Q4 + route_layer（G1）** | [x] 実装済み・実機で回答差を確認 |
+| README / 記事 §8 を新フローに同期 | [x] 完了（`full` = scenario + agent + compare） |
 
 **Better to have**:
-- [ ] write-time enrichment のデモ（チケット作成 → Neo4j + Qdrant + SQLite 同時書き込み）
-- [ ] `stage1` で「集計を Cypher に押し込むと遅い/読めない」ログ出力
-- [ ] LangGraph `SqliteSaver` でセッション再開デモ
+- [ ] `context_builders` に Q4 グラフコンテキスト
+- [ ] write-time enrichment デモ
+- [ ] LangGraph `SqliteSaver`
 
 **Nice to have**:
 - [ ] Dify ワークフロー JSON のサンプル（import 用、実行不要）
@@ -584,12 +654,13 @@ cp env.sample .env && pip install -r requirements.txt
 
 | 記事 § | 本文で見せるもの | 読者が叩くコマンド |
 |--------|----------------|-------------------|
-| §2 | 成熟度3段階 + stage0 対照 | `./run_demo.sh quick` |
-| §3 | 6層→4層縮小 | `./run_demo.sh stage2`（ルーティングログ） |
-| §4 | 宣言的 vs 推論的 | `./run_demo.sh stage0` vs `graphs` |
-| §7 | 障害対応配置図 | `./run_demo.sh full` |
-| §8 | クイックスタート | `graphs` → `full` |
-| 第2部6特殊 | カタログの着地 | `./run_demo.sh stage2`（Q1〜Q8） |
+| §2 | 成熟度3段階 + MD断片の限界 | `stage0`（補助）/ **`agent`(file)** |
+| §3 | 6層→4層・層ルーティング | 記事の表 + `compare`（補助） |
+| §4 | 宣言的 vs 推論的 | **`agent`**（G1 本丸）+ `compare` |
+| §7 | 障害対応配置図 | 記事 Mermaid（CLI 不要） |
+| §8 | クイックスタート | **`scenario`** → **`agent`** → `full` |
+| 第1部5種 | 地図の着地 | **`scenario`**（G2） |
+| 第2部6特殊 | カタログの着地 | `compare`（Q1〜Q8） |
 
 ---
 
@@ -610,7 +681,7 @@ cp env.sample .env && pip install -r requirements.txt
 ## フロントマター案
 
 ```yaml
-title: "5種類のグラフは1つのDBに入らない——本番のレイヤー設計"
+title: "5種類のグラフは1つのDBに入らない。本番のレイヤー設計"
 emoji: "🏗"
 type: "tech"
 topics: ["AI", "ナレッジグラフ", "LangGraph", "Neo4j", "設計"]
@@ -631,16 +702,23 @@ published: false
 | DevRev KG 実装 | devrev-kg-architecture-deep-dive |
 | Polyglot Persistence（一般論） | https://martinfowler.com/bliki/PolyglotPersistence.html |
 
-## 実装タスク（執筆前）
+## 実装タスク（見直し後・優先順）
 
 | 順序 | タスク | 状態 |
 |------|--------|------|
-| 1 | `ai-agent-graph-production-layers/` 単体完結実装（第1部5種+第2部6特殊+Q1〜Q8） | 未着手 |
-| 2 | `./run_demo.sh full` が他 experiment なしで通ることを確認 | 未着手 |
-| 3 | 記事ドラフト（`published: false`） | 未着手 |
-| 4 | 第1部・第2部の「第3部（執筆予定）」リンクを slug に更新 | 未着手 |
-| 5 | 批判的レビュー + URL 検証 | 未着手 |
-| 6 | Git Flow（develop → feature → PR → main） | 未着手 |
+| **P0** | `demo_scenario.py` + `run_demo.sh scenario`（G2） | ✅ 完了 |
+| **P0** | `agent` デフォルト Q6/Q7/Q4 + `context_builders` Q4 | ✅ 完了 |
+| **P0** | `agent_router` に `route_layer` ノード | ✅ 完了 |
+| **P0** | `full` = scenario + agent + compare に変更 | ✅ 完了 |
+| **P0** | 実機で G1/G2 再現検証（gemma2:2b で回答差確認） | ✅ 完了 |
+| P1 | README / 記事 §8 を新フローに同期 | ✅ 完了 |
+| P1 | 第1部・第2部の第3部リンク更新 | ✅ 完了（両記事の「執筆予定」を実リンク化・計8箇所） |
+| P2 | 批判的レビュー + URL 検証 | 未着手 |
+| P2 | Git Flow（develop → feature → PR → main） | 未着手 |
+
+**実機検証メモ（2026-07-13）**: gemma2:2b・temperature=0 で `agent` の Q6/Q7 はグラフ側のみ根拠つき回答、MD 側は「断定できない」で安定再現。Q4 は MD 側が「見てよい（＝漏洩）」、グラフ側「断定できない」で対比成立。グラフ fact は Cypher 表現に加え `→ 結論` 行を1本添えると小型モデルでも安定（`context_builders.py`）。
+
+**旧 MVP（骨格）**: seed / compare / graphs / agent（Q1,Q5,Q6）は実装済み。上記 P0 で **体験ゴール達成**。
 
 ---
 
@@ -652,9 +730,10 @@ published: false
 - AWS AI-DLCへの敬意を保つ（「始めるならファイルで十分」の立場は第2部と一貫）
 - Polyglot Persistenceは概念として一般的（Martin Fowlerの記事等）なので、DevRev固有の話にしない
 - **小規模チーム向け**: PoC は **4層**（Neo4j + Qdrant + SQLite + LangGraph）。6層は本番の地図
-- **experiment 単体完結**: README・記事ハンズオンは `ai-agent-graph-production-layers` のコマンドのみ。他 experiment と混ぜない
-- **第1部5種**: Neo4j 型付き Edge + LangGraph StateGraph。YAML/MD を正本にしない
-- **第2部6特殊**: Q1〜Q8 で本 experiment 内完結（`SAME_AS`, `PERFORMED`, `:Event`, コンテキスト切り出し）
-- **Graphiti / Zep**: 記事の本番例のみ。時間軸は Neo4j `:Event` で experiment 内完結
-- **SQLite**: 監査集計 + 任意 checkpointer
+- **読者体験ゴール G1/G2 が最優先**（上記「読者体験ゴール」節を正とする）
+- **G1**: `./run_demo.sh agent` — MD 断片 AI vs グラフ AI。Q4/Q6/Q7 を必ず載せる
+- **G2**: `./run_demo.sh scenario` — 5種を1障害シナリオで。`graphs` 単体は読者向けに推奨しない
+- Polyglot / 6層 / OSS 表は記事本文の理論。ハンズオンの主役は G1+G2
+- experiment 単体完結。他 experiment と混ぜない
+- Graphiti / Zep は記事の本番例のみ
 - トークン95%削減の出典は公開可否を確認してから記載（未確認なら「社内ベンチマークの一例」に留める）
