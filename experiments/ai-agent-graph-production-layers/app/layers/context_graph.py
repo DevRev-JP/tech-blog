@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.shared import neo4j_driver
+from app.shared import neo4j_session
 
 DEFAULT_SCOPE = "scope-engineer"
 
@@ -16,6 +16,6 @@ def q8_context_nodes(scope_id: str = DEFAULT_SCOPE) -> list[dict]:
            coalesce(n.name, n.title, n.id) AS name
     ORDER BY label, node_id
     """
-    with neo4j_driver() as driver:
-        rows = driver.session().run(cypher, scope_id=scope_id)
+    with neo4j_session() as session:
+        rows = session.run(cypher, scope_id=scope_id)
         return [dict(r) for r in rows]

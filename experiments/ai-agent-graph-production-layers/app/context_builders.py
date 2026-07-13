@@ -44,7 +44,8 @@ def build_file_context(qid: str) -> tuple[str, ContextKind, str]:
         f"## 質問\n{qid} に関連しそうな記述を上から探して答えてください。\n"
         f"（注意: 断片には Edge 型がありません）\n"
     )
-    return body, "markdown_fragments", "fragments.json（全断片をプロンプトに貼る）"
+    # route（取得経路）は file モードでは route_layer が上書きするため空で返す
+    return body, "markdown_fragments", ""
 
 
 def build_neo4j_only_context(qid: str) -> tuple[str, ContextKind, str]:

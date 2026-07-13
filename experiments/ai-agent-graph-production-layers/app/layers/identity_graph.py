@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.shared import neo4j_driver
+from app.shared import neo4j_session
 
 
 def q6_same_customer(channel_ids: list[str]) -> dict:
@@ -11,8 +11,8 @@ def q6_same_customer(channel_ids: list[str]) -> dict:
     MATCH (ch:ChannelAccount {id: cid})-[:SAME_AS]->(c:Customer)
     RETURN cid, c.id AS customer_id, c.name AS customer_name
     """
-    with neo4j_driver() as driver:
-        rows = driver.session().run(cypher, ids=channel_ids)
+    with neo4j_session() as session:
+        rows = session.run(cypher, ids=channel_ids)
         mapping = {r["cid"]: r["customer_name"] for r in rows}
     names = set(mapping.values())
     return {

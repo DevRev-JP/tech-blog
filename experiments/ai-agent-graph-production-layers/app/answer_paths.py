@@ -5,17 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from app.layers.audit_graph import q5_p0_top_products, performed_actions
+from app.layers.audit_graph import q5_p0_top_products
 from app.layers.context_graph import q8_context_nodes
 from app.layers.graph import q1_customer, q3_blocked_services, q4_can_read
 from app.layers.identity_graph import q6_same_customer
 from app.layers.temporal_graph import q7_events_before_escalation, q7_escalated_at
 from app.layers.vector import q2_similar
-from app.shared import DATA_DIR, load_json, neo4j_driver
+from app.shared import DATA_DIR, ISSUE_ID, load_json, neo4j_session
 
 Precision = Literal["high", "medium", "low", "none"]
 
-ISSUE_ID = "INC-001"
 Q2_QUERY = "Acme Search latency Globex"
 CHANNEL_IDS = ["slack-globex-support", "email-globex-ops"]
 
@@ -27,16 +26,31 @@ class AnswerResult:
     reason: str
 
 
-QUESTIONS: dict[str, str] = {
-    "Q1": "このチケット（INC-001）の顧客は？",
-    "Q2": "類似の過去障害は？",
-    "Q3": "ログ基盤障害の影響範囲は？",
-    "Q4": "agent_guest は INC-001 を見てよいか？",
-    "Q5": "過去30日の P0 件数トップ製品は？",
-    "Q6": "Slack とメールは同一顧客か？",
-    "Q7": "P0 昇格の30分前に何があったか？",
-    "Q8": "このターンで LLM に渡すノードは？",
+@dataclass(frozen=True)
+class QuestionMeta:
+    """1つの問いのメタデータ。質問文と「効くグラフの種類」を1箇所で持つ.
+
+    graph_kind は第1部5種 / 第2部特殊化のどれが効くか（route_layer が表示）。
+    物理層（Neo4j KG 等）は段階ごとに異なるため answer_*().reason 側が持つ。
+    """
+
+    text: str
+    graph_kind: str
+
+
+QUESTION_META: dict[str, QuestionMeta] = {
+    "Q1": QuestionMeta("このチケット（INC-001）の顧客は？", "[1]ナレッジグラフ"),
+    "Q2": QuestionMeta("類似の過去障害は？", "コンテキスト（意味的類似・5種の外）"),
+    "Q3": QuestionMeta("ログ基盤障害の影響範囲は？", "依存関係グラフ（[1]KG の特殊化）"),
+    "Q4": QuestionMeta("agent_guest は INC-001 を見てよいか？", "権限グラフ（[1]KG の特殊化）"),
+    "Q5": QuestionMeta("過去30日の P0 件数トップ製品は？", "監査グラフ（集計）"),
+    "Q6": QuestionMeta("Slack とメールは同一顧客か？", "同一性グラフ（[1]KG の特殊化）"),
+    "Q7": QuestionMeta("P0 昇格の30分前に何があったか？", "時間軸グラフ"),
+    "Q8": QuestionMeta("このターンで LLM に渡すノードは？", "コンテキストグラフ"),
 }
+
+# 質問文だけの索引（QUESTION_META から導出）
+QUESTIONS: dict[str, str] = {qid: m.text for qid, m in QUESTION_META.items()}
 
 
 def _neo4j_keyword_incidents(keyword: str) -> list[str]:
@@ -47,8 +61,8 @@ def _neo4j_keyword_incidents(keyword: str) -> list[str]:
     RETURN DISTINCT i.id AS id
     ORDER BY id
     """
-    with neo4j_driver() as driver:
-        rows = driver.session().run(cypher, kw=keyword, issue_id=ISSUE_ID)
+    with neo4j_session() as session:
+        rows = session.run(cypher, kw=keyword, issue_id=ISSUE_ID)
         return [r["id"] for r in rows]
 
 
@@ -59,8 +73,8 @@ def _neo4j_p0_count_by_product() -> list[dict]:
     RETURN p.name AS product, count(i) AS p0_count
     ORDER BY p0_count DESC
     """
-    with neo4j_driver() as driver:
-        rows = driver.session().run(cypher)
+    with neo4j_session() as session:
+        rows = session.run(cypher)
         return [{"product": r["product"], "p0_count": r["p0_count"]} for r in rows]
 
 

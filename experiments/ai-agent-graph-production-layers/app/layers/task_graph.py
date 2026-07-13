@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.shared import neo4j_driver
+from app.shared import neo4j_session
 
 
 def task_prerequisites() -> list[tuple[str, str]]:
@@ -11,6 +11,6 @@ def task_prerequisites() -> list[tuple[str, str]]:
     RETURN a.name AS from_task, b.name AS to_task
     ORDER BY from_task
     """
-    with neo4j_driver() as driver:
-        rows = driver.session().run(cypher)
+    with neo4j_session() as session:
+        rows = session.run(cypher)
         return [(r["from_task"], r["to_task"]) for r in rows]

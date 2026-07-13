@@ -34,14 +34,19 @@ def main() -> None:
     print("  → ./run_demo.sh agent で LangGraph + Ollama の差を見る")
     print("=" * 60)
 
+    # 各問いの回答は DB クエリを伴うので、段階ごとに1度だけ計算して使い回す
+    file_ans = {qid: answer_file(qid) for qid in COMPARE_IDS}
+    neo_ans = {qid: answer_neo4j_only(qid) for qid in COMPARE_IDS}
+    routed_ans = {qid: answer_routed(qid) for qid in COMPARE_IDS}
+
     print("\n" + "=" * 60)
     print("  A. MD断片 vs グラフ（AI に渡す情報の精度）")
     print("=" * 60)
 
     for qid in COMPARE_IDS:
         print(f"\n{qid}: {QUESTIONS[qid]}")
-        _print_row("ファイル", answer_file(qid))
-        _print_row("グラフ(分離)", answer_routed(qid))
+        _print_row("ファイル", file_ans[qid])
+        _print_row("グラフ(分離)", routed_ans[qid])
 
     print("\n" + "=" * 60)
     print("  B. グラフ1つ(Neo4j) vs 分離（段階1 vs 段階2）")
@@ -49,8 +54,8 @@ def main() -> None:
     print("=" * 60)
 
     for qid in COMPARE_IDS:
-        neo = answer_neo4j_only(qid)
-        routed = answer_routed(qid)
+        neo = neo_ans[qid]
+        routed = routed_ans[qid]
         if neo.precision == routed.precision and neo.value == routed.value:
             continue
         print(f"\n{qid}: {QUESTIONS[qid]}")

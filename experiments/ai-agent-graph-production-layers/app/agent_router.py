@@ -6,27 +6,17 @@
 from __future__ import annotations
 
 import operator
+from functools import lru_cache
 from typing import Annotated, Literal, Sequence, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.graph import END, START, StateGraph
 
+from app.answer_paths import QUESTION_META
 from app.context_builders import build_context
 from app.shared import get_llm, ollama_available
 
 Mode = Literal["file", "neo4j_only", "routed"]
-
-# 問い → 効いている第1部の種 / 第2部の特殊化（route_layer が表示）
-QID_TO_KIND: dict[str, str] = {
-    "Q1": "[1]ナレッジグラフ",
-    "Q2": "コンテキスト（意味的類似・5種の外）",
-    "Q3": "依存関係グラフ（[1]KG の特殊化）",
-    "Q4": "権限グラフ（[1]KG の特殊化）",
-    "Q5": "監査グラフ（集計）",
-    "Q6": "同一性グラフ（[1]KG の特殊化）",
-    "Q7": "時間軸グラフ",
-    "Q8": "コンテキストグラフ",
-}
 
 
 class AgentState(TypedDict):
@@ -54,7 +44,8 @@ def retrieve_context(state: AgentState) -> dict:
 def route_layer(state: AgentState) -> dict:
     """問いをどの物理層 / どの種のグラフに割り当てたかを決める（段階0は層分離なし）."""
     qid = state["question_id"]
-    kind = QID_TO_KIND.get(qid, "?")
+    meta = QUESTION_META.get(qid)
+    kind = meta.graph_kind if meta else "?"
     if state["mode"] == "file":
         route = "層ルーティングなし（段階0: 全断片をそのまま渡す）"
     else:
@@ -88,7 +79,9 @@ def generate(state: AgentState) -> dict:
     return {"messages": [AIMessage(content=response.content)]}
 
 
+@lru_cache(maxsize=1)
 def build_agent():
+    """グラフ構造は不変なので1度だけコンパイルして使い回す."""
     g = StateGraph(AgentState)
     g.add_node("retrieve_context", retrieve_context)
     g.add_node("route_layer", route_layer)

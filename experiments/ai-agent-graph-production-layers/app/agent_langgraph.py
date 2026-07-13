@@ -7,6 +7,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from app.graphs.dag_graph import build_dag_graph
+from app.shared import ISSUE_ID
 
 
 class AgentState(TypedDict):
@@ -60,7 +61,7 @@ def state_transitions() -> list[tuple[str, str]]:
 
 def run_agent_once() -> AgentState:
     graph = build_agent_graph()
-    return graph.invoke({"phase": "investigating", "wf_step": "wf-investigating", "message": "INC-001"})
+    return graph.invoke({"phase": "investigating", "wf_step": "wf-investigating", "message": ISSUE_ID})
 
 
 def run_dag_once() -> dict:

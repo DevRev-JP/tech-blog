@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from app.agent_langgraph import run_agent_once, run_dag_once, state_transitions  # noqa: E402
+from app.answer_paths import CHANNEL_IDS  # noqa: E402
 from app.graphs.dag_graph import dag_edges  # noqa: E402
 from app.layers.audit_graph import performed_actions  # noqa: E402
 from app.layers.context_graph import q8_context_nodes  # noqa: E402
@@ -46,7 +47,7 @@ def main() -> None:
 
     print("\n--- 第2部 6特殊化（Edge 型） ---")
     print("[権限]     CAN_READ — graph.q4_can_read を stage2 で確認")
-    print("[同一性]   SAME_AS ", q6_same_customer(["slack-globex-support", "email-globex-ops"]))
+    print("[同一性]   SAME_AS ", q6_same_customer(CHANNEL_IDS))
     print("[時間軸]   Event BEFORE escalated_at=", q7_escalated_at())
     print("[監査]     PERFORMED", performed_actions())
     print("[コンテキスト] SCOPE_INCLUDES", q8_context_nodes())
