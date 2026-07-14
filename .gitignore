@@ -47,4 +47,8 @@ Thumbs.db
 # Temporary test files
 tmp_codex_write_test
 
+# 記事企画書（執筆作業用・Git 管理外。作業後は削除）
+articles/part3-plan.md
+articles/*-plan.md
+
 .vscode/
