@@ -230,7 +230,6 @@ Neo4j単体     ▲ 推測  Issue.severity だけ → Acme Search: 1
 ## 更新履歴
 
 - 2026-07-16: 初版公開
-- 2026-07-16: 問い順を教育順に揃え、Experiment 出力を軸に再構成
 
 ---
 
