@@ -16,7 +16,7 @@ from app.answer_paths import (  # noqa: E402
     answer_routed,
     precision_label,
 )
-from app.shared import confirm_block  # noqa: E402
+from app.shared import confirm_block, narrate  # noqa: E402
 
 # 体感の差が最も出る問い（全8問は stage2 で）
 COMPARE_IDS = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"]
@@ -33,6 +33,13 @@ def main() -> None:
     print("  MD断片（叙述） vs グラフ（型付き Edge の fact）")
     print("  → ./run_demo.sh agent で LangGraph + Ollama の差を見る")
     print("=" * 60)
+    narrate(
+        [
+            "これから、同じ問いに対して「渡せる情報の確かさ」を表にします。AI は使いません。",
+            "前半はファイルと層分離の比べ、後半は Neo4j だけと層分離の比べです。",
+            "後半で差が出やすいのは、類似障害（Q2）と件数集計（Q5）です。",
+        ]
+    )
 
     # 各問いの回答は DB クエリを伴うので、段階ごとに1度だけ計算して使い回す
     file_ans = {qid: answer_file(qid) for qid in COMPARE_IDS}
@@ -42,6 +49,12 @@ def main() -> None:
     print("\n" + "=" * 60)
     print("  A. MD断片 vs グラフ（AI に渡す情報の精度）")
     print("=" * 60)
+    narrate(
+        [
+            "ファイル（叙述）と、層を分けたグラフを並べます。",
+            "ファイル側は推測や不可が多く、グラフ側は確定に寄るのが成功の目安です。",
+        ]
+    )
 
     for qid in COMPARE_IDS:
         print(f"\n{qid}: {QUESTIONS[qid]}")
@@ -52,6 +65,12 @@ def main() -> None:
     print("  B. グラフ1つ(Neo4j) vs 分離（段階1 vs 段階2）")
     print("     全部 Graph DB に入れたときの精度落ち")
     print("=" * 60)
+    narrate(
+        [
+            "全部を Neo4j に入れた場合と、層を分けた場合で差が出る問いだけ出します。",
+            "類似障害と件数集計に注目してください。時間軸（Q7）は両方うまくいく例です。",
+        ]
+    )
 
     for qid in COMPARE_IDS:
         neo = neo_ans[qid]
