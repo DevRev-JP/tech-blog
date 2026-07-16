@@ -3,7 +3,7 @@ title: "5種類のグラフは1つのDBに入らない。本番のレイヤー�
 emoji: "🏗"
 type: "tech"
 topics: ["AI", "ナレッジグラフ", "LangGraph", "Neo4j", "設計"]
-published: false
+published: true
 ---
 
 :::message
