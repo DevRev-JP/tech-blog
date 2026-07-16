@@ -27,7 +27,7 @@ def main() -> None:
     )
     print(f"Seeded Qdrant collection ({n} docs, {embed_note}).")
     if not semantic:
-        print("  ⚠ Q2 の意味的類似を体験するには Ollama を起動してください:")
+        print("  ⚠ 類似障害（Q5）の意味的類似を体験するには Ollama を起動してください:")
         print("    ollama serve && ollama pull nomic-embed-text → 再度 setup")
     confirm_block(
         "setup",

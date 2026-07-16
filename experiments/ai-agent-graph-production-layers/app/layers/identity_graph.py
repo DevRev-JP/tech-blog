@@ -1,4 +1,4 @@
-"""[2部] Q6 同一性グラフ."""
+"""[2部] 同一性グラフ（Q2）."""
 
 from __future__ import annotations
 

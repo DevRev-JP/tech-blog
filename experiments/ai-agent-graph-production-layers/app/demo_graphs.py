@@ -65,11 +65,11 @@ def main() -> None:
     confirm_block(
         "第2部 6特殊化（stage2）",
         [
-            "[権限]     Q4  CAN_READ",
-            "[同一性]   Q6  SAME_AS",
-            "[依存]     Q3  BLOCKS",
+            "[権限]     Q3  CAN_READ",
+            "[同一性]   Q2  SAME_AS",
+            "[依存]     Q4  BLOCKS",
             "[時間軸]   Q7  Event BEFORE",
-            "[監査]     Q5  audit_log + PERFORMED",
+            "[監査]     Q6  audit_log + PERFORMED",
             "[コンテキスト] Q8 部分グラフ node_ids",
         ],
     )

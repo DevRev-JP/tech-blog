@@ -26,16 +26,16 @@ Usage: ./run_demo.sh <command>
 
 Commands:
   setup     Neo4j + Qdrant 起動、seed 投入
-  scenario  障害 INC-001 を第1部5種で辿る（G2・LLM 不要）
-  agent     LangGraph + Ollama（G1 MD vs グラフ + G3 Q5 で段階1 vs 分離）
-  compare   8問の精度ラベル ◎/▲/✗ 一覧（LLM 不要・補助）
-  graphs    第1部5種類の Edge 型表示（開発用）
-  stage0    段階0: fragments.json の限界
-  stage1    段階1: Neo4j 単体のつらさ
-  stage2    段階2: Q1〜Q8 ルーティング（層の一覧）
+  scenario  障害 INC-001 を第1部5種で辿る（LLM 不要）
+  agent     LangGraph + Ollama（MD vs グラフ。類似・集計は Neo4j 単体も比較）
+  compare   8問の精度ラベル ◎/▲/✗ 一覧（LLM 不要）
+  graphs    第1部5種類の Edge 型表示
+  stage0    fragments.json の限界
+  stage1    Neo4j 単体のつらさ
+  stage2    Q1〜Q8 ルーティング（層の一覧）
   quick     compare の別名
-  full      scenario + agent + compare（推奨通し）
-  guide     体験の全体像
+  full      scenario + agent + compare
+  guide     コマンドの全体像
 
 前提: ホスト Ollama（agent で LLM 回答を見る場合）
   ollama serve && ollama pull gemma2:2b
@@ -84,13 +84,13 @@ cmd_full() {
 cmd_guide() {
   cat <<'EOF'
 
-体験の全体像（単体完結 — 他 experiment 不要）
+コマンドの全体像（このディレクトリだけで完結）
 
   setup    → Neo4j + Qdrant + SQLite seed
-  scenario → 第1部5種を1本の障害物語で辿る（G2・LLM 不要）
-  agent    → LangGraph + Ollama（G1 + G3）
-  compare  → 8問の精度ラベル ◎/▲/✗（補助・LLM 不要）
-  graphs   → 第1部5種の Edge 型（開発用）
+  scenario → 第1部5種を1本の障害物語で辿る（LLM 不要）
+  agent    → LangGraph + Ollama（MD vs グラフ）
+  compare  → 8問の精度ラベル ◎/▲/✗（LLM 不要）
+  graphs   → 第1部5種の Edge 型
   stage2   → Q1〜Q8 ルーティング一覧
   quick    → compare と同じ
   full     → scenario + agent + compare
