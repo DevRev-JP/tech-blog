@@ -38,6 +38,14 @@ def confirm_block(title: str, lines: list[str]) -> None:
     print()
 
 
+def narrate(lines: list[str], *, indent: str = "  ") -> None:
+    """読者向けの短いナレーション（いま何をするか／どこを見るか）."""
+    print()
+    for line in lines:
+        print(f"{indent}{line}")
+    print()
+
+
 _DRIVER = None
 
 

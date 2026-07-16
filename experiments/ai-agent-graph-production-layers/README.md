@@ -1,221 +1,400 @@
 # ai-agent-graph-production-layers
 
-記事 [5種類のグラフは1つのDBに入らない——本番のレイヤー設計](../../articles/ai-agent-graph-production-layers.md)（第3部）の **手を動かす用** experiment です。
+第3部記事の **手を動かす用** experiment です。
 
-架空の障害 **INC-001**（製品 Acme Search、顧客 Globex Corp）を題材に、第1部の 5 種類のグラフと第2部の 6 特殊化を **1 つのディレクトリだけで** 段階 0→2 まで辿ります。
+- **記事**（なぜ分けるか・本番での置き方）: [5種類のグラフは1つのDBに入らない——本番のレイヤー設計](../../articles/ai-agent-graph-production-layers.md)
+- **ここ（README）**: 何を確認するか、どのコマンドをどの順で叩くか、画面のどこを見れば「できた」と言えるか
 
-**他 experiment（`kg-puzzle-agent` / `formal-layer` / `kg-no-rag` 等）への実行依存はありません。** 完了条件は本 README のコマンドのみです。
-
----
-
-## 体験の全体像
-
-この experiment は 3 つの体験を柱にしています。
-
-| ゴール | 体験 | コマンド | 成功の目安 |
-|--------|------|---------|-----------|
-| **G2** | 障害 INC-001 を第1部5種のグラフで1本の物語として辿る | **`scenario`**（LLM 不要） | S1〜S5 で 5 種が別役割だと説明できる |
-| **G1** | 同じ問いを「MD を読む AI」と「グラフを読む AI」に聞き、回答差を見る | **`agent`**（Ollama） | Q4/Q6/Q7 でグラフ側だけが根拠つきで答える |
-| **G3** | グラフ 1 つ(Neo4j) vs 層分離で fact が変わる（看板） | **`agent`** Q5（Ollama） | C. Neo4j単体と B. 分離で LLM 回答がずれる |
-
-補助として、段階ごとの精度差を LLM なしで一覧する `compare`、Edge 型を確認する `graphs` があります。
-
-| 段階 | こんな課題 | 触るもの | コマンド | 成功の目安 |
-|------|-----------|---------|---------|-----------|
-| **0** | MD 断片だけでは型が持てない | `fragments.json` | `stage0` / **`agent`**(file) | 推測・集計不可が出る |
-| **1** | グラフ1つ(Neo4j)では fact が弱い | Neo4j のみ | `stage1` / **`agent`**(neo4j_only) | Q2/Q5 の fact がずれる |
-| **2** | グラフを層分離して読む | Neo4j+Qdrant+SQLite | **`agent`**(routed) / `stage2` | 型付き fact で ◎確定 |
-
-**初回おすすめ**: [クイックスタート](#クイックスタート) → **`scenario`** → **`agent`** → `full`
+架空の障害 **INC-001**（製品 Acme Search、顧客 Globex Corp）だけを題材にします。  
+**他 experiment（`kg-puzzle-agent` / `formal-layer` / `kg-no-rag` 等）は不要**です。このディレクトリだけで完結します。
 
 ---
 
-## この experiment のゴール
+## この experiment でやること（3つだけ）
 
-**核心は「AI に何を読ませるか」** です。DB を分ける話は、その結果として AI に渡すコンテキストの精度が変わる、という順序です。
+終わったあと、次の3文を自分の言葉で言えるようになれば成功です。  
+スコープは **正確な情報の渡し方** と **5種類の使い分け** までです（アクション実行の正しさまでは扱いません。詳細は下の「まとめ」）。
 
-1. **MD 断片を読む AI** — `fragments.json` をプロンプトに貼る（段階0）。Edge 型なし → 推測・漏れ
-2. **グラフを読む AI** — Neo4j / Qdrant / SQLite から **型付き fact だけ** を LangGraph が取得して Ollama に渡す（段階2）
-3. **グラフ1つだけ** — 全部 Neo4j から取ると、類似(Q2)・集計(Q5)の fact が弱い/ずれる（段階1）
-4. **LangGraph** — `retrieve_context → route_layer → generate` の実行パイプライン（第1部のステート/DAG と同型）
-5. **第1部5種** — `./run_demo.sh scenario` で 1 本の障害物語として辿る（`graphs` は Edge 型のデバッグ表示）
+| # | 言えるようになること | 確認コマンド | 画面で見る場所 |
+|---|---------------------|-------------|----------------|
+| **G2** | 同じ障害でも、問いが変わると **効くグラフの種類** が変わる | `scenario` | S1〜S5 と末尾の `=== 確認 — scenario ===` |
+| **G1** | **MD を読む AI** と **グラフを読む AI** で答えが変わる | `agent` | Q6 / Q7 / Q4 の A（MD）と B（グラフ） |
+| **G3** | **全部 Neo4j だけ**だと類似・集計の fact が弱く、層を分けると戻る（タイトルの看板） | `agent` の **Q5** | A / B / **C**（C が出るのが看板） |
 
-| 体験 | コマンド | 何が変わるか |
-|------|---------|-------------|
-| 第1部5種を1シナリオで辿る | **`scenario`** | 同じ障害で問いごとに効く種が変わる |
-| AI が MD vs グラフを読む | **`agent`** | 渡すコンテキストと LLM 回答（既定: Q6/Q7/Q5/Q4） |
-| 精度ラベル比較（LLM不要） | `compare` | ◎/▲/✗ の一覧 |
-| 5種類の Edge 型（開発用） | `graphs` | グラフの正本 |
+補助（LLM 不要）: `compare` で 8 問の ◎/▲/✗ を一覧できます。理論の深掘りは記事側です。
 
-```bash
-ollama serve
-ollama pull gemma2:2b          # agent の LLM 回答用
-ollama pull nomic-embed-text   # Q2 の意味的類似（Qdrant 埋め込み）用
-./run_demo.sh setup
-./run_demo.sh scenario # G2: 第1部5種を1本の障害物語で（LLM 不要）
-./run_demo.sh agent    # G1 + G3（既定: Q6/Q7/Q5/Q4）
-./run_demo.sh compare  # 8問の精度ラベル（LLM 不要）
-./run_demo.sh full     # scenario + agent + compare
-./run_demo.sh verify   # 記事用ログを verification-logs/<日付>/ に保存
+```
+あなたはいまここ
+  setup     … データを用意する
+  scenario  … G2 を確認する
+  agent     … G1 + G3 を確認する（本丸）
+  compare   … 精度表で復習する（任意）
 ```
 
-> Q2（類似障害）は Ollama の `nomic-embed-text` で埋め込みを作り、Qdrant で意味的類似を引きます。Ollama がない場合は疑似ベクトルにフォールバックしますが、その場合 Q2 は「意味的類似」になりません（`setup` が警告します）。
+---
 
-## 記事掲載用の実機検証ログ
+## 前提（最初にそろえるもの）
 
-§8 に載せる実行結果は **`verification-logs/`** に追記保存します。`verify` は既存ログを**上書きせず**、実行ごとに `runs/<run_id>/` を追加します。
+| もの | 用途 | なくても動くか |
+|------|------|----------------|
+| Docker または Podman | Neo4j / Qdrant | 不可（`setup` に必要） |
+| Python 3.11+ | CLI | 不可 |
+| [Ollama](https://ollama.com/) + `gemma2:2b` | `agent` の LLM 回答 | `scenario` / `compare` だけなら不要。`agent` はコンテキスト差だけ表示される |
+| Ollama + `nomic-embed-text` | Q2 の意味的類似（Qdrant） | 無いと疑似ベクトルに落ち、Q2 は「意味的類似」にならない |
+
+**ポート**: Neo4j `7474`/`7687`、Qdrant `6333`。他 experiment の Neo4j と **同時起動不可**です。競合したら先にそちらを `compose down` してください。
+
+**所要時間の目安**: 初回セットアップ 5〜15 分、`scenario` 数十秒、`agent`（4問・Ollama）数分、`compare` 数十秒。
+
+---
+
+## 手順（読者向け・迷子にならない一本道）
+
+リポジトリのルートから、次を **上から順に** 実行してください。途中で飛ばさないでください。
+
+### 0. 環境を用意する
 
 ```bash
-./run_demo.sh setup    # 未実施なら
+# 別ターミナル（agent をやる場合）
+ollama serve
+ollama pull gemma2:2b
+ollama pull nomic-embed-text
+
+# この experiment
+cd experiments/ai-agent-graph-production-layers
+cp env.sample .env
+pip install -r requirements.txt   # 推奨: python3 -m venv .venv && source .venv/bin/activate
+```
+
+`.env` の既定値（変更しなくてよい）: Neo4j ユーザー `neo4j` / パスワード `password`。
+
+### 1. `setup` — データを入れる
+
+**目的**: Neo4j・Qdrant を起動し、障害 INC-001 の seed を流し込む。ここをやっていないと後続は失敗します。
+
+```bash
+./run_demo.sh setup
+```
+
+**正しくできたか**
+
+- エラーなく終わる
+- ブラウザで http://localhost:7474 が開ける（認証: `neo4j` / `.env` のパスワード）
+
+失敗したら → [トラブルシューティング](#トラブルシューティング)
+
+---
+
+### 2. `scenario` — G2（5種類は覚える一覧ではない）
+
+**目的**: 1件の障害を S1→S5 の順に辿り、第1部の5種類が **別の問い・別の制御** に効くことを見る。LLM は不要です。
+
+```bash
+./run_demo.sh scenario
+```
+
+**画面の見方**
+
+| ステップ | 種類 | 問い | 正しいときに見えること |
+|---------|------|------|------------------------|
+| S1 | [1] ナレッジグラフ | 顧客は？ | `顧客=Globex Corp` |
+| S2 | [2] タスクグラフ | 調査の前提は？ | タスクが `─必要→` でつながる |
+| S3 | [3] DAG | 実行順は？ | `実行結果: fetch_context → route_layer → generate` |
+| S4 | [4] ワークフロー | 承認・差し戻しは？ | approve / reject / submit の矢印 |
+| S5 | [5] ステート | 今どの段階？ | `phase=done` など現在地 |
+
+末尾に必ず出ます:
+
+```text
+=== 確認 — scenario ===
+S1 [1]KG    : ...
+...
+→ 同じ障害でも、場面ごとに別の種類のグラフが効いている
+```
+
+**合否**: 上の表の「見えること」と、末尾 `=== 確認 ===` が出ていれば G2 クリア。  
+**まだ言えないこと**: 「1つの DB に入らない」（それは次の G3）。
+
+---
+
+### 3. `agent` — G1 + G3（本丸）
+
+**目的**
+
+1. **G1**: 同じ問いを、MD 断片（A）とグラフ（B）で AI に聞き、答えが変わること
+2. **G3**: Q5 だけ **C. Neo4j単体** も出し、「全部1つの Graph DB」だと fact が弱くなること
+
+```bash
+./run_demo.sh agent
+```
+
+既定の問い順: **Q6 → Q7 → Q5 → Q4**（変えなくてよい）。
+
+Ollama が止まっているとき:
+
+```text
+※ Ollama 未起動 — コンテキストの差は表示、LLM 回答はスキップ
+```
+
+→ 渡している文字列の差は見えます。G1/G3 の「AI の答え」まで見るなら `ollama serve` してから再実行してください。
+
+#### 各問いの合否（傾向で判定）
+
+LLM の文言はモデルで多少変わります。**傾向**が合えば合格です（基準ログ: [`verification-logs/.../agent.log`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/agent.log)、`gemma2:2b`）。
+
+| 問い | ゴール | A. MD断片 | B. グラフ（層分離） | C. Neo4j単体 |
+|------|--------|-----------|-------------------|--------------|
+| **Q6** 同一顧客か？ | G1 | 「断定できない」系 | 「はい」＋ SAME_AS 根拠 | （出ない） |
+| **Q7** 昇格30分前は？ | G1 | 「断定できない」系 | リリース／レイテンシ等を列挙 | （出ない） |
+| **Q5** P0 トップ製品は？ | **G3** | 「断定できない」系 | SQLite 集計（例: Acme Search=2）で答えられる | fact が弱い（件数1など）→ 断定しづらい |
+| **Q4** guest は見てよいか？ | G1 | チケット内容に触れる（漏洩寄り） | 権限なしで遮断（「断定できない」等） | （出ない） |
+
+**G3 の見方（迷子になりやすいポイント）**
+
+- Q5 だけ **A / B / C の3段** が出ます。C が出ない場合は既定問いが古い可能性があります（この README の既定は Q5 込み）。
+- **B と C で渡している数字・結論が違う** → 「1つの DB だけでは足りない」と分かる状態です。
+- Q7 は Neo4j だけで足りる例です。全部を分けろ、という意味ではありません。
+
+末尾:
+
+```text
+=== 確認 — agent ===
+...
+看板: Q5 でグラフ1つ vs 層分離の差も LLM 回答で見える
+```
+
+**合否**: Q6/Q7/Q4 で A≠B、Q5 で B≠C（または B の fact が C より具体的）なら G1+G3 クリア。
+
+---
+
+### 4. `compare` — 精度表で復習（任意・LLM 不要）
+
+**目的**: 8問を ◎/▲/✗ で一覧する。`agent` の予習・復習用。Ollama は不要です。
+
+```bash
+./run_demo.sh compare
+```
+
+**画面の見方**
+
+1. **セクション A**（ファイル vs グラフ）: ファイル側が ▲/✗、グラフ（分離）が ◎ に寄る
+2. **セクション B**（Neo4j単体 vs 分離）: **差が出る主戦場は Q2 と Q5**（看板）。Q7 は両方 ◎（分けなくてよい例）
+
+例（seed 固定・再現性が高い）:
+
+| 問い | Neo4j単体 | 分離 |
+|------|-----------|------|
+| Q2 類似障害 | `['INC-001']` だけになりがち | `INC-00042`, `INC-00017` |
+| Q5 P0 集計 | Acme Search が **1** 件側 | Acme Search **2** + Platform Logging **1** |
+
+末尾の `=== 確認 — compare ===` が出れば実行成功です。
+
+---
+
+### 5. 通しでやる場合
+
+```bash
+./run_demo.sh full
+```
+
+中身は `scenario` → `agent` → `compare` です。初めてなら **手順 1→2→3 をバラで** やった方が、どこで詰まったか分かりやすいです。
+
+---
+
+## 中身の地図（スクリプトの裏で何が起きているか）
+
+CLI は結果まで一気に進めます。迷子になったら、この地図だけ見れば十分です。論理の「なぜ」は記事側です。
+
+### `agent` 1問あたりの流れ
+
+```
+問い (例: Q6)
+   │
+   ├─ A. mode=file
+   │     fragments.json をまるごとプロンプトに載せる
+   │     → Edge 型なし → LLM は断定しづらい／漏れうる
+   │
+   ├─ B. mode=routed（段階2・層分離）
+   │     問いの型で物理層を選ぶ
+   │       Q6 → Neo4j SAME_AS
+   │       Q7 → Neo4j Event+BEFORE
+   │       Q5 → SQLite GROUP BY
+   │       Q4 → Neo4j CAN_READ（無ければ本文を渡さない）
+   │       Q2 → Qdrant 類似
+   │     → 型付き fact だけ渡す → LLM は根拠つきで答えやすい
+   │
+   └─ C. mode=neo4j_only（段階1）※ Q2 / Q5 だけ
+         全部 Neo4j から無理に取る
+         → 類似・集計の fact が弱い／ずれる → 回答も弱くなりやすい
+```
+
+LangGraph 上は毎回同じ3ノードです。
+
+```
+retrieve_context → route_layer → generate
+       │                │            │
+   コンテキスト組立   どのグラフが効くか   Ollama 回答
+```
+
+差が出るのは **generate の前に渡す文字列** だけです。モデルを賢くしているのではなく、読むものを変えています。
+
+### なぜ Q5 だけ C が出るか
+
+| 比較 | 確認したいこと | 使う問い |
+|------|----------------|----------|
+| A vs B | MD → グラフ（G1） | Q4 / Q6 / Q7（＋Q5 の A/B） |
+| B vs C | グラフ1つ → 層分離（G3・看板） | **Q5**（と compare の Q2） |
+
+Q7（時間軸）は Neo4j の Event 鎖で足りるので、C を出しても B と同じ ◎ になります。看板の「入らない」例としては弱いので、既定の C は Q5 に寄せています。
+
+### `scenario` の流れ
+
+```
+S1 Neo4j KG traversal
+S2 Neo4j TASK_PREREQUISITE
+S3 LangGraph DAG エッジ一覧
+S4 Neo4j WF_TRANSITION（循環）
+S5 LangGraph state.phase
+```
+
+1件の障害に、5種類のグラフを当てはめています。LLM は使いません。
+
+### 実行中のナレーション
+
+`scenario` / `agent` / `compare` は、各ステップの直前に短い説明を出します。  
+「成功すると〜」「A が〜なら成功」と書いてある行だけ追えば、合否の判断ができます。
+
+---
+
+## 完了チェック（読者用）
+
+全部終わったら、次を自分に聞いてください。
+
+- [ ] G2: 「同じ INC-001 でも、S1〜S5 で効くグラフの種類が違う」と説明できる
+- [ ] G1: 「MD だと断定できない／漏れる。グラフだと根拠つき／遮断される」と、Q6 か Q4 の例で言える
+- [ ] G3: 「Q5 で Neo4j単体(C)と層分離(B)の fact が違う。だから物理層を分ける」と言える
+- [ ] （任意）`compare` のセクション B で Q2/Q5 の差を指差しできる
+
+論理の整理・本番6層・OSS 選定は **記事** を読んでください。
+
+---
+
+## まとめ：この experiment で言ってよいこと
+
+ここまでで十分なスコープです。チケット更新や外部 API 呼び出しなど、**世界を変えるアクション**までは扱いません。
+
+### 言ってよいこと
+
+- エージェントに渡すのは Markdown の全文ではなく、**型のついた事実（グラフから取った fact）** にできる
+- そうすると、同じ LLM でも **根拠つきの答え** や **推測・漏洩の抑制** が起きやすい（`agent` の A vs B）
+- 第1部の **5種類のグラフ** は暗記用の一覧ではなく、障害対応の **場面ごとに使い分ける**（`scenario` の S1〜S5）
+- 「グラフなら何でも Neo4j 1つ」ではなく、類似や集計など **問いの型で物理層を分ける** と、渡す事実の精度が上がる（`agent` の Q5 や `compare` の Q2/Q5）
+
+一言でいうと、**正確な情報をエージェントにどう渡すか**と、そのために **5種類のグラフをどう使い分けるか** を体験する、がこの experiment のゴールです。
+
+### ここでは言わないこと（記事や別デモの範囲）
+
+- グラフに従ってチケットを更新する、承認を実行する、など **アクションそのものの正しさ**
+- 本番6層フル構成や write-time enrichment の運用
+
+「判断材料が正確になる」まではこのディレクトリで確認できます。「正確なアクションを取れる」までは、この experiment の主張ではありません。
+
+---
+
+## コマンド早見（迷ったとき）
+
+| コマンド | 何のため | 必須？ |
+|---------|----------|--------|
+| `setup` | コンテナ起動 + seed | **必須（最初に1回）** |
+| `scenario` | G2 | **必須** |
+| `agent` | G1 + G3 | **必須**（LLM 推奨） |
+| `compare` | 精度表 | 推奨 |
+| `full` | 上3つの連続 | 任意 |
+| `guide` | この体験の短い案内 | 任意 |
+| `stage0` / `stage1` / `stage2` | 段階ごとのデバッグ | 任意 |
+| `graphs` | Edge 型の一覧（開発用） | 任意 |
+| `verify` | 記事用にログをファイル保存 | **読者は不要**（下記） |
+
+```bash
+./run_demo.sh setup
+./run_demo.sh scenario
+./run_demo.sh agent
+./run_demo.sh compare
+```
+
+---
+
+## 著者・記事執筆用（読者はスキップしてよい）
+
+記事 §8 に載せる実行ログを残すときだけ使います。**既存ログは上書きせず**、`verification-logs/<tag>/runs/<run_id>/` に追記します。
+
+```bash
+./run_demo.sh verify
+# または
 ./run_demo.sh verify 2026-07-13-gemma2-2b
 ```
 
-| 出力 | 内容 |
-|------|------|
-| `<tag>/runs/<run_id>/manifest.json` | 記録日時・`run_id`・`gemma2:2b`・既定 QID・git HEAD |
-| `*.log` / `summary.md` | 当該 run の全文（不変） |
-| `verification-logs/index.jsonl` | 全 run の索引（1行追記） |
-
-詳細: [verification-logs/README.md](./verification-logs/README.md)。記事 §8 基準 run: [`2026-07-13-gemma2-2b/runs/20260713T074053Z/`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/)。
-
-**再現の前提**: クイックスタートと同じ（`gemma2:2b`・`nomic-embed-text`・seed 済み Neo4j/Qdrant/SQLite）。LLM の自然文はモデルで多少変わるが、**fact の数値・compare ラベル・回答の傾向**は seed 固定で再現性が高い。
-
-## クイックスタート
-
-```bash
-# 別ターミナル（LLM を使う場合のみ。graphs / stage0 / stage2 の構造確認は不要）
-ollama serve
-ollama pull gemma2:2b          # agent の LLM 回答用
-ollama pull nomic-embed-text   # Q2 の意味的類似用
-
-cd experiments/ai-agent-graph-production-layers
-cp env.sample .env
-pip install -r requirements.txt   # .venv 可
-
-./run_demo.sh setup
-./run_demo.sh scenario # G2: 第1部5種を1本の障害物語で（Ollama 不要）
-./run_demo.sh agent    # G1 + G3（MD vs グラフ + Q5 で段階1 vs 分離）
-./run_demo.sh compare  # 精度ラベル比較（Ollama 不要）
-./run_demo.sh full     # scenario + agent + compare
-./run_demo.sh verify   # 記事用ログ（verification-logs/）
-```
-
-| コンポーネント | どこで動くか |
-|----------------|-------------|
-| Neo4j | `compose.yaml`（ポート 7474 / 7687） |
-| Qdrant | `compose.yaml`（ポート 6333） |
-| SQLite | ホスト上 `audit.db`（コンテナ不要） |
-| LangGraph | `retrieve_context → route_layer → generate`（**agent**） |
-| Ollama | **agent** で LLM 回答（scenario/compare/graphs は不要） |
-
-**前提**: Docker または Podman、Python 3.11+。他 experiment の Neo4j と **同時起動不可**（ポート競合）。
+詳細: [verification-logs/README.md](./verification-logs/README.md)  
+基準 run（§8 転記用）: [`2026-07-13-gemma2-2b/runs/20260713T074053Z/`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/)
 
 ---
 
-## コマンド一覧
+## 第1部・第2部との対応（参照用）
 
-```bash
-./run_demo.sh setup     # コンテナ起動 + seed
-./run_demo.sh scenario  # G2: 第1部5種を1本の障害物語で（LLM 不要）
-./run_demo.sh agent     # G1 + G3: LangGraph + Ollama
-./run_demo.sh compare   # 精度比較（LLM 不要）
-./run_demo.sh verify    # 記事掲載用ログを verification-logs/ に保存
-./run_demo.sh graphs    # 第1部5種類 + Edge 型一覧（開発用）
-./run_demo.sh stage0    # 段階0のみ
-./run_demo.sh stage1    # 段階1のみ
-./run_demo.sh stage2    # 段階2: Q1〜Q8 ルーティング
-./run_demo.sh quick     # compare と同じ
-./run_demo.sh full      # scenario + agent + compare
-./run_demo.sh guide     # 体験の全体像
-```
+実装の対応表です。体験の本筋は上の手順です。
 
-各 script 末尾の **`=== 確認 ===`** がチェックリストです。
+**第1部 5種類** → `scenario` の S1〜S5（Neo4j の型付き Edge + LangGraph）
 
----
+| 種類 | Edge / 実行 |
+|------|------------|
+| ナレッジグラフ | `AFFECTS`, `OWNED_BY` |
+| タスクグラフ | `TASK_PREREQUISITE` |
+| DAG | LangGraph 固定有向エッジ |
+| ワークフロー | `WF_TRANSITION` |
+| ステートグラフ | `state.phase` |
 
-## 第1部 5 種類（必須）
-
-| 種類 | Edge / 実行 | 実装 |
-|------|------------|------|
-| ナレッジグラフ | `AFFECTS`, `OWNED_BY` | `data/incident.cypher` |
-| タスクグラフ | `TASK_PREREQUISITE` | `app/layers/task_graph.py` |
-| DAG | LangGraph 固定有向エッジ | `app/graphs/dag_graph.py` |
-| ワークフロー | `WF_TRANSITION` | `app/layers/workflow_graph.py` + LangGraph |
-| ステートグラフ | `state.phase` | `app/agent_langgraph.py` |
-
-`./run_demo.sh scenario` は、この 5 種を障害 INC-001 の S1〜S5 として順に辿ります。YAML / Markdown を正本にしません（段階 0 の `fragments.json` は**わざと**対照用のみ）。
-
----
-
-## 第2部 6 特殊化 — Q1〜Q8
+**第2部 6特殊化** → 主に `compare` / `agent` の Q1〜Q8
 
 | ID | 質問 | 物理層 |
 |----|------|--------|
-| Q1 | このチケットの顧客は？ | Neo4j KG |
+| Q1 | 顧客は？ | Neo4j KG |
 | Q2 | 類似の過去障害は？ | Qdrant |
-| Q3 | ログ基盤障害の影響範囲は？ | Neo4j `BLOCKS` |
-| Q4 | このエージェントは見てよいか？ | Neo4j `CAN_READ` |
-| Q5 | 過去 30 日 P0 トップ製品は？ | SQLite |
-| Q6 | Slack とメールは同一顧客か？ | Neo4j `SAME_AS` |
-| Q7 | P0 昇格の 30 分前に何が？ | Neo4j `:Event` |
-| Q8 | このターンで渡したノードは？ | コンテキスト部分グラフ |
-
----
-
-## ディレクトリ構成
-
-```
-ai-agent-graph-production-layers/
-├── README.md
-├── verification-logs/      # 記事掲載用の実機検証ログ
-├── compose.yaml
-├── run_demo.sh
-├── data/
-│   ├── fragments.json      # 段階0のみ
-│   ├── incident.cypher     # Neo4j seed
-│   ├── incident_docs.jsonl # Qdrant
-│   └── audit_seed.sql      # SQLite
-└── app/
-    ├── agent_router.py       # LangGraph retrieve → route_layer → generate（agent）
-    ├── context_builders.py   # MD断片 vs グラフ fact の組み立て
-    ├── answer_paths.py       # 段階0/1/2 の回答ロジック
-    ├── demo_scenario.py      # scenario コマンド（G2: 第1部5種の物語）
-    ├── compare_layers.py     # compare コマンド
-    ├── demo_agent.py         # agent コマンド（G1 + G3）
-    ├── record_verification.py   # verify コマンド（記事用ログ）
-    ├── verification_manifest.py
-    ├── setup_seed.py
-    ├── demo_graphs.py
-    ├── stage0_fragments.py
-    ├── stage1_neo4j_only.py
-    ├── stage2_router.py
-    ├── agent_langgraph.py    # scenario/graphs: DAG + ステート展示
-    ├── graphs/dag_graph.py
-    └── layers/
-```
-
----
-
-## 完了条件
-
-- [ ] `./run_demo.sh scenario` → S1〜S5 で第1部5種の役割差を説明できる（G2）
-- [ ] `./run_demo.sh agent` → Q4/Q6/Q7 で MD とグラフの LLM 回答差、Q5 で Neo4j単体 vs 分離の差が目視できる（G1/G3）
-- [ ] `./run_demo.sh compare` → 精度差が目視できる（Ollama 不要）
-- [ ] `./run_demo.sh stage2` → Q1〜Q8 がルーティング付きで答えられる
-- [ ] `./run_demo.sh full` → scenario + agent + compare が連続で通る
-- [ ] 本 README に他 experiment への実行依存がない
+| Q3 | 影響範囲は？ | Neo4j `BLOCKS` |
+| Q4 | 見てよいか？ | Neo4j `CAN_READ` |
+| Q5 | P0 トップ製品は？ | SQLite |
+| Q6 | 同一顧客か？ | Neo4j `SAME_AS` |
+| Q7 | 昇格30分前は？ | Neo4j `:Event` |
+| Q8 | このターンのノードは？ | コンテキスト部分グラフ |
 
 ---
 
 ## トラブルシューティング
 
-| 症状 | 対処 |
-|------|------|
-| ポート 7474 が使用中 | 他 experiment の Neo4j を `compose down` |
-| `setup` で Neo4j 接続失敗 | 30 秒ほど待って `./run_demo.sh setup` を再実行 |
-| Qdrant 接続失敗 | `podman compose ps` / `docker compose ps` で qdrant が Up か確認 |
+| 症状 | 確認すること |
+|------|----------------|
+| ポート 7474 が使用中 | 他 experiment の Neo4j を止める |
+| `setup` で Neo4j 接続失敗 | 30 秒待って `./run_demo.sh setup` を再実行 |
+| Qdrant 接続失敗 | `docker compose ps` または `podman compose ps` で qdrant が Up か |
+| `agent` で回答がスキップ | `ollama serve` と `ollama pull gemma2:2b` |
+| Q2 の類似がおかしい | `ollama pull nomic-embed-text` のあと `./run_demo.sh setup` |
+| Q5 で C（Neo4j単体）が出ない | 既定は Q6,Q7,Q5,Q4。手動なら `python app/demo_agent.py --qids Q5` |
 
-Neo4j Browser: http://localhost:7474（認証: `neo4j` / `.env` のパスワード）
+Neo4j Browser: http://localhost:7474（`neo4j` / `.env` のパスワード）
+
+---
+
+## ディレクトリ（ざっくり）
+
+```
+ai-agent-graph-production-layers/
+├── README.md                 ← いま読んでいる手順
+├── run_demo.sh               ← エントリポイント
+├── compose.yaml              ← Neo4j + Qdrant
+├── env.sample                ← cp して .env に
+├── data/                     ← seed（fragments / cypher / qdrant / sqlite）
+├── app/                      ← scenario / agent / compare の実装
+└── verification-logs/        ← 記事用の保存ログ（読者体験には不要）
+```
 
 ---
 
@@ -223,4 +402,4 @@ Neo4j Browser: http://localhost:7474（認証: `neo4j` / `.env` のパスワー�
 
 - [第1部: 5種類のグラフ](https://zenn.dev/knowledge_graph/articles/ai-agent-five-graph-types)
 - [第2部: グラフ特殊化](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-specialization)
-- [第3部: 本番レイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers)（本記事・ドラフト）
+- [第3部: 本番レイヤー設計](https://zenn.dev/knowledge_graph/articles/ai-agent-graph-production-layers)（論理はこちら）
