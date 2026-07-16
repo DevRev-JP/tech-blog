@@ -140,7 +140,7 @@ Ollama が止まっているとき:
 
 #### 各問いの合否（傾向で判定）
 
-LLM の文言はモデルで多少変わります。**傾向**が合えば合格です（基準ログ: [`verification-logs/.../agent.log`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/agent.log)、`gemma2:2b`）。
+LLM の文言はモデルで多少変わります。**傾向**が合えば合格です（下表。モデル例: `gemma2:2b`）。
 
 | 問い | ゴール | A. MD断片 | B. グラフ（層分離） | C. Neo4j単体 |
 |------|--------|-----------|-------------------|--------------|
@@ -313,7 +313,7 @@ S5 LangGraph state.phase
 | `guide` | この体験の短い案内 | 任意 |
 | `stage0` / `stage1` / `stage2` | 段階ごとのデバッグ | 任意 |
 | `graphs` | Edge 型の一覧（開発用） | 任意 |
-| `verify` | 記事用にログをファイル保存 | **読者は不要**（下記） |
+| `stage0` / `stage1` / `stage2` | 段階ごとのデバッグ | 任意 |
 
 ```bash
 ./run_demo.sh setup
@@ -321,21 +321,6 @@ S5 LangGraph state.phase
 ./run_demo.sh agent
 ./run_demo.sh compare
 ```
-
----
-
-## 著者・記事執筆用（読者はスキップしてよい）
-
-記事 §8 に載せる実行ログを残すときだけ使います。**既存ログは上書きせず**、`verification-logs/<tag>/runs/<run_id>/` に追記します。
-
-```bash
-./run_demo.sh verify
-# または
-./run_demo.sh verify 2026-07-13-gemma2-2b
-```
-
-詳細: [verification-logs/README.md](./verification-logs/README.md)  
-基準 run（§8 転記用）: [`2026-07-13-gemma2-2b/runs/20260713T074053Z/`](./verification-logs/2026-07-13-gemma2-2b/runs/20260713T074053Z/)
 
 ---
 
@@ -392,8 +377,7 @@ ai-agent-graph-production-layers/
 ├── compose.yaml              ← Neo4j + Qdrant
 ├── env.sample                ← cp して .env に
 ├── data/                     ← seed（fragments / cypher / qdrant / sqlite）
-├── app/                      ← scenario / agent / compare の実装
-└── verification-logs/        ← 記事用の保存ログ（読者体験には不要）
+└── app/                      ← scenario / agent / compare の実装
 ```
 
 ---

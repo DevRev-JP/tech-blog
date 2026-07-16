@@ -29,7 +29,6 @@ Commands:
   scenario  障害 INC-001 を第1部5種で辿る（G2・LLM 不要）
   agent     LangGraph + Ollama（G1 MD vs グラフ + G3 Q5 で段階1 vs 分離）
   compare   8問の精度ラベル ◎/▲/✗ 一覧（LLM 不要・補助）
-  verify    記事用: scenario+compare+agent を verification-logs/<tag>/runs/<run_id>/ に追記
   graphs    第1部5種類の Edge 型表示（開発用）
   stage0    段階0: fragments.json の限界
   stage1    段階1: Neo4j 単体のつらさ
@@ -82,11 +81,6 @@ cmd_full() {
   cmd_compare
 }
 
-cmd_verify() {
-  local tag="${1:-$(date +%Y-%m-%d)}"
-  $PYTHON app/record_verification.py "$tag"
-}
-
 cmd_guide() {
   cat <<'EOF'
 
@@ -96,7 +90,6 @@ cmd_guide() {
   scenario → 第1部5種を1本の障害物語で辿る（G2・LLM 不要）
   agent    → LangGraph + Ollama（G1 + G3）
   compare  → 8問の精度ラベル ◎/▲/✗（補助・LLM 不要）
-  verify   → 上記3つを verification-logs/ に記録（記事掲載用）
   graphs   → 第1部5種の Edge 型（開発用）
   stage2   → Q1〜Q8 ルーティング一覧
   quick    → compare と同じ
@@ -121,7 +114,6 @@ main() {
     stage2) cmd_stage2 ;;
     quick) cmd_quick ;;
     full) cmd_full ;;
-    verify) cmd_verify "${2:-}" ;;
     guide) cmd_guide ;;
     -h|--help|help|"") usage ;;
     *) echo "不明なコマンド: $cmd" >&2; usage; exit 1 ;;
