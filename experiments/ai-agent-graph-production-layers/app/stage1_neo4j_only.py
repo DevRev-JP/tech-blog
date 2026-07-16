@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""段階1: 全部 Neo4j に押し込むつらさ（集計・類似は別層向き）."""
+"""全部 Neo4j に押し込むつらさ（集計・類似は別層向き）."""
 
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ sys.path.insert(0, str(ROOT))
 from app.answer_paths import QUESTIONS, answer_neo4j_only, answer_routed, precision_label  # noqa: E402
 from app.shared import confirm_block  # noqa: E402
 
-FOCUS = ["Q2", "Q5", "Q1", "Q3"]
+FOCUS = ["Q5", "Q6", "Q1", "Q4"]
 
 
 def main() -> None:
-    print("段階1 — 単一 Graph DB（Neo4j）に全部載せた想定")
+    print("単一 Graph DB（Neo4j）に全部載せた想定")
     print("関係 traversal は強いが、類似検索・監査集計は別層の方が精度が出る\n")
 
     for qid in FOCUS:
@@ -34,9 +34,9 @@ def main() -> None:
     confirm_block(
         "stage1",
         [
-            "Q1/Q3: Neo4j 単体で十分（◎）",
-            "Q2: キーワードだけ → Qdrant 分離で過去障害を拾える",
-            "Q5: Issue.severity 集計 vs audit_log 集計で件数がずれる",
+            "Q1/Q4: Neo4j 単体で十分（◎）",
+            "Q5: キーワードだけ → Qdrant 分離で過去障害を拾える",
+            "Q6: Issue.severity 集計 vs audit_log 集計で件数がずれる",
             "→ ./run_demo.sh compare で全問の精度差を一覧",
         ],
     )

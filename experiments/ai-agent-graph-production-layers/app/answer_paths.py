@@ -1,4 +1,4 @@
-"""Q1〜Q8 を段階0（ファイル）/ 段階1（Neo4j単体）/ 段階2（分離）で答える."""
+"""Q1〜Q8 をファイル / Neo4j単体 / 層分離で答える."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from app.shared import DATA_DIR, ISSUE_ID, load_json, neo4j_session
 
 Precision = Literal["high", "medium", "low", "none"]
 
-Q2_QUERY = "Acme Search latency Globex"
+SIMILAR_QUERY = "Acme Search latency Globex"
 CHANNEL_IDS = ["slack-globex-support", "email-globex-ops"]
 
 
@@ -28,11 +28,7 @@ class AnswerResult:
 
 @dataclass(frozen=True)
 class QuestionMeta:
-    """1つの問いのメタデータ。質問文と「効くグラフの種類」を1箇所で持つ.
-
-    graph_kind は第1部5種 / 第2部特殊化のどれが効くか（route_layer が表示）。
-    物理層（Neo4j KG 等）は段階ごとに異なるため answer_*().reason 側が持つ。
-    """
+    """1つの問いのメタデータ。質問文と効くグラフの種類を1箇所で持つ."""
 
     text: str
     graph_kind: str
@@ -40,16 +36,15 @@ class QuestionMeta:
 
 QUESTION_META: dict[str, QuestionMeta] = {
     "Q1": QuestionMeta("このチケット（INC-001）の顧客は？", "[1]ナレッジグラフ"),
-    "Q2": QuestionMeta("類似の過去障害は？", "コンテキスト（意味的類似・5種の外）"),
-    "Q3": QuestionMeta("ログ基盤障害の影響範囲は？", "依存関係グラフ（[1]KG の特殊化）"),
-    "Q4": QuestionMeta("agent_guest は INC-001 を見てよいか？", "権限グラフ（[1]KG の特殊化）"),
-    "Q5": QuestionMeta("過去30日の P0 件数トップ製品は？", "監査グラフ（集計）"),
-    "Q6": QuestionMeta("Slack とメールは同一顧客か？", "同一性グラフ（[1]KG の特殊化）"),
+    "Q2": QuestionMeta("Slack とメールは同一顧客か？", "同一性グラフ（[1]KG の特殊化）"),
+    "Q3": QuestionMeta("agent_guest は INC-001 を見てよいか？", "権限グラフ（[1]KG の特殊化）"),
+    "Q4": QuestionMeta("ログ基盤障害の影響範囲は？", "依存関係グラフ（[1]KG の特殊化）"),
+    "Q5": QuestionMeta("類似の過去障害は？", "コンテキスト（意味的類似・5種の外）"),
+    "Q6": QuestionMeta("過去30日の P0 件数トップ製品は？", "監査グラフ（集計）"),
     "Q7": QuestionMeta("P0 昇格の30分前に何があったか？", "時間軸グラフ"),
     "Q8": QuestionMeta("このターンで LLM に渡すノードは？", "コンテキストグラフ"),
 }
 
-# 質問文だけの索引（QUESTION_META から導出）
 QUESTIONS: dict[str, str] = {qid: m.text for qid, m in QUESTION_META.items()}
 
 
@@ -78,7 +73,7 @@ def _neo4j_p0_count_by_product() -> list[dict]:
         return [{"product": r["product"], "p0_count": r["p0_count"]} for r in rows]
 
 
-# --- 段階0: ファイル（断片） ---
+# --- ファイル（断片） ---
 
 
 def answer_file(qid: str) -> AnswerResult:
@@ -96,35 +91,35 @@ def answer_file(qid: str) -> AnswerResult:
             reason="断片ごとに粒度が違う。Customer ノード / OWNED_BY Edge がない",
         )
     if qid == "Q2":
+        return AnswerResult(
+            value={"slack": "globex-support", "email": "ops@globex.example"},
+            precision="low",
+            reason="SAME_AS がない。別チャネル＝別顧客と誤認しやすい",
+        )
+    if qid == "Q3":
+        return AnswerResult(
+            value="プロンプトで「秘匿を答えるな」と書く想定",
+            precision="none",
+            reason="CAN_READ 型がない。断片に混ざれば漏れる",
+        )
+    if qid == "Q4":
+        return AnswerResult(
+            value=texts.get("runbook", ""),
+            precision="medium",
+            reason="叙述はあるが BLOCKS Edge として機械は辿れない",
+        )
+    if qid == "Q5":
         hits = [t for t in texts.values() if "Acme" in t or "検索" in t or "Search" in t]
         return AnswerResult(
             value=hits,
             precision="low",
             reason="キーワード一致のみ。意味的類似・ランキングなし",
         )
-    if qid == "Q3":
-        return AnswerResult(
-            value=texts.get("runbook", ""),
-            precision="medium",
-            reason="叙述はあるが BLOCKS Edge として機械は辿れない",
-        )
-    if qid == "Q4":
-        return AnswerResult(
-            value="プロンプトで「秘匿を答えるな」と書く想定",
-            precision="none",
-            reason="CAN_READ 型がない。断片に混ざれば漏れる",
-        )
-    if qid == "Q5":
+    if qid == "Q6":
         return AnswerResult(
             value=texts.get("note", ""),
             precision="none",
             reason="GROUP BY 不可。根拠ない叙述のみ",
-        )
-    if qid == "Q6":
-        return AnswerResult(
-            value={"slack": "globex-support", "email": "ops@globex.example"},
-            precision="low",
-            reason="SAME_AS がない。別チャネル＝別顧客と誤認しやすい",
         )
     if qid == "Q7":
         return AnswerResult(
@@ -141,7 +136,7 @@ def answer_file(qid: str) -> AnswerResult:
     raise KeyError(qid)
 
 
-# --- 段階1: Neo4j 単体（全部 Graph DB） ---
+# --- Neo4j 単体 ---
 
 
 def answer_neo4j_only(qid: str) -> AnswerResult:
@@ -149,26 +144,29 @@ def answer_neo4j_only(qid: str) -> AnswerResult:
         v = q1_customer()
         return AnswerResult(v, "high", "KG traversal（AFFECTS→OWNED_BY）")
     if qid == "Q2":
-        ids = _neo4j_keyword_incidents("search")
-        return AnswerResult(
-            value=ids,
-            precision="low",
-            reason="Neo4j にベクトル層なし。タイトルキーワード一致のみ（過去障害を取りこぼす）",
-        )
+        v = q6_same_customer(CHANNEL_IDS)
+        return AnswerResult(v, "high", "SAME_AS traversal")
     if qid == "Q3":
-        return AnswerResult(
-            value=q3_blocked_services(),
-            precision="high",
-            reason="BLOCKS traversal は Graph DB 向き",
-        )
-    if qid == "Q4":
         allowed = q4_can_read("agent_guest", ISSUE_ID)
         return AnswerResult(
             value=allowed,
             precision="high",
             reason="CAN_READ traversal（取得段階で遮断）",
         )
+    if qid == "Q4":
+        return AnswerResult(
+            value=q3_blocked_services(),
+            precision="high",
+            reason="BLOCKS traversal は Graph DB 向き",
+        )
     if qid == "Q5":
+        ids = _neo4j_keyword_incidents("search")
+        return AnswerResult(
+            value=ids,
+            precision="low",
+            reason="Neo4j にベクトル層なし。タイトルキーワード一致のみ（過去障害を取りこぼす）",
+        )
+    if qid == "Q6":
         neo = _neo4j_p0_count_by_product()
         sql = q5_p0_top_products()
         return AnswerResult(
@@ -176,50 +174,49 @@ def answer_neo4j_only(qid: str) -> AnswerResult:
             precision="low",
             reason="監査集計を Cypher に押し込むと Issue.severity 固定値だけになり audit_log と乖離",
         )
-    if qid == "Q6":
-        v = q6_same_customer(CHANNEL_IDS)
-        return AnswerResult(v, "high", "SAME_AS traversal")
     if qid == "Q7":
+        events = q7_events_before_escalation()
         return AnswerResult(
             value={
                 "escalated_at": q7_escalated_at(),
-                "events": q7_events_before_escalation(),
+                "within_30min_before": events,
             },
             precision="high",
             reason="Event 鎖は Neo4j で足りる（専用 TS DB は PoC では省略）",
         )
     if qid == "Q8":
         nodes = q8_context_nodes()
+        ids = [n["node_id"] for n in nodes if n.get("node_id")]
         return AnswerResult(
-            value=nodes,
-            precision="medium",
-            reason="SCOPE_INCLUDES はあるが、類似検索・監査が同じ DB クエリに混ざりやすい",
+            value=sorted(set(ids)),
+            precision="high",
+            reason="SCOPE_INCLUDES で node_ids を取得（層分離と同じ範囲）",
         )
     raise KeyError(qid)
 
 
-# --- 段階2: 物理層分離 ---
+# --- 層分離 ---
 
 
 def answer_routed(qid: str) -> AnswerResult:
     if qid == "Q1":
         return AnswerResult(q1_customer(), "high", "Neo4j KG")
     if qid == "Q2":
-        hits = q2_similar(Q2_QUERY)
+        v = q6_same_customer(CHANNEL_IDS)
+        return AnswerResult(v, "high", "Neo4j SAME_AS")
+    if qid == "Q3":
+        return AnswerResult(q4_can_read("agent_guest", ISSUE_ID), "high", "Neo4j CAN_READ")
+    if qid == "Q4":
+        return AnswerResult(q3_blocked_services(), "high", "Neo4j BLOCKS")
+    if qid == "Q5":
+        hits = q2_similar(SIMILAR_QUERY)
         return AnswerResult(
             value=[h.get("id") for h in hits],
             precision="high",
             reason="Qdrant 意味的類似（Embeddings 層）",
         )
-    if qid == "Q3":
-        return AnswerResult(q3_blocked_services(), "high", "Neo4j BLOCKS")
-    if qid == "Q4":
-        return AnswerResult(q4_can_read("agent_guest", ISSUE_ID), "high", "Neo4j CAN_READ")
-    if qid == "Q5":
-        return AnswerResult(q5_p0_top_products(), "high", "SQLite audit_log 集計")
     if qid == "Q6":
-        v = q6_same_customer(CHANNEL_IDS)
-        return AnswerResult(v, "high", "Neo4j SAME_AS")
+        return AnswerResult(q5_p0_top_products(), "high", "SQLite audit_log 集計")
     if qid == "Q7":
         events = q7_events_before_escalation()
         return AnswerResult(

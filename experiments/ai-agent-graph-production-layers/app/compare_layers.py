@@ -18,7 +18,6 @@ from app.answer_paths import (  # noqa: E402
 )
 from app.shared import confirm_block, narrate  # noqa: E402
 
-# 体感の差が最も出る問い（全8問は stage2 で）
 COMPARE_IDS = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"]
 
 
@@ -35,13 +34,12 @@ def main() -> None:
     print("=" * 60)
     narrate(
         [
-            "これから、同じ問いに対して「渡せる情報の確かさ」を表にします。AI は使いません。",
+            "同じ問いに対して「渡せる情報の確かさ」を表にします。AI は使いません。",
             "前半はファイルと層分離の比べ、後半は Neo4j だけと層分離の比べです。",
-            "後半で差が出やすいのは、類似障害（Q2）と件数集計（Q5）です。",
+            "後半で差が出やすいのは、類似障害と件数集計の問いです。",
         ]
     )
 
-    # 各問いの回答は DB クエリを伴うので、段階ごとに1度だけ計算して使い回す
     file_ans = {qid: answer_file(qid) for qid in COMPARE_IDS}
     neo_ans = {qid: answer_neo4j_only(qid) for qid in COMPARE_IDS}
     routed_ans = {qid: answer_routed(qid) for qid in COMPARE_IDS}
@@ -62,13 +60,13 @@ def main() -> None:
         _print_row("グラフ(分離)", routed_ans[qid])
 
     print("\n" + "=" * 60)
-    print("  B. グラフ1つ(Neo4j) vs 分離（段階1 vs 段階2）")
+    print("  B. グラフ1つ(Neo4j) vs 分離")
     print("     全部 Graph DB に入れたときの精度落ち")
     print("=" * 60)
     narrate(
         [
             "全部を Neo4j に入れた場合と、層を分けた場合で差が出る問いだけ出します。",
-            "類似障害と件数集計に注目してください。時間軸（Q7）は両方うまくいく例です。",
+            "類似障害と件数集計に注目してください。時間軸の問いは両方うまくいく例です。",
         ]
     )
 
@@ -80,24 +78,23 @@ def main() -> None:
         print(f"\n{qid}: {QUESTIONS[qid]}")
         _print_row("Neo4j単体", neo)
         _print_row("分離", routed)
-        if qid == "Q5":
-            print("  ※ Q5: Issue.severity 集計(1件) vs audit_log 集計(複数件) の差が典型")
+        if qid == "Q6":
+            print("  ※ Issue.severity 集計(1件) vs audit_log 集計(複数件) の差が典型")
 
     print("\n" + "=" * 60)
-    print("  C. まとめ（言えること）")
+    print("  C. まとめ")
     print("=" * 60)
     print("  1. ファイルは叙述は書けるが Edge の型がない → 推測・漏れ・集計不可")
-    print("  2. グラフ(Neo4j)は関係 traversal は高精度（Q1/Q3/Q4/Q6）")
-    print("  3. 全部 Neo4j だけだと類似検索(Q2)と監査集計(Q5)が弱い/ずれる")
-    print("  4. 分離すると問いごとに最適層を叩き、同じ Q で精度が上がる")
+    print("  2. グラフ(Neo4j)は関係をたどる問いでは高精度")
+    print("  3. 全部 Neo4j だけだと類似検索と監査集計が弱い / ずれる")
+    print("  4. 分離すると問いごとに最適層を叩き、同じ問いで精度が上がる")
 
     confirm_block(
         "compare",
         [
-            "MD断片 vs グラフ: Q4/Q6/Q7 で精度差を目視できる",
-            "Neo4j単体 vs 分離: Q2/Q5 で AI に渡す fact が変わる",
+            "MD断片 vs グラフ: 顧客・同一性・権限・時間軸などで精度差を目視できる",
+            "Neo4j単体 vs 分離: 類似障害と件数集計で渡す fact が変わる",
             "LangGraph 本体験: ./run_demo.sh agent",
-            "記事の核心「AIが読むもの」の差を自分で説明できる",
         ],
     )
 

@@ -30,11 +30,10 @@ def _format_graph_facts(title: str, facts: list[str]) -> str:
 
 
 def build_file_context(qid: str) -> tuple[str, ContextKind, str]:
-    """段階0: AI は MD 断片をそのまま読む（Edge 型なし）."""
+    """ファイル: AI は MD 断片をそのまま読む（Edge 型なし）."""
     md = _fragments_markdown()
     note = ""
-    if qid == "Q4":
-        # 権限は「秘匿を答えるな」という自然文の指示でしか表現できない（＝型がない）
+    if qid == "Q3":
         note = (
             "\n（補足: 質問者は agent_guest。断片には CAN_READ の型がないため、"
             "秘匿かどうかはこの叙述からは判定できません）\n"
@@ -44,12 +43,11 @@ def build_file_context(qid: str) -> tuple[str, ContextKind, str]:
         f"## 質問\n{qid} に関連しそうな記述を上から探して答えてください。\n"
         f"（注意: 断片には Edge 型がありません）\n"
     )
-    # route（取得経路）は file モードでは route_layer が上書きするため空で返す
     return body, "markdown_fragments", ""
 
 
 def build_neo4j_only_context(qid: str) -> tuple[str, ContextKind, str]:
-    """段階1: 全部 Neo4j から取る想定（グラフだが層分離なし）."""
+    """全部 Neo4j から取る想定（層分離なし）."""
     facts: list[str] = []
     route = "Neo4j のみ"
 
@@ -60,10 +58,15 @@ def build_neo4j_only_context(qid: str) -> tuple[str, ContextKind, str]:
             f"(Product)-[:OWNED_BY]->(Customer {{name:{v['customer']}}})",
         ]
     elif qid == "Q2":
+        v = answer_neo4j_only(qid).value
+        ch = v.get("channels", {})
+        facts = [f"(ChannelAccount)-[:SAME_AS]->(Customer {{name:{name}}})" for name in ch.values()]
+        route = "Neo4j SAME_AS"
+    elif qid == "Q5":
         ids = answer_neo4j_only(qid).value
         facts = [f"(Issue {{id:{i}}})  ※キーワード一致のみ。ベクトル層なし" for i in ids]
         route = "Neo4j Issue キーワード検索"
-    elif qid == "Q5":
+    elif qid == "Q6":
         v = answer_neo4j_only(qid).value
         neo = v.get("neo4j_issue_severity", [])
         facts = [
@@ -71,15 +74,10 @@ def build_neo4j_only_context(qid: str) -> tuple[str, ContextKind, str]:
             *[f"(Product {{name:{r['product']}}}) P0 count={r['p0_count']}" for r in neo],
         ]
         route = "Neo4j Cypher 集計（audit と乖離しうる）"
-    elif qid == "Q6":
-        v = answer_neo4j_only(qid).value
-        ch = v.get("channels", {})
-        facts = [f"(ChannelAccount)-[:SAME_AS]->(Customer {{name:{name}}})" for name in ch.values()]
-        route = "Neo4j SAME_AS"
     elif qid == "Q7":
         v = answer_neo4j_only(qid).value
         facts = [f"escalated_at: {v.get('escalated_at')}"]
-        for e in v.get("events", []):
+        for e in v.get("within_30min_before", []):
             facts.append(f"(Event {{id:{e['id']}}})-[:BEFORE]-> ... at={e['at']} name={e['name']}")
         route = "Neo4j Event 鎖"
     else:
@@ -91,7 +89,7 @@ def build_neo4j_only_context(qid: str) -> tuple[str, ContextKind, str]:
 
 
 def build_routed_context(qid: str) -> tuple[str, ContextKind, str]:
-    """段階2: 問いごとに層を分け、グラフとして AI に渡す."""
+    """問いごとに層を分け、グラフとして AI に渡す."""
     facts: list[str] = []
     route = ""
 
@@ -103,17 +101,6 @@ def build_routed_context(qid: str) -> tuple[str, ContextKind, str]:
         ]
         route = "Neo4j KG traversal"
     elif qid == "Q2":
-        hits = answer_routed(qid).value
-        facts = [f"(SimilarIncident {{id:{i}}})  ※Qdrant 意味的類似" for i in hits]
-        route = "Qdrant vector search"
-    elif qid == "Q5":
-        rows = answer_routed(qid).value
-        facts = [
-            "※ SQLite audit_log 集計（昇格イベント）",
-            *[f"product={r['product']} P0_escalations={r['p0_count']}" for r in rows],
-        ]
-        route = "SQLite GROUP BY"
-    elif qid == "Q6":
         v = answer_routed(qid).value
         for cid, name in v.get("channels", {}).items():
             facts.append(f"(ChannelAccount {{id:{cid}}})-[:SAME_AS]->(Customer {{name:{name}}})")
@@ -122,17 +109,7 @@ def build_routed_context(qid: str) -> tuple[str, ContextKind, str]:
         else:
             facts.append("→ Slack とメールは別の顧客に繋がる")
         route = "Neo4j SAME_AS"
-    elif qid == "Q7":
-        v = answer_routed(qid).value
-        esc = v.get("escalated_at")
-        facts.append(f"(Issue)-[:ESCALATED_AT]->(Event) at={esc}")
-        before = [e for e in v.get("within_30min_before", []) if e.get("at") != esc]
-        for e in before:
-            facts.append(f"(Event)-[:BEFORE]->(escalation)  {e['at']}  {e['name']}")
-        names = "、".join(e["name"] for e in before) or "（該当なし）"
-        facts.append(f"→ P0 昇格（{esc}）の30分前に起きたのは: {names}")
-        route = "Neo4j Event + BEFORE"
-    elif qid == "Q4":
+    elif qid == "Q3":
         allowed = answer_routed(qid).value
         if allowed:
             facts = [
@@ -145,6 +122,27 @@ def build_routed_context(qid: str) -> tuple[str, ContextKind, str]:
                 "→ agent_guest には INC-001 を閲覧する権限がない（本文は渡さない）",
             ]
         route = "Neo4j CAN_READ traversal"
+    elif qid == "Q5":
+        hits = answer_routed(qid).value
+        facts = [f"(SimilarIncident {{id:{i}}})  ※Qdrant 意味的類似" for i in hits]
+        route = "Qdrant vector search"
+    elif qid == "Q6":
+        rows = answer_routed(qid).value
+        facts = [
+            "※ SQLite audit_log 集計（昇格イベント）",
+            *[f"product={r['product']} P0_escalations={r['p0_count']}" for r in rows],
+        ]
+        route = "SQLite GROUP BY"
+    elif qid == "Q7":
+        v = answer_routed(qid).value
+        esc = v.get("escalated_at")
+        facts.append(f"(Issue)-[:ESCALATED_AT]->(Event) at={esc}")
+        before = [e for e in v.get("within_30min_before", []) if e.get("at") != esc]
+        for e in before:
+            facts.append(f"(Event)-[:BEFORE]->(escalation)  {e['at']}  {e['name']}")
+        names = "、".join(e["name"] for e in before) or "（該当なし）"
+        facts.append(f"→ P0 昇格（{esc}）の30分前に起きたのは: {names}")
+        route = "Neo4j Event + BEFORE"
     else:
         r = answer_routed(qid)
         facts = [json.dumps(r.value, ensure_ascii=False)]

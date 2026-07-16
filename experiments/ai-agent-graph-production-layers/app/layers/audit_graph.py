@@ -1,4 +1,4 @@
-"""[2部] Q5 監査グラフ — SQLite 集計 + Neo4j PERFORMED."""
+"""[2部] 監査グラフ（Q6）— SQLite 集計 + Neo4j PERFORMED."""
 
 from __future__ import annotations
 
