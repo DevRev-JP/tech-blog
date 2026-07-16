@@ -42,7 +42,10 @@ QUESTION_META: dict[str, QuestionMeta] = {
     "Q5": QuestionMeta("類似の過去障害は？", "コンテキスト（意味的類似・5種の外）"),
     "Q6": QuestionMeta("過去30日の P0 件数トップ製品は？", "監査グラフ（集計）"),
     "Q7": QuestionMeta("P0 昇格の30分前に何があったか？", "時間軸グラフ"),
-    "Q8": QuestionMeta("このターンで LLM に渡すノードは？", "コンテキストグラフ"),
+    "Q8": QuestionMeta(
+        "この障害対応で、エージェントに見せてよいエンティティはどれか？",
+        "コンテキストグラフ",
+    ),
 }
 
 QUESTIONS: dict[str, str] = {qid: m.text for qid, m in QUESTION_META.items()}
