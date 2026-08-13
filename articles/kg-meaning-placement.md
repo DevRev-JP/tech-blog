@@ -3,7 +3,7 @@ title: "ナレッジグラフ設計で後から問われるのは、意味をど
 emoji: "🕸️"
 type: "tech"
 topics: ["ナレッジグラフ", "プロパティグラフ", "設計", "生成AI", "Neo4j"]
-published: false
+published: true
 ---
 
 Labeled Property Graph（LPG、いわゆる Property Graph）でナレッジグラフを作り始めると、最初はかなり自由に感じます。Nodeを作る。Labelを付ける。Relationshipでつなぐ。必要な情報はPropertyに入れる。RDBのように最初から厳密な構造定義は不要なので、グラフを形にするまでは比較的簡単です。難しくなるのはその後です。
