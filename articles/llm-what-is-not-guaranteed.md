@@ -3,7 +3,7 @@ title: "LLMの構造的限界から考える、AIエージェントの設計原�
 emoji: "🧩"
 type: "tech"
 topics: ["LLM", "ナレッジグラフ", "AIエージェント", "Transformer", "システム設計"]
-published: false
+published: true
 ---
 
 「LLM は次のトークンを予測しているだけ」。
