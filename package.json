@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/DevRev-JP/tech-blog#readme",
   "dependencies": {
-    "zenn-cli": "^0.5.13"
+    "zenn-cli": "^0.5.17"
   },
   "overrides": {
     "undici": "^7.30.1",
